@@ -7,6 +7,7 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 
 class OrdersTable
@@ -64,7 +65,30 @@ class OrdersTable
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                SelectFilter::make('status')
+                    ->label('Status')
+                    ->options([
+                        'received' => 'Pedido recebido',
+                        'payment_approved' => 'Pagamento aprovado',
+                        'preparing' => 'Em separacao',
+                        'out_for_delivery' => 'Saiu para entrega',
+                        'ready_for_pickup' => 'Pronto para retirada',
+                        'delivered' => 'Entregue',
+                        'cancelled' => 'Cancelado',
+                    ]),
+                SelectFilter::make('fulfillment_method')
+                    ->label('Recebimento')
+                    ->options([
+                        'delivery' => 'Entrega local',
+                        'pickup' => 'Retirada na loja',
+                    ]),
+                SelectFilter::make('payment_method')
+                    ->label('Pagamento')
+                    ->options([
+                        'pix' => 'Pix',
+                        'credit_card' => 'Cartao',
+                        'boleto' => 'Boleto',
+                    ]),
             ])
             ->recordActions([
                 ViewAction::make(),

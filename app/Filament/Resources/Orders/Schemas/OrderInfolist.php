@@ -2,7 +2,10 @@
 
 namespace App\Filament\Resources\Orders\Schemas;
 
+use Filament\Infolists\Components\RepeatableEntry;
+use Filament\Infolists\Components\RepeatableEntry\TableColumn;
 use Filament\Infolists\Components\TextEntry;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
 class OrderInfolist
@@ -11,47 +14,110 @@ class OrderInfolist
     {
         return $schema
             ->components([
-                TextEntry::make('code'),
-                TextEntry::make('status'),
-                TextEntry::make('customer_name'),
-                TextEntry::make('customer_email'),
-                TextEntry::make('customer_phone'),
-                TextEntry::make('fulfillment_method'),
-                TextEntry::make('postal_code')
-                    ->placeholder('-'),
-                TextEntry::make('street')
-                    ->placeholder('-'),
-                TextEntry::make('number')
-                    ->placeholder('-'),
-                TextEntry::make('complement')
-                    ->placeholder('-'),
-                TextEntry::make('neighborhood')
-                    ->placeholder('-'),
-                TextEntry::make('city')
-                    ->placeholder('-'),
-                TextEntry::make('state')
-                    ->placeholder('-'),
-                TextEntry::make('payment_method'),
-                TextEntry::make('subtotal_cents')
-                    ->numeric(),
-                TextEntry::make('shipping_cents')
-                    ->numeric(),
-                TextEntry::make('discount_cents')
-                    ->numeric(),
-                TextEntry::make('total_cents')
-                    ->numeric(),
-                TextEntry::make('notes')
-                    ->placeholder('-')
-                    ->columnSpanFull(),
-                TextEntry::make('privacy_accepted_at')
-                    ->dateTime()
-                    ->placeholder('-'),
-                TextEntry::make('created_at')
-                    ->dateTime()
-                    ->placeholder('-'),
-                TextEntry::make('updated_at')
-                    ->dateTime()
-                    ->placeholder('-'),
+                Section::make('Resumo do pedido')
+                    ->columns(4)
+                    ->schema([
+                        TextEntry::make('code')
+                            ->label('Pedido')
+                            ->copyable(),
+                        TextEntry::make('status_label')
+                            ->label('Status')
+                            ->badge(),
+                        TextEntry::make('fulfillment_method_label')
+                            ->label('Recebimento'),
+                        TextEntry::make('payment_method_label')
+                            ->label('Pagamento'),
+                        TextEntry::make('formatted_subtotal')
+                            ->label('Subtotal'),
+                        TextEntry::make('shipping_cents')
+                            ->label('Entrega')
+                            ->formatStateUsing(fn (int $state): string => 'R$ '.number_format($state / 100, 2, ',', '.')),
+                        TextEntry::make('discount_cents')
+                            ->label('Desconto')
+                            ->formatStateUsing(fn (int $state): string => 'R$ '.number_format($state / 100, 2, ',', '.')),
+                        TextEntry::make('formatted_total')
+                            ->label('Total'),
+                    ]),
+                Section::make('Cliente')
+                    ->columns(3)
+                    ->schema([
+                        TextEntry::make('customer_name')
+                            ->label('Nome'),
+                        TextEntry::make('customer_email')
+                            ->label('E-mail')
+                            ->copyable(),
+                        TextEntry::make('customer_phone')
+                            ->label('Telefone')
+                            ->copyable(),
+                    ]),
+                Section::make('Entrega')
+                    ->columns(3)
+                    ->schema([
+                        TextEntry::make('postal_code')
+                            ->label('CEP')
+                            ->placeholder('-'),
+                        TextEntry::make('street')
+                            ->label('Rua')
+                            ->placeholder('-'),
+                        TextEntry::make('number')
+                            ->label('Numero')
+                            ->placeholder('-'),
+                        TextEntry::make('neighborhood')
+                            ->label('Bairro')
+                            ->placeholder('-'),
+                        TextEntry::make('city')
+                            ->label('Cidade')
+                            ->placeholder('-'),
+                        TextEntry::make('state')
+                            ->label('UF')
+                            ->placeholder('-'),
+                        TextEntry::make('complement')
+                            ->label('Complemento')
+                            ->placeholder('-')
+                            ->columnSpanFull(),
+                    ]),
+                Section::make('Itens')
+                    ->schema([
+                        RepeatableEntry::make('items')
+                            ->label('Itens')
+                            ->table([
+                                TableColumn::make('Produto'),
+                                TableColumn::make('SKU'),
+                                TableColumn::make('Qtd.'),
+                                TableColumn::make('Unitario'),
+                                TableColumn::make('Total'),
+                            ])
+                            ->schema([
+                                TextEntry::make('product_name')
+                                    ->label('Produto'),
+                                TextEntry::make('product_sku')
+                                    ->label('SKU'),
+                                TextEntry::make('quantity')
+                                    ->label('Qtd.'),
+                                TextEntry::make('unit_price_cents')
+                                    ->label('Unitario')
+                                    ->formatStateUsing(fn (int $state): string => 'R$ '.number_format($state / 100, 2, ',', '.')),
+                                TextEntry::make('line_total_cents')
+                                    ->label('Total')
+                                    ->formatStateUsing(fn (int $state): string => 'R$ '.number_format($state / 100, 2, ',', '.')),
+                            ]),
+                    ]),
+                Section::make('Observacoes e auditoria')
+                    ->columns(2)
+                    ->schema([
+                        TextEntry::make('notes')
+                            ->label('Observacoes')
+                            ->placeholder('-')
+                            ->columnSpanFull(),
+                        TextEntry::make('privacy_accepted_at')
+                            ->label('Privacidade aceita em')
+                            ->dateTime()
+                            ->placeholder('-'),
+                        TextEntry::make('created_at')
+                            ->label('Criado em')
+                            ->dateTime()
+                            ->placeholder('-'),
+                    ]),
             ]);
     }
 }
