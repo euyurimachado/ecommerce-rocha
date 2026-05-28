@@ -1,2 +1,3 @@
 User-agent: *
 Disallow:
+Sitemap: https://rochasports.com.br/sitemap.xml

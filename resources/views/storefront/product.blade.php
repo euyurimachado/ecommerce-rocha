@@ -19,6 +19,32 @@
             }
         }
     </script>
+    <script type="application/ld+json">
+        {
+            "@@context": "https://schema.org",
+            "@@type": "BreadcrumbList",
+            "itemListElement": [
+                {
+                    "@@type": "ListItem",
+                    "position": 1,
+                    "name": "Inicio",
+                    "item": "{{ route('home') }}"
+                },
+                {
+                    "@@type": "ListItem",
+                    "position": 2,
+                    "name": "{{ $product->category->name }}",
+                    "item": "{{ route('categories.show', $product->category) }}"
+                },
+                {
+                    "@@type": "ListItem",
+                    "position": 3,
+                    "name": "{{ $product->name }}",
+                    "item": "{{ route('products.show', $product) }}"
+                }
+            ]
+        }
+    </script>
 @endsection
 
 @section('content')
@@ -34,10 +60,16 @@
 
         <div>
             <nav class="text-sm text-slate-500">
-                <a href="{{ route('home') }}">Inicio</a> / <a href="{{ route('categories.show', $product->category) }}">{{ $product->category->name }}</a>
+                <ol class="flex flex-wrap gap-2">
+                    <li><a href="{{ route('home') }}">Inicio</a></li>
+                    <li>/</li>
+                    <li><a href="{{ route('categories.show', $product->category) }}">{{ $product->category->name }}</a></li>
+                    <li>/</li>
+                    <li class="text-slate-700">{{ $product->name }}</li>
+                </ol>
             </nav>
             <h1 class="mt-3 text-3xl font-black text-slate-950">{{ $product->name }}</h1>
-            <p class="mt-2 text-sm font-bold text-sky-700">{{ $product->brand?->name }} · {{ $product->weight }}</p>
+            <p class="mt-2 text-sm font-bold text-sky-700">{{ $product->brand?->name }} - {{ $product->weight }}</p>
             <p class="mt-4 text-slate-600">{{ $product->short_description }}</p>
 
             <div class="mt-6 rounded-lg border border-slate-200 bg-white p-5">
