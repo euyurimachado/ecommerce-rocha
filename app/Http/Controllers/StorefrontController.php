@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Banner;
 use App\Models\Brand;
 use App\Models\Category;
+use App\Models\Order;
 use App\Models\Product;
 use Illuminate\Contracts\View\View;
 
@@ -74,6 +75,15 @@ class StorefrontController extends Controller
                 ->where('category_id', $category->id)
                 ->orderByDesc('sales_count')
                 ->paginate(12),
+        ]);
+    }
+
+    public function orderStatus(Order $order): View
+    {
+        $order->load('items');
+
+        return view('storefront.order-status', [
+            'order' => $order,
         ]);
     }
 }
