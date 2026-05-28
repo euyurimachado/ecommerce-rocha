@@ -48,7 +48,7 @@
                 <p class="mt-2 text-sm font-semibold text-emerald-700">Entrega local ou retirada na loja</p>
                 <div class="mt-5 grid gap-3 sm:grid-cols-2">
                     <button class="rounded-lg bg-sky-600 px-5 py-3 font-black text-white">Comprar agora</button>
-                    <button class="rounded-lg border border-slate-300 px-5 py-3 font-black text-slate-800">Adicionar ao carrinho</button>
+                    <livewire:cart.add-to-cart-button :product="$product" label="Adicionar ao carrinho" :full-width="true" :key="'add-product-page-'.$product->id" />
                 </div>
             </div>
 

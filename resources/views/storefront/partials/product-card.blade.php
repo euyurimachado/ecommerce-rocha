@@ -11,7 +11,7 @@
     <div class="flex flex-1 flex-col p-4">
         <div class="flex items-center justify-between gap-2 text-xs">
             <span class="font-semibold text-sky-700">{{ $product->brand?->name }}</span>
-            <span class="text-slate-500">★ {{ $product->rating }}</span>
+            <span class="text-slate-500">Nota {{ $product->rating }}</span>
         </div>
 
         <a href="{{ route('products.show', $product) }}" class="mt-2 line-clamp-2 min-h-11 text-sm font-bold text-slate-950">
@@ -26,9 +26,7 @@
             @endif
             <div class="mt-1 flex items-center justify-between gap-3">
                 <p class="text-lg font-black text-slate-950">{{ $product->formatted_price }}</p>
-                <button class="grid size-10 place-items-center rounded-lg bg-sky-600 text-xl font-bold text-white transition hover:bg-sky-700" type="button" aria-label="Adicionar {{ $product->name }} ao carrinho">
-                    +
-                </button>
+                <livewire:cart.add-to-cart-button :product="$product" :key="'add-product-card-'.$product->id" />
             </div>
             <p class="mt-2 text-xs font-medium text-emerald-700">Entrega rapida ou retirada</p>
         </div>

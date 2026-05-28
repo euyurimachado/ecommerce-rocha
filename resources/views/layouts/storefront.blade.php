@@ -30,25 +30,25 @@
                 <form action="#" class="hidden flex-1 md:block">
                     <label class="sr-only" for="site-search">Buscar</label>
                     <div class="flex h-12 items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4 shadow-inner">
-                        <span class="text-slate-400">⌕</span>
+                        <span class="text-slate-400">Buscar</span>
                         <input id="site-search" class="w-full bg-transparent text-sm outline-none" type="search" placeholder="Buscar suplementos, marcas e lojas">
                     </div>
                 </form>
 
                 <div class="hidden items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 lg:flex">
-                    <span class="text-sky-600">●</span>
+                    <span class="text-sky-600">Local</span>
                     <span>Entrega em Campos dos Goytacazes, RJ</span>
                 </div>
 
                 <nav class="ml-auto flex items-center gap-2">
-                    <a class="grid size-10 place-items-center rounded-lg border border-slate-200 text-slate-600" href="#" aria-label="Conta">♡</a>
-                    <a class="grid size-10 place-items-center rounded-lg bg-sky-600 font-bold text-white" href="{{ route('cart') }}" aria-label="Carrinho">0</a>
+                    <a class="grid size-10 place-items-center rounded-lg border border-slate-200 text-sm font-bold text-slate-600" href="#" aria-label="Conta">Conta</a>
+                    <livewire:cart.cart-badge />
                 </nav>
             </div>
 
             <div class="mx-auto px-4 pb-3 md:hidden">
                 <div class="flex h-11 items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4">
-                    <span class="text-slate-400">⌕</span>
+                    <span class="text-slate-400">Buscar</span>
                     <input class="w-full bg-transparent text-sm outline-none" type="search" placeholder="Buscar suplementos, marcas e lojas">
                 </div>
                 <p class="mt-2 text-xs font-medium text-slate-600">Entrega em Campos dos Goytacazes, RJ</p>
@@ -88,6 +88,8 @@
             </div>
         </footer>
     </div>
+
+    <livewire:cart.sticky-cart />
 
     <nav class="fixed inset-x-0 bottom-0 z-50 border-t border-slate-200 bg-white px-2 py-2 md:hidden">
         <div class="mx-auto grid max-w-md grid-cols-5 text-center text-xs font-semibold text-slate-600">
