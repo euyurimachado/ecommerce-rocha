@@ -1,7 +1,7 @@
 @extends('layouts.storefront')
 
-@section('title', 'Rocha Sports | Suplementos com entrega rapida em Campos')
-@section('meta_description', 'Compre whey, creatina, pre-treino e suplementos originais com entrega rapida em Campos dos Goytacazes ou retirada na Rocha Sports.')
+@section('title', 'Rocha Sports | Suplementos com entrega rápida em Campos')
+@section('meta_description', 'Compre whey, creatina, pré-treino e suplementos originais com entrega rápida em Campos dos Goytacazes ou retirada na Rocha Sports.')
 
 @section('schema')
     <script type="application/ld+json">
@@ -40,10 +40,10 @@
             <div class="rounded-lg border border-white/10 bg-slate-900 p-6 shadow-xl md:p-8">
                 <p class="text-sm font-bold text-sky-300">Rocha Sports em Campos dos Goytacazes</p>
                 <h1 class="mt-3 max-w-2xl text-3xl font-black leading-tight md:text-5xl">
-                    {{ $banner?->title ?? 'Suplementos originais com entrega rapida em Campos' }}
+                    {{ $banner?->title ?? 'Suplementos originais com entrega rápida em Campos' }}
                 </h1>
                 <p class="mt-4 max-w-2xl text-base text-slate-300 md:text-lg">
-                    {{ $banner?->subtitle ?? 'Whey, creatina, pre-treino e combos selecionados por especialistas Rocha Sports.' }}
+                    {{ $banner?->subtitle ?? 'Whey, creatina, pré-treino e combos selecionados por especialistas Rocha Sports.' }}
                 </p>
                 <div class="mt-6 flex flex-wrap gap-3">
                     <a href="#ofertas" class="rounded-lg bg-sky-500 px-5 py-3 text-sm font-black text-white transition hover:bg-sky-400">Ver ofertas</a>
@@ -54,11 +54,11 @@
             <div class="grid gap-3 sm:grid-cols-3 md:grid-cols-1">
                 <div class="rounded-lg border border-white/10 bg-white/5 p-4">
                     <p class="font-black">Pagamento seguro</p>
-                    <p class="mt-1 text-sm text-slate-300">Pix, cartao e checkout protegido.</p>
+                    <p class="mt-1 text-sm text-slate-300">Pix, cartão e checkout protegido.</p>
                 </div>
                 <div class="rounded-lg border border-white/10 bg-white/5 p-4">
-                    <p class="font-black">Entrega rapida</p>
-                    <p class="mt-1 text-sm text-slate-300">Operacao local em Campos.</p>
+                    <p class="font-black">Entrega rápida</p>
+                    <p class="mt-1 text-sm text-slate-300">Operação local em Campos.</p>
                 </div>
                 <div class="rounded-lg border border-white/10 bg-white/5 p-4">
                     <p class="font-black">Produtos originais</p>
@@ -88,8 +88,8 @@
         <div class="mx-auto max-w-7xl px-4 py-8 lg:px-6">
             <div class="flex items-end justify-between gap-4">
                 <div>
-                    <h2 class="text-2xl font-black text-slate-950">Ofertas para voce</h2>
-                    <p class="mt-1 text-sm text-slate-600">Promocoes, combos e itens com alto giro.</p>
+                    <h2 class="text-2xl font-black text-slate-950">Ofertas para você</h2>
+                    <p class="mt-1 text-sm text-slate-600">Promoções, combos e itens com alto giro.</p>
                 </div>
                 <a href="#" class="text-sm font-bold text-sky-700">Ver ofertas</a>
             </div>

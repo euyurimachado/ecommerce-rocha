@@ -79,6 +79,7 @@
                         <li><a href="{{ route('legal.privacy') }}">Privacidade</a></li>
                         <li><a href="{{ route('legal.cookies') }}">Cookies</a></li>
                         <li>Trocas e devoluções</li>
+                        <li><button class="font-semibold text-sky-700" type="button" data-cookie-preferences-open>Preferências de cookies</button></li>
                     </ul>
                 </div>
                 <div>
@@ -90,6 +91,7 @@
     </div>
 
     <livewire:cart.sticky-cart />
+    @include('partials.cookie-consent')
 
     <nav class="fixed inset-x-0 bottom-0 z-50 border-t border-slate-200 bg-white px-2 py-2 md:hidden">
         <div class="mx-auto grid max-w-md grid-cols-5 text-center text-xs font-semibold text-slate-600">

@@ -28,7 +28,7 @@
                 <p class="text-lg font-black text-slate-950">{{ $product->formatted_price }}</p>
                 <livewire:cart.add-to-cart-button :product="$product" :key="'add-product-card-'.$product->id" />
             </div>
-            <p class="mt-2 text-xs font-medium text-emerald-700">Entrega rapida ou retirada</p>
+            <p class="mt-2 text-xs font-medium text-emerald-700">Entrega rápida ou retirada</p>
         </div>
     </div>
 </article>
