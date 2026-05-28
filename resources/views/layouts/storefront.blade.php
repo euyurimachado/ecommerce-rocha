@@ -27,11 +27,11 @@
                     </span>
                 </a>
 
-                <form action="#" class="hidden flex-1 md:block">
+                <form action="{{ route('search') }}" method="GET" class="hidden flex-1 md:block">
                     <label class="sr-only" for="site-search">Buscar</label>
                     <div class="flex h-12 items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4 shadow-inner">
                         <span class="text-slate-400">Buscar</span>
-                        <input id="site-search" class="w-full bg-transparent text-sm outline-none" type="search" placeholder="Buscar suplementos, marcas e lojas">
+                        <input id="site-search" name="q" value="{{ request('q') }}" class="w-full bg-transparent text-sm outline-none" type="search" placeholder="Buscar suplementos, marcas e lojas">
                     </div>
                 </form>
 
@@ -47,10 +47,10 @@
             </div>
 
             <div class="mx-auto px-4 pb-3 md:hidden">
-                <div class="flex h-11 items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4">
+                <form action="{{ route('search') }}" method="GET" class="flex h-11 items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4">
                     <span class="text-slate-400">Buscar</span>
-                    <input class="w-full bg-transparent text-sm outline-none" type="search" placeholder="Buscar suplementos, marcas e lojas">
-                </div>
+                    <input name="q" value="{{ request('q') }}" class="w-full bg-transparent text-sm outline-none" type="search" placeholder="Buscar suplementos, marcas e lojas">
+                </form>
                 <p class="mt-2 text-xs font-medium text-slate-600">Entrega em Campos dos Goytacazes, RJ</p>
             </div>
         </header>
@@ -94,8 +94,8 @@
     <nav class="fixed inset-x-0 bottom-0 z-50 border-t border-slate-200 bg-white px-2 py-2 md:hidden">
         <div class="mx-auto grid max-w-md grid-cols-5 text-center text-xs font-semibold text-slate-600">
             <a class="rounded-lg px-2 py-2 text-sky-700" href="{{ route('home') }}">Inicio</a>
-            <a class="rounded-lg px-2 py-2" href="#">Busca</a>
-            <a class="rounded-lg px-2 py-2" href="#">Ofertas</a>
+            <a class="rounded-lg px-2 py-2" href="{{ route('search') }}">Busca</a>
+            <a class="rounded-lg px-2 py-2" href="{{ route('search', ['ordenar' => 'ofertas']) }}">Ofertas</a>
             <a class="rounded-lg px-2 py-2" href="#">Pedidos</a>
             <a class="rounded-lg px-2 py-2" href="#">Conta</a>
         </div>
