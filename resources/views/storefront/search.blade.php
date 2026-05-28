@@ -1,7 +1,7 @@
 @extends('layouts.storefront')
 
 @section('title', ($query ? 'Busca por '.$query : 'Buscar suplementos').' | Rocha Sports')
-@section('meta_description', 'Busque suplementos, marcas e categorias na Rocha Sports com entrega rapida em Campos dos Goytacazes.')
+@section('meta_description', 'Busque suplementos, marcas e categorias na Rocha Sports com entrega rápida em Campos dos Goytacazes.')
 
 @section('content')
     <section class="border-b border-slate-200 bg-white">
@@ -57,11 +57,11 @@
                 <label class="block">
                     <span class="text-sm font-bold text-slate-700">Ordenar</span>
                     <select name="ordenar" class="mt-2 h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-sky-500">
-                        <option value="relevancia" @selected($selectedSort === 'relevancia')>Relevancia</option>
+                        <option value="relevancia" @selected($selectedSort === 'relevancia')>Relevância</option>
                         <option value="mais-vendidos" @selected($selectedSort === 'mais-vendidos')>Mais vendidos</option>
                         <option value="ofertas" @selected($selectedSort === 'ofertas')>Ofertas</option>
-                        <option value="menor-preco" @selected($selectedSort === 'menor-preco')>Menor preco</option>
-                        <option value="maior-preco" @selected($selectedSort === 'maior-preco')>Maior preco</option>
+                        <option value="menor-preco" @selected($selectedSort === 'menor-preco')>Menor preço</option>
+                        <option value="maior-preco" @selected($selectedSort === 'maior-preco')>Maior preço</option>
                     </select>
                 </label>
 
@@ -82,7 +82,7 @@
                 <div class="rounded-lg border border-slate-200 bg-white p-8 text-center">
                     <h2 class="text-xl font-black text-slate-950">Nenhum produto encontrado</h2>
                     <p class="mt-2 text-slate-600">Tente buscar por whey, creatina, marca ou objetivo.</p>
-                    <a href="{{ route('home') }}" class="mt-5 inline-flex rounded-lg bg-sky-600 px-5 py-3 font-black text-white">Voltar para a home</a>
+                    <a href="{{ route('home') }}" class="mt-5 inline-flex rounded-lg bg-sky-600 px-5 py-3 font-black text-white">Voltar para a loja</a>
                 </div>
             @else
                 <div class="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">

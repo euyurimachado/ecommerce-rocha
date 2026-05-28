@@ -60,7 +60,7 @@ class OrderInfolist
                             ->label('Rua')
                             ->placeholder('-'),
                         TextEntry::make('number')
-                            ->label('Numero')
+                            ->label('Número')
                             ->placeholder('-'),
                         TextEntry::make('neighborhood')
                             ->label('Bairro')
@@ -84,7 +84,7 @@ class OrderInfolist
                                 TableColumn::make('Produto'),
                                 TableColumn::make('SKU'),
                                 TableColumn::make('Qtd.'),
-                                TableColumn::make('Unitario'),
+                                TableColumn::make('Unitário'),
                                 TableColumn::make('Total'),
                             ])
                             ->schema([
@@ -95,18 +95,18 @@ class OrderInfolist
                                 TextEntry::make('quantity')
                                     ->label('Qtd.'),
                                 TextEntry::make('unit_price_cents')
-                                    ->label('Unitario')
+                                    ->label('Unitário')
                                     ->formatStateUsing(fn (int $state): string => 'R$ '.number_format($state / 100, 2, ',', '.')),
                                 TextEntry::make('line_total_cents')
                                     ->label('Total')
                                     ->formatStateUsing(fn (int $state): string => 'R$ '.number_format($state / 100, 2, ',', '.')),
                             ]),
                     ]),
-                Section::make('Observacoes e auditoria')
+                Section::make('Observações e auditoria')
                     ->columns(2)
                     ->schema([
                         TextEntry::make('notes')
-                            ->label('Observacoes')
+                            ->label('Observações')
                             ->placeholder('-')
                             ->columnSpanFull(),
                         TextEntry::make('privacy_accepted_at')

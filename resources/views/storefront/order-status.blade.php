@@ -7,7 +7,7 @@
         <div class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
             <p class="text-sm font-bold text-sky-700">Pedido {{ $order->code }}</p>
             <h1 class="mt-2 text-3xl font-black text-slate-950">{{ $order->status_label }}</h1>
-            <p class="mt-3 text-slate-600">Recebemos seu pedido. A equipe Rocha Sports entrara em contato para confirmar pagamento e {{ $order->fulfillment_method === 'pickup' ? 'retirada' : 'entrega' }}.</p>
+            <p class="mt-3 text-slate-600">Recebemos seu pedido. A equipe Rocha Sports entrará em contato para confirmar pagamento e {{ $order->fulfillment_method === 'pickup' ? 'retirada' : 'entrega' }}.</p>
 
             <div class="mt-6 grid gap-3 sm:grid-cols-3">
                 <div class="rounded-lg bg-slate-50 p-4">

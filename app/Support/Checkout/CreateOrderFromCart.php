@@ -15,7 +15,7 @@ class CreateOrderFromCart
         $items = $cart->items();
 
         if ($items->isEmpty()) {
-            throw new RuntimeException('Nao e possivel finalizar um pedido com carrinho vazio.');
+            throw new RuntimeException('Não é possível finalizar um pedido com carrinho vazio.');
         }
 
         return DB::transaction(function () use ($cart, $data, $items) {

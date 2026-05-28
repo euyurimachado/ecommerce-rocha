@@ -1,8 +1,8 @@
 <div>
     @if ($items->isEmpty())
         <div class="mt-6 rounded-lg border border-slate-200 bg-white p-6 text-slate-600">
-            <p class="font-semibold text-slate-950">Seu carrinho ainda esta vazio.</p>
-            <p class="mt-2">Adicione produtos antes de seguir para o checkout.</p>
+            <p class="font-semibold text-slate-950">Seu carrinho ainda está vazio.</p>
+            <p class="mt-2">Adicione produtos antes de finalizar a compra.</p>
             <a href="{{ route('home') }}" class="mt-5 inline-flex rounded-lg bg-sky-600 px-5 py-3 font-black text-white">Continuar comprando</a>
         </div>
     @else
@@ -15,7 +15,7 @@
                 @endif
 
                 <section class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-                    <h2 class="text-xl font-black">1. Identificacao</h2>
+                    <h2 class="text-xl font-black">1. Identificação</h2>
                     <div class="mt-5 grid gap-4 md:grid-cols-2">
                         <label class="block">
                             <span class="text-sm font-bold text-slate-700">Nome completo</span>
@@ -49,7 +49,7 @@
                             <input wire:model.live="fulfillment_method" class="mt-1" type="radio" value="pickup">
                             <span>
                                 <span class="block font-black">Retirada na loja</span>
-                                <span class="mt-1 block text-sm text-slate-600">Separemos o pedido para retirada.</span>
+                                <span class="mt-1 block text-sm text-slate-600">Separaremos o pedido para retirada.</span>
                             </span>
                         </label>
                     </div>
@@ -67,7 +67,7 @@
                                 @error('street') <span class="mt-1 block text-sm text-rose-700">{{ $message }}</span> @enderror
                             </label>
                             <label class="block md:col-span-1">
-                                <span class="text-sm font-bold text-slate-700">Numero</span>
+                                <span class="text-sm font-bold text-slate-700">Número</span>
                                 <input wire:model="number" class="mt-2 h-11 w-full rounded-lg border border-slate-200 px-3 outline-none focus:border-sky-500" type="text">
                                 @error('number') <span class="mt-1 block text-sm text-rose-700">{{ $message }}</span> @enderror
                             </label>
@@ -93,7 +93,7 @@
                         </div>
                     @else
                         <div class="mt-5 rounded-lg bg-slate-50 p-4 text-sm text-slate-600">
-                            Retirada na Rocha Sports. A equipe confirmara o horario pelo WhatsApp apos o pedido.
+                            Retirada na Rocha Sports. A equipe confirmará o horário pelo WhatsApp após o pedido.
                         </div>
                     @endif
                 </section>
@@ -107,7 +107,7 @@
                         </label>
                         <label class="flex cursor-pointer gap-3 rounded-lg border border-slate-200 p-4">
                             <input wire:model="payment_method" class="mt-1" type="radio" value="credit_card">
-                            <span class="font-black">Cartao</span>
+                            <span class="font-black">Cartão</span>
                         </label>
                         <label class="flex cursor-pointer gap-3 rounded-lg border border-slate-200 p-4">
                             <input wire:model="payment_method" class="mt-1" type="radio" value="boleto">
@@ -117,13 +117,13 @@
                     @error('payment_method') <span class="mt-2 block text-sm text-rose-700">{{ $message }}</span> @enderror
 
                     <label class="mt-5 block">
-                        <span class="text-sm font-bold text-slate-700">Observacoes</span>
+                        <span class="text-sm font-bold text-slate-700">Observações</span>
                         <textarea wire:model="notes" class="mt-2 min-h-24 w-full rounded-lg border border-slate-200 px-3 py-2 outline-none focus:border-sky-500" maxlength="500"></textarea>
                     </label>
 
                     <label class="mt-5 flex items-start gap-3 text-sm text-slate-600">
                         <input wire:model="privacy_accepted" class="mt-1" type="checkbox">
-                        <span>Li e aceito a politica de privacidade e o contato para atualizacoes deste pedido.</span>
+                        <span>Li e aceito a política de privacidade e o contato para atualizações deste pedido.</span>
                     </label>
                     @error('privacy_accepted') <span class="mt-2 block text-sm text-rose-700">{{ $message }}</span> @enderror
                 </section>

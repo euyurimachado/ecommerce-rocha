@@ -16,20 +16,26 @@ class BrandsTable
         return $table
             ->columns([
                 TextColumn::make('name')
+                    ->label('Nome')
                     ->searchable(),
                 TextColumn::make('slug')
                     ->searchable(),
                 TextColumn::make('logo_path')
+                    ->label('Logo')
                     ->searchable(),
                 IconColumn::make('is_active')
+                    ->label('Ativa')
                     ->boolean(),
                 IconColumn::make('is_featured')
+                    ->label('Destaque')
                     ->boolean(),
                 TextColumn::make('created_at')
+                    ->label('Criada em')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('updated_at')
+                    ->label('Atualizada em')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),

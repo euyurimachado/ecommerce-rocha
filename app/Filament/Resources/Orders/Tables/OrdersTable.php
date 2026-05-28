@@ -24,7 +24,7 @@ class OrdersTable
                     ->badge()
                     ->formatStateUsing(fn (string $state): string => match ($state) {
                         'payment_approved' => 'Pagamento aprovado',
-                        'preparing' => 'Em separacao',
+                        'preparing' => 'Em separação',
                         'out_for_delivery' => 'Saiu para entrega',
                         'ready_for_pickup' => 'Pronto para retirada',
                         'delivered' => 'Entregue',
@@ -46,7 +46,7 @@ class OrdersTable
                 TextColumn::make('payment_method')
                     ->label('Pagamento')
                     ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'credit_card' => 'Cartao',
+                        'credit_card' => 'Cartão',
                         'boleto' => 'Boleto',
                         default => 'Pix',
                     }),
@@ -70,7 +70,7 @@ class OrdersTable
                     ->options([
                         'received' => 'Pedido recebido',
                         'payment_approved' => 'Pagamento aprovado',
-                        'preparing' => 'Em separacao',
+                        'preparing' => 'Em separação',
                         'out_for_delivery' => 'Saiu para entrega',
                         'ready_for_pickup' => 'Pronto para retirada',
                         'delivered' => 'Entregue',
@@ -86,7 +86,7 @@ class OrdersTable
                     ->label('Pagamento')
                     ->options([
                         'pix' => 'Pix',
-                        'credit_card' => 'Cartao',
+                        'credit_card' => 'Cartão',
                         'boleto' => 'Boleto',
                     ]),
             ])

@@ -12,7 +12,7 @@
                 {
                     "@@type": "ListItem",
                     "position": 1,
-                    "name": "Inicio",
+                    "name": "Início",
                     "item": "{{ route('home') }}"
                 },
                 {
@@ -31,7 +31,7 @@
         <div class="mx-auto max-w-7xl px-4 py-8 lg:px-6">
             <nav class="mb-4 text-sm text-slate-500">
                 <ol class="flex flex-wrap gap-2">
-                    <li><a href="{{ route('home') }}">Inicio</a></li>
+                    <li><a href="{{ route('home') }}">Início</a></li>
                     <li>/</li>
                     <li class="text-slate-700">{{ $category->name }}</li>
                 </ol>

@@ -20,6 +20,12 @@ class BrandResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
+    protected static ?string $navigationLabel = 'Marcas';
+
+    protected static ?string $modelLabel = 'Marca';
+
+    protected static ?string $pluralModelLabel = 'Marcas';
+
     public static function form(Schema $schema): Schema
     {
         return BrandForm::configure($schema);

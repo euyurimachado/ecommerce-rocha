@@ -27,7 +27,7 @@
                 {
                     "@@type": "ListItem",
                     "position": 1,
-                    "name": "Inicio",
+                    "name": "Início",
                     "item": "{{ route('home') }}"
                 },
                 {
@@ -61,7 +61,7 @@
         <div>
             <nav class="text-sm text-slate-500">
                 <ol class="flex flex-wrap gap-2">
-                    <li><a href="{{ route('home') }}">Inicio</a></li>
+                    <li><a href="{{ route('home') }}">Início</a></li>
                     <li>/</li>
                     <li><a href="{{ route('categories.show', $product->category) }}">{{ $product->category->name }}</a></li>
                     <li>/</li>
@@ -95,9 +95,9 @@
     <section class="mx-auto max-w-7xl px-4 pb-10 lg:px-6">
         <div class="grid gap-6 md:grid-cols-3">
             <article class="rounded-lg border border-slate-200 bg-white p-5 md:col-span-2">
-                <h2 class="text-xl font-black">Descricao</h2>
+                <h2 class="text-xl font-black">Descrição</h2>
                 <p class="mt-3 text-slate-600">{{ $product->description }}</p>
-                <h3 class="mt-6 font-black">Beneficios</h3>
+                <h3 class="mt-6 font-black">Benefícios</h3>
                 <ul class="mt-3 grid gap-2 text-sm text-slate-600 sm:grid-cols-2">
                     @foreach ($product->benefits ?? [] as $benefit)
                         <li class="rounded-md bg-slate-50 p-3">{{ $benefit }}</li>

@@ -21,7 +21,7 @@ class ViewOrder extends ViewRecord
                 ->visible(fn (Order $record): bool => $record->status === 'received')
                 ->action(fn (Order $record) => $record->update(['status' => 'payment_approved'])),
             Action::make('startPreparing')
-                ->label('Em separacao')
+                ->label('Em separação')
                 ->color('warning')
                 ->visible(fn (Order $record): bool => in_array($record->status, ['received', 'payment_approved'], true))
                 ->action(fn (Order $record) => $record->update(['status' => 'preparing'])),

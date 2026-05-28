@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Rocha Sports | Suplementos em Campos dos Goytacazes')</title>
-    <meta name="description" content="@yield('meta_description', 'Suplementos originais com entrega rapida em Campos dos Goytacazes, RJ. Whey, creatina, pre-treino, vitaminas e combos na Rocha Sports.')">
+    <meta name="description" content="@yield('meta_description', 'Suplementos originais com entrega rápida em Campos dos Goytacazes, RJ. Whey, creatina, pré-treino, vitaminas e combos na Rocha Sports.')">
     <link rel="canonical" href="{{ url()->current() }}">
     <meta property="og:title" content="@yield('title', 'Rocha Sports')">
-    <meta property="og:description" content="@yield('meta_description', 'Suplementos originais com entrega rapida em Campos dos Goytacazes.')">
+    <meta property="og:description" content="@yield('meta_description', 'Suplementos originais com entrega rápida em Campos dos Goytacazes.')">
     <meta property="og:type" content="website">
     <meta property="og:url" content="{{ url()->current() }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -74,11 +74,11 @@
                     </ul>
                 </div>
                 <div>
-                    <p class="font-bold text-slate-950">Politicas</p>
+                    <p class="font-bold text-slate-950">Políticas</p>
                     <ul class="mt-2 space-y-1">
                         <li><a href="{{ route('legal.privacy') }}">Privacidade</a></li>
                         <li><a href="{{ route('legal.cookies') }}">Cookies</a></li>
-                        <li>Trocas e devolucoes</li>
+                        <li>Trocas e devoluções</li>
                     </ul>
                 </div>
                 <div>
@@ -93,7 +93,7 @@
 
     <nav class="fixed inset-x-0 bottom-0 z-50 border-t border-slate-200 bg-white px-2 py-2 md:hidden">
         <div class="mx-auto grid max-w-md grid-cols-5 text-center text-xs font-semibold text-slate-600">
-            <a class="rounded-lg px-2 py-2 text-sky-700" href="{{ route('home') }}">Inicio</a>
+            <a class="rounded-lg px-2 py-2 text-sky-700" href="{{ route('home') }}">Início</a>
             <a class="rounded-lg px-2 py-2" href="{{ route('search') }}">Busca</a>
             <a class="rounded-lg px-2 py-2" href="{{ route('search', ['ordenar' => 'ofertas']) }}">Ofertas</a>
             <a class="rounded-lg px-2 py-2" href="#">Pedidos</a>

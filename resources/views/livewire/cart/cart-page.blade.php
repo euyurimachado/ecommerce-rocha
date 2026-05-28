@@ -1,7 +1,7 @@
 <div>
     @if ($items->isEmpty())
         <div class="mt-6 rounded-lg border border-slate-200 bg-white p-6 text-slate-600">
-            <p class="font-semibold text-slate-950">Seu carrinho ainda esta vazio.</p>
+            <p class="font-semibold text-slate-950">Seu carrinho ainda está vazio.</p>
             <p class="mt-2">Escolha seus suplementos favoritos e adicione ao carrinho com um clique.</p>
             <a href="{{ route('home') }}" class="mt-5 inline-flex rounded-lg bg-sky-600 px-5 py-3 font-black text-white">Continuar comprando</a>
         </div>
@@ -41,10 +41,10 @@
                     </div>
                     <div class="flex justify-between">
                         <span class="text-slate-600">Entrega</span>
-                        <span class="font-bold">Calcular no checkout</span>
+                        <span class="font-bold">Calcular na finalização</span>
                     </div>
                 </div>
-                <a href="{{ route('checkout') }}" class="mt-6 flex w-full justify-center rounded-lg bg-sky-600 px-5 py-3 font-black text-white">Ir para checkout</a>
+                <a href="{{ route('checkout') }}" class="mt-6 flex w-full justify-center rounded-lg bg-sky-600 px-5 py-3 font-black text-white">Finalizar compra</a>
                 <button wire:click="clear" class="mt-3 w-full rounded-lg border border-slate-200 px-5 py-3 text-sm font-black text-slate-700" type="button">Limpar carrinho</button>
             </aside>
         </div>

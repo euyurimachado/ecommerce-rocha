@@ -56,7 +56,7 @@ class Order extends Model
     {
         return match ($this->status) {
             'payment_approved' => 'Pagamento aprovado',
-            'preparing' => 'Em separacao',
+            'preparing' => 'Em separação',
             'out_for_delivery' => 'Saiu para entrega',
             'ready_for_pickup' => 'Pronto para retirada',
             'delivered' => 'Entregue',
@@ -73,7 +73,7 @@ class Order extends Model
     public function getPaymentMethodLabelAttribute(): string
     {
         return match ($this->payment_method) {
-            'credit_card' => 'Cartao de credito',
+            'credit_card' => 'Cartão de crédito',
             'boleto' => 'Boleto',
             default => 'Pix',
         };

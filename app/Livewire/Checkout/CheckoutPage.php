@@ -46,7 +46,7 @@ class CheckoutPage extends Component
         $validated = $this->validate();
 
         if ($cart->items()->isEmpty()) {
-            $this->checkoutError = 'Seu carrinho esta vazio.';
+            $this->checkoutError = 'Seu carrinho está vazio.';
 
             return null;
         }
@@ -56,7 +56,7 @@ class CheckoutPage extends Component
         } catch (Throwable $exception) {
             report($exception);
 
-            $this->checkoutError = 'Nao foi possivel finalizar o pedido. Revise os dados e tente novamente.';
+            $this->checkoutError = 'Não foi possível finalizar o pedido. Revise os dados e tente novamente.';
 
             return null;
         }
@@ -103,12 +103,12 @@ class CheckoutPage extends Component
             'fulfillment_method' => 'forma de recebimento',
             'postal_code' => 'CEP',
             'street' => 'rua',
-            'number' => 'numero',
+            'number' => 'número',
             'neighborhood' => 'bairro',
             'city' => 'cidade',
             'state' => 'estado',
             'payment_method' => 'forma de pagamento',
-            'privacy_accepted' => 'politica de privacidade',
+            'privacy_accepted' => 'política de privacidade',
         ];
     }
 }

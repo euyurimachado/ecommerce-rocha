@@ -1,6 +1,6 @@
 # Rocha Sports Ecommerce
 
-Ecommerce mobile-first para a Rocha Sports, loja de suplementos em Campos dos Goytacazes, RJ. A base usa Laravel, Livewire, Alpine.js, Tailwind CSS e Filament, com arquitetura preparada para PWA, app mobile e futura evolucao whitelabel.
+Ecommerce mobile-first para a Rocha Sports, loja de suplementos em Campos dos Goytacazes, RJ. A base usa Laravel, Livewire, Alpine.js, Tailwind CSS e Filament, com arquitetura preparada para PWA, app mobile e futura evolução whitelabel.
 
 ## Stack
 
@@ -9,10 +9,10 @@ Ecommerce mobile-first para a Rocha Sports, loja de suplementos em Campos dos Go
 - Filament 5
 - Tailwind CSS 4
 - Vite
-- SQLite local por padrao
+- SQLite local por padrão
 - MySQL/MariaDB recomendado para Hostinger compartilhada
 
-## Primeira instalacao
+## Primeira instalação
 
 ```bash
 composer install
@@ -37,17 +37,17 @@ php artisan serve
 npm run dev
 ```
 
-Home: `http://127.0.0.1:8000`  
+Loja: `http://127.0.0.1:8000`  
 Admin Filament: `http://127.0.0.1:8000/admin`
 
-Usuario seed local:
+Usuário seed local:
 
 - E-mail: `admin@rochasports.com.br`
 - Senha: `password`
 
-Troque essa senha antes de qualquer ambiente publico.
+Troque essa senha antes de qualquer ambiente público.
 
-## Verificacao
+## Verificação
 
 ```bash
 php artisan test
@@ -55,28 +55,28 @@ npm run build
 vendor/bin/pint --dirty
 ```
 
-## Documentacao de produto
+## Documentação de produto
 
-A especificacao funcional e tecnica esta em:
+A especificação funcional e técnica está em:
 
 ```text
 docs/rocha-sports-ecommerce-spec.md
 ```
 
-## Modulos iniciados
+## Módulos iniciados
 
-- Catalogo: categorias, marcas, produtos e banners.
-- Storefront: home app-like, categorias, produto, carrinho placeholder e checkout placeholder.
+- Catálogo: categorias, marcas, produtos e banners.
+- Loja: home app-like, categorias, produto, carrinho placeholder e finalização de compra placeholder.
 - Admin: Filament resources para produtos, categorias, marcas e banners.
 - SEO inicial: title, meta description, canonical, Open Graph e JSON-LD em home/produto.
-- LGPD inicial: paginas de privacidade e cookies.
+- LGPD inicial: páginas de privacidade e cookies.
 
-## Proximos incrementos
+## Próximos incrementos
 
 - Carrinho persistente com Livewire.
-- Checkout real com entrega/retirada.
+- Finalização de compra real com entrega/retirada.
 - Gateway de pagamento.
 - Busca com autocomplete.
-- Politicas completas e consentimento de cookies.
+- Políticas completas e consentimento de cookies.
 - API `/api/v1` para app mobile.
-- Preparacao multitenant/whitelabel.
+- Preparação multitenant/whitelabel.
