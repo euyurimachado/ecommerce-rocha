@@ -63,7 +63,7 @@ class CheckoutPage extends Component
 
         $this->dispatch('cart-updated');
 
-        return $this->redirectRoute('orders.status', $order, navigate: true);
+        return $this->redirectRoute('orders.status', ['order' => $order->code], navigate: true);
     }
 
     public function render(CartManager $cart): View

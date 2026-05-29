@@ -131,6 +131,40 @@ class StorefrontController extends Controller
         ]);
     }
 
+    public function orders(Request $request): View
+    {
+        $validated = $request->validate([
+            'contato' => ['nullable', 'string', 'max:120'],
+        ]);
+
+        $contact = trim((string) ($validated['contato'] ?? ''));
+        $normalizedPhone = preg_replace('/\D+/', '', $contact);
+
+        $orders = collect();
+
+        if ($contact !== '') {
+            $orders = Order::query()
+                ->with('items')
+                ->where(function (Builder $builder) use ($contact, $normalizedPhone) {
+                    $builder
+                        ->whereRaw('LOWER(customer_email) = ?', [mb_strtolower($contact)])
+                        ->orWhere('customer_phone', $contact);
+
+                    if ($normalizedPhone !== '') {
+                        $builder->orWhere('customer_phone', $normalizedPhone);
+                    }
+                })
+                ->latest()
+                ->take(10)
+                ->get();
+        }
+
+        return view('storefront.orders', [
+            'contact' => $contact,
+            'orders' => $orders,
+        ]);
+    }
+
     public function orderStatus(Order $order): View
     {
         $order->load('items');

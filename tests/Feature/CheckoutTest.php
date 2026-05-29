@@ -39,6 +39,7 @@ class CheckoutTest extends TestCase
         $order = Order::query()->with('items')->first();
 
         $this->assertNotNull($order);
+        $this->assertStringContainsString($order->code, route('orders.status', ['order' => $order->code]));
         $this->assertSame('received', $order->status);
         $this->assertSame(17980, $order->total_cents);
         $this->assertCount(1, $order->items);
