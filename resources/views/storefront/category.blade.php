@@ -36,7 +36,7 @@
                     <li class="text-slate-700">{{ $category->name }}</li>
                 </ol>
             </nav>
-            <p class="text-sm font-bold text-sky-700">Categoria</p>
+            <p class="text-sm font-bold text-rocha-blue">Categoria</p>
             <h1 class="mt-2 text-3xl font-black text-slate-950">{{ $category->name }}</h1>
             <p class="mt-3 max-w-2xl text-slate-600">{{ $category->seo_description ?? $category->short_description }}</p>
         </div>

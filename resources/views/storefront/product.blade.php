@@ -52,7 +52,7 @@
         <div class="rounded-lg border border-slate-200 bg-white p-6">
             <div class="grid aspect-square place-items-center rounded-lg bg-slate-100">
                 <div class="grid size-44 place-items-center rounded-lg border border-slate-200 bg-white text-center shadow-inner">
-                    <span class="text-lg font-black text-sky-700">{{ $product->category->icon ?? 'RS' }}</span>
+                    <span class="text-lg font-black text-rocha-blue">{{ $product->category->icon ?? 'RS' }}</span>
                     <span class="text-sm font-semibold text-slate-500">{{ $product->weight }}</span>
                 </div>
             </div>
@@ -69,7 +69,7 @@
                 </ol>
             </nav>
             <h1 class="mt-3 text-3xl font-black text-slate-950">{{ $product->name }}</h1>
-            <p class="mt-2 text-sm font-bold text-sky-700">{{ $product->brand?->name }} - {{ $product->weight }}</p>
+            <p class="mt-2 text-sm font-bold text-rocha-blue">{{ $product->brand?->name }} - {{ $product->weight }}</p>
             <p class="mt-4 text-slate-600">{{ $product->short_description }}</p>
 
             <div class="mt-6 rounded-lg border border-slate-200 bg-white p-5">
@@ -79,7 +79,7 @@
                 <p class="text-3xl font-black text-slate-950">{{ $product->formatted_price }}</p>
                 <p class="mt-2 text-sm font-semibold text-emerald-700">Entrega local ou retirada na loja</p>
                 <div class="mt-5 grid gap-3 sm:grid-cols-2">
-                    <button class="rounded-lg bg-sky-600 px-5 py-3 font-black text-white">Comprar agora</button>
+                    <button class="rounded-lg bg-rocha-blue px-5 py-3 font-black text-white">Comprar agora</button>
                     <livewire:cart.add-to-cart-button :product="$product" label="Adicionar ao carrinho" :full-width="true" :key="'add-product-page-'.$product->id" />
                 </div>
             </div>

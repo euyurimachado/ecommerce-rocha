@@ -5,7 +5,7 @@
 @section('content')
     <section class="mx-auto max-w-4xl px-4 py-10 lg:px-6">
         <div class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-            <p class="text-sm font-bold text-sky-700">Pedido {{ $order->code }}</p>
+            <p class="text-sm font-bold text-rocha-blue">Pedido {{ $order->code }}</p>
             <h1 class="mt-2 text-3xl font-black text-slate-950">{{ $order->status_label }}</h1>
             <p class="mt-3 text-slate-600">Recebemos seu pedido. A equipe Rocha Sports entrará em contato para confirmar pagamento e {{ $order->fulfillment_method === 'pickup' ? 'retirada' : 'entrega' }}.</p>
 
@@ -40,6 +40,6 @@
             </div>
         </div>
 
-        <a href="{{ route('home') }}" class="mt-6 inline-flex rounded-lg bg-sky-600 px-5 py-3 font-black text-white">Voltar para a loja</a>
+        <a href="{{ route('home') }}" class="mt-6 inline-flex rounded-lg bg-rocha-blue px-5 py-3 font-black text-white">Voltar para a loja</a>
     </section>
 @endsection

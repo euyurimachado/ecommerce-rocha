@@ -12,6 +12,21 @@
             <path d="m9 18 6-6-6-6" />
             @break
 
+        @case('credit-card')
+            <rect width="20" height="14" x="2" y="5" rx="2" />
+            <path d="M2 10h20" />
+            <path d="M6 15h2" />
+            <path d="M11 15h3" />
+            @break
+
+        @case('cookie')
+            <path d="M12 2a10 10 0 1 0 10 10 4 4 0 0 1-4-4 4 4 0 0 1-6-6" />
+            <path d="M8.5 8.5h.01" />
+            <path d="M16 15.5h.01" />
+            <path d="M12 12h.01" />
+            <path d="M7.5 14h.01" />
+            @break
+
         @case('heart')
             <path d="M19.5 12.6 12 20l-7.5-7.4A5 5 0 0 1 12 6a5 5 0 0 1 7.5 6.6" />
             @break
@@ -25,6 +40,10 @@
         @case('map-pin')
             <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0" />
             <circle cx="12" cy="10" r="3" />
+            @break
+
+        @case('message-circle')
+            <path d="M21 12a8 8 0 0 1-12.4 6.7L3 20l1.4-5.3A8 8 0 1 1 21 12" />
             @break
 
         @case('package')
@@ -62,6 +81,13 @@
             <path d="M3 5h4" />
             <path d="M19 17v4" />
             <path d="M17 19h4" />
+            @break
+
+        @case('store')
+            <path d="m2 7 2-4h16l2 4" />
+            <path d="M4 7v13h16V7" />
+            <path d="M9 20v-6h6v6" />
+            <path d="M2 7h20" />
             @break
 
         @case('star')

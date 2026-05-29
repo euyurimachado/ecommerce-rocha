@@ -5,11 +5,11 @@
 
 @section('content')
     <article class="mx-auto max-w-4xl px-4 py-10 lg:px-6">
-        <p class="text-sm font-bold text-sky-700">Preferências</p>
+        <p class="text-sm font-bold text-rocha-blue">Preferências</p>
         <h1 class="mt-2 text-3xl font-black">Política de Cookies</h1>
         <p class="mt-4 text-slate-600">A Rocha Sports usa cookies e tecnologias semelhantes para manter a loja funcionando, proteger a compra e, quando autorizado, medir desempenho e personalizar campanhas.</p>
 
-        <button class="mt-6 rounded-lg bg-sky-600 px-5 py-3 font-black text-white" type="button" data-cookie-preferences-open>
+        <button class="mt-6 rounded-lg bg-rocha-blue px-5 py-3 font-black text-white" type="button" data-cookie-preferences-open>
             Gerenciar preferências
         </button>
 

@@ -5,7 +5,7 @@
 
 @section('content')
     <article class="mx-auto max-w-4xl px-4 py-10 lg:px-6">
-        <p class="text-sm font-bold text-sky-700">LGPD</p>
+        <p class="text-sm font-bold text-rocha-blue">LGPD</p>
         <h1 class="mt-2 text-3xl font-black">Política de Privacidade</h1>
         <p class="mt-4 text-slate-600">A Rocha Sports trata dados pessoais para vender suplementos, processar pagamentos, realizar entrega ou retirada, prestar atendimento e cumprir obrigações legais.</p>
 

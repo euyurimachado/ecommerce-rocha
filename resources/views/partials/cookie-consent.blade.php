@@ -10,7 +10,7 @@
             <p class="mt-1 text-sm text-slate-600">
                 Usamos cookies essenciais para a loja funcionar e, com seu consentimento, cookies de análise e marketing para melhorar campanhas, ofertas e atendimento.
             </p>
-            <a class="mt-2 inline-flex text-sm font-bold text-sky-700" href="{{ route('legal.cookies') }}">Ver política de cookies</a>
+            <a class="mt-2 inline-flex text-sm font-bold text-rocha-blue" href="{{ route('legal.cookies') }}">Ver política de cookies</a>
         </div>
 
         <div class="mt-4 grid gap-2 sm:grid-cols-3 md:mt-0 md:w-[28rem]">
@@ -20,7 +20,7 @@
             <button class="rounded-lg border border-slate-200 px-4 py-3 text-sm font-black text-slate-700" type="button" data-cookie-reject>
                 Rejeitar opcionais
             </button>
-            <button class="rounded-lg bg-sky-600 px-4 py-3 text-sm font-black text-white" type="button" data-cookie-accept-all>
+            <button class="rounded-lg bg-rocha-blue px-4 py-3 text-sm font-black text-white" type="button" data-cookie-accept-all>
                 Aceitar todos
             </button>
         </div>
@@ -73,7 +73,7 @@
             <button class="rounded-lg border border-slate-200 px-4 py-3 text-sm font-black text-slate-700" type="button" data-cookie-save>
                 Salvar escolhas
             </button>
-            <button class="rounded-lg bg-sky-600 px-4 py-3 text-sm font-black text-white" type="button" data-cookie-accept-all>
+            <button class="rounded-lg bg-rocha-blue px-4 py-3 text-sm font-black text-white" type="button" data-cookie-accept-all>
                 Aceitar todos
             </button>
         </div>

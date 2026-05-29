@@ -10,6 +10,10 @@
 @theme {
     --font-sans: 'Ubuntu', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
+    --color-rocha-blue: #0098d7;
+    --color-rocha-blue-dark: #005d8f;
+    --color-rocha-silver: #a7a9ac;
+    --color-rocha-graphite: #1f2937;
 }
 
 @layer base {

@@ -6,7 +6,7 @@
 @section('content')
     <section class="border-b border-slate-200 bg-white">
         <div class="mx-auto max-w-7xl px-4 py-8 lg:px-6">
-            <p class="text-sm font-bold text-sky-700">Busca Rocha Sports</p>
+            <p class="text-sm font-bold text-rocha-blue">Busca Rocha Sports</p>
             <h1 class="mt-2 text-3xl font-black text-slate-950">
                 {{ $query ? 'Resultados para "'.$query.'"' : 'Buscar suplementos' }}
             </h1>
@@ -14,8 +14,8 @@
 
             <form action="{{ route('search') }}" method="GET" class="mt-6 grid gap-3 md:grid-cols-[1fr_auto]">
                 <label class="sr-only" for="search-page-input">Buscar</label>
-                <input id="search-page-input" name="q" value="{{ $query }}" class="h-12 rounded-lg border border-slate-200 px-4 outline-none focus:border-sky-500" type="search" placeholder="Whey, creatina, Max Titanium...">
-                <button class="rounded-lg bg-sky-600 px-6 py-3 font-black text-white" type="submit">Buscar</button>
+                <input id="search-page-input" name="q" value="{{ $query }}" class="h-12 rounded-lg border border-slate-200 px-4 outline-none focus:border-rocha-blue" type="search" placeholder="Whey, creatina, Max Titanium...">
+                <button class="rounded-lg bg-rocha-blue px-6 py-3 font-black text-white" type="submit">Buscar</button>
             </form>
 
             <div class="mt-4 flex flex-wrap gap-2">
@@ -36,7 +36,7 @@
 
                 <label class="block">
                     <span class="text-sm font-bold text-slate-700">Categoria</span>
-                    <select name="categoria" class="mt-2 h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-sky-500">
+                    <select name="categoria" class="mt-2 h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-rocha-blue">
                         <option value="">Todas</option>
                         @foreach ($categories as $category)
                             <option value="{{ $category->slug }}" @selected($selectedCategory === $category->slug)>{{ $category->name }}</option>
@@ -46,7 +46,7 @@
 
                 <label class="block">
                     <span class="text-sm font-bold text-slate-700">Marca</span>
-                    <select name="marca" class="mt-2 h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-sky-500">
+                    <select name="marca" class="mt-2 h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-rocha-blue">
                         <option value="">Todas</option>
                         @foreach ($brands as $brand)
                             <option value="{{ $brand->slug }}" @selected($selectedBrand === $brand->slug)>{{ $brand->name }}</option>
@@ -56,7 +56,7 @@
 
                 <label class="block">
                     <span class="text-sm font-bold text-slate-700">Ordenar</span>
-                    <select name="ordenar" class="mt-2 h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-sky-500">
+                    <select name="ordenar" class="mt-2 h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-rocha-blue">
                         <option value="relevancia" @selected($selectedSort === 'relevancia')>Relevância</option>
                         <option value="mais-vendidos" @selected($selectedSort === 'mais-vendidos')>Mais vendidos</option>
                         <option value="ofertas" @selected($selectedSort === 'ofertas')>Ofertas</option>
@@ -74,7 +74,7 @@
             <div class="mb-5 flex flex-wrap items-center justify-between gap-4">
                 <p class="text-sm font-semibold text-slate-600">{{ $products->total() }} produtos encontrados</p>
                 @if ($query || $selectedCategory || $selectedBrand)
-                    <a href="{{ route('search') }}" class="text-sm font-bold text-sky-700">Nova busca</a>
+                    <a href="{{ route('search') }}" class="text-sm font-bold text-rocha-blue">Nova busca</a>
                 @endif
             </div>
 
@@ -82,7 +82,7 @@
                 <div class="rounded-lg border border-slate-200 bg-white p-8 text-center">
                     <h2 class="text-xl font-black text-slate-950">Nenhum produto encontrado</h2>
                     <p class="mt-2 text-slate-600">Tente buscar por whey, creatina, marca ou objetivo.</p>
-                    <a href="{{ route('home') }}" class="mt-5 inline-flex rounded-lg bg-sky-600 px-5 py-3 font-black text-white">Voltar para a loja</a>
+                    <a href="{{ route('home') }}" class="mt-5 inline-flex rounded-lg bg-rocha-blue px-5 py-3 font-black text-white">Voltar para a loja</a>
                 </div>
             @else
                 <div class="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
