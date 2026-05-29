@@ -1,4 +1,8 @@
 <article class="group flex h-full flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-rocha-blue/30 hover:shadow-md">
+    <div class="relative">
+        <div class="absolute right-3 top-3 z-10">
+            <livewire:favorites.favorite-toggle :product="$product" :compact="true" :key="'favorite-product-card-'.$product->id" />
+        </div>
     <a href="{{ route('products.show', $product) }}" class="block">
         <div class="flex aspect-square items-center justify-center bg-slate-100 p-5">
             <div class="grid size-28 place-items-center rounded-lg border border-slate-200 bg-white text-center shadow-inner transition group-hover:border-rocha-blue/30">
@@ -7,6 +11,7 @@
             </div>
         </div>
     </a>
+    </div>
 
     <div class="flex flex-1 flex-col p-4">
         <div class="flex items-center justify-between gap-2 text-xs">

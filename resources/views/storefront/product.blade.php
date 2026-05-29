@@ -82,6 +82,9 @@
                     <button class="rounded-lg bg-rocha-blue px-5 py-3 font-black text-white">Comprar agora</button>
                     <livewire:cart.add-to-cart-button :product="$product" label="Adicionar ao carrinho" :full-width="true" :key="'add-product-page-'.$product->id" />
                 </div>
+                <div class="mt-3">
+                    <livewire:favorites.favorite-toggle :product="$product" :key="'favorite-product-page-'.$product->id" />
+                </div>
             </div>
 
             <div class="mt-6 grid gap-3 text-sm sm:grid-cols-3">

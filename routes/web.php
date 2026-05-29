@@ -13,6 +13,7 @@ Route::get('/', [StorefrontController::class, 'home'])->name('home');
 Route::get('/buscar', [StorefrontController::class, 'search'])->name('search');
 Route::get('/categorias/{category:slug}', [StorefrontController::class, 'category'])->name('categories.show');
 Route::get('/produto/{product:slug}', [StorefrontController::class, 'product'])->name('products.show');
+Route::view('/favoritos', 'storefront.favorites')->name('favorites.index');
 Route::view('/carrinho', 'storefront.cart')->name('cart');
 Route::view('/checkout', 'storefront.checkout')->name('checkout');
 Route::get('/pedidos', [StorefrontController::class, 'orders'])->name('orders.index');
