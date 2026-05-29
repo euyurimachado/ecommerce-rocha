@@ -43,7 +43,32 @@
                         <span class="text-slate-600">Entrega</span>
                         <span class="font-bold">Calcular na finalização</span>
                     </div>
+                    @if ($coupon)
+                        <div class="flex justify-between text-emerald-700">
+                            <span>Cupom {{ $coupon->code }}</span>
+                            <span class="font-bold">- {{ $discount }}</span>
+                        </div>
+                    @endif
+                    <div class="border-t border-slate-200 pt-3">
+                        <div class="flex justify-between text-lg">
+                            <span class="font-black">Total</span>
+                            <span class="font-black">{{ $total }}</span>
+                        </div>
+                    </div>
                 </div>
+                <form wire:submit="applyCoupon" class="mt-5">
+                    <label class="text-sm font-bold text-slate-700" for="cart-coupon">Cupom de desconto</label>
+                    <div class="mt-2 flex gap-2">
+                        <input id="cart-coupon" wire:model="couponCode" class="h-11 min-w-0 flex-1 rounded-lg border border-slate-200 px-3 text-sm uppercase outline-none focus:border-rocha-blue" type="text" placeholder="ROCHA10">
+                        <button class="rounded-lg border border-slate-200 px-4 text-sm font-black text-slate-700 transition hover:border-rocha-blue/30 hover:bg-rocha-blue/5 hover:text-rocha-blue" type="submit">Aplicar</button>
+                    </div>
+                    @if ($coupon)
+                        <button wire:click="removeCoupon" class="mt-2 text-sm font-bold text-rose-700" type="button">Remover cupom</button>
+                    @endif
+                    @if ($couponError)
+                        <p class="mt-2 text-sm font-semibold text-rose-700">{{ $couponError }}</p>
+                    @endif
+                </form>
                 <a href="{{ route('checkout') }}" class="mt-6 flex w-full justify-center rounded-lg bg-rocha-blue px-5 py-3 font-black text-white">Finalizar compra</a>
                 <button wire:click="clear" class="mt-3 w-full rounded-lg border border-slate-200 px-5 py-3 text-sm font-black text-slate-700" type="button">Limpar carrinho</button>
             </aside>

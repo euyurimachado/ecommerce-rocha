@@ -3,7 +3,9 @@
 namespace Tests\Feature;
 
 use App\Livewire\Cart\AddToCartButton;
+use App\Livewire\Cart\CartPage;
 use App\Models\Category;
+use App\Models\Coupon;
 use App\Models\Product;
 use App\Support\Cart\CartManager;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -53,6 +55,42 @@ class CartTest extends TestCase
             ->assertOk()
             ->assertSee('Creatina Monohidratada 300g')
             ->assertSee('R$ 179,80');
+    }
+
+    public function test_coupon_can_be_applied_to_cart(): void
+    {
+        $product = $this->createProduct();
+        app(CartManager::class)->add($product->id, 2);
+
+        Coupon::create([
+            'code' => 'ROCHA10',
+            'name' => 'Primeira compra',
+            'type' => 'percent',
+            'value' => 10,
+            'is_active' => true,
+        ]);
+
+        Livewire::test(CartPage::class)
+            ->set('couponCode', 'rocha10')
+            ->call('applyCoupon')
+            ->assertSet('couponCode', 'ROCHA10')
+            ->assertSee('Cupom ROCHA10')
+            ->assertSee('- R$ 17,98')
+            ->assertSee('R$ 161,82');
+
+        $this->assertSame(1798, app(CartManager::class)->discountCents());
+        $this->assertSame(16182, app(CartManager::class)->totalCents());
+    }
+
+    public function test_invalid_coupon_shows_clear_error(): void
+    {
+        $product = $this->createProduct();
+        app(CartManager::class)->add($product->id);
+
+        Livewire::test(CartPage::class)
+            ->set('couponCode', 'INVALIDO')
+            ->call('applyCoupon')
+            ->assertSee('Cupom inválido ou indisponível para este carrinho.');
     }
 
     private function createProduct(): Product

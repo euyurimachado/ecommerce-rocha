@@ -27,6 +27,9 @@ class OrderInfolist
                             ->label('Recebimento'),
                         TextEntry::make('payment_method_label')
                             ->label('Pagamento'),
+                        TextEntry::make('coupon_code')
+                            ->label('Cupom')
+                            ->placeholder('-'),
                         TextEntry::make('formatted_subtotal')
                             ->label('Subtotal'),
                         TextEntry::make('shipping_cents')

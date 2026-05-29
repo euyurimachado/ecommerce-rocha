@@ -22,6 +22,7 @@ class Order extends Model
         'city',
         'state',
         'payment_method',
+        'coupon_code',
         'subtotal_cents',
         'shipping_cents',
         'discount_cents',

@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Banner;
 use App\Models\Brand;
 use App\Models\Category;
+use App\Models\Coupon;
 use App\Models\Product;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
@@ -102,6 +103,18 @@ class CommerceSeeder extends Seeder
                 'cta_label' => 'Ver ofertas',
                 'url' => '/ofertas',
                 'device' => 'all',
+                'is_active' => true,
+            ],
+        );
+
+        Coupon::updateOrCreate(
+            ['code' => 'ROCHA10'],
+            [
+                'name' => 'Primeira compra Rocha Sports',
+                'type' => 'percent',
+                'value' => 10,
+                'minimum_subtotal_cents' => 10000,
+                'maximum_discount_cents' => 3000,
                 'is_active' => true,
             ],
         );

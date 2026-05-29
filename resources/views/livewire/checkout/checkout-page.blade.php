@@ -152,9 +152,15 @@
                         <span class="text-slate-600">Entrega</span>
                         <span class="font-bold">A combinar</span>
                     </div>
+                    @if ($coupon)
+                        <div class="mt-2 flex justify-between text-emerald-700">
+                            <span>Cupom {{ $coupon->code }}</span>
+                            <span class="font-bold">- {{ $discount }}</span>
+                        </div>
+                    @endif
                     <div class="mt-4 flex justify-between text-lg">
                         <span class="font-black">Total</span>
-                        <span class="font-black">{{ $subtotal }}</span>
+                        <span class="font-black">{{ $total }}</span>
                     </div>
                 </div>
                 <button wire:loading.attr="disabled" wire:target="placeOrder" class="mt-6 flex w-full justify-center rounded-lg bg-rocha-blue px-5 py-3 font-black text-white disabled:cursor-wait disabled:opacity-70" type="submit">

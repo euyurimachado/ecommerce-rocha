@@ -19,6 +19,8 @@ class CreateOrderFromCart
         }
 
         return DB::transaction(function () use ($cart, $data, $items) {
+            $coupon = $cart->coupon();
+
             $order = Order::create([
                 'code' => $this->generateCode(),
                 'status' => 'received',
@@ -34,10 +36,11 @@ class CreateOrderFromCart
                 'city' => $data['city'] ?? null,
                 'state' => $data['state'] ?? null,
                 'payment_method' => $data['payment_method'],
+                'coupon_code' => $coupon?->code,
                 'subtotal_cents' => $cart->subtotalCents(),
                 'shipping_cents' => 0,
-                'discount_cents' => 0,
-                'total_cents' => $cart->subtotalCents(),
+                'discount_cents' => $cart->discountCents(),
+                'total_cents' => $cart->totalCents(),
                 'notes' => $data['notes'] ?? null,
                 'privacy_accepted_at' => now(),
             ]);
@@ -66,6 +69,7 @@ class CreateOrderFromCart
             }
 
             $cart->clear();
+            $coupon?->increment('used_count');
 
             return $order->refresh();
         });

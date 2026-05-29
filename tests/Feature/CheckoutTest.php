@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Livewire\Checkout\CheckoutPage;
 use App\Models\Category;
+use App\Models\Coupon;
 use App\Models\Order;
 use App\Models\Product;
 use App\Support\Cart\CartManager;
@@ -62,6 +63,46 @@ class CheckoutTest extends TestCase
             ->set('privacy_accepted', true)
             ->call('placeOrder')
             ->assertHasErrors(['postal_code', 'street', 'number', 'neighborhood']);
+    }
+
+    public function test_checkout_persists_coupon_discount_on_order(): void
+    {
+        $product = $this->createProduct();
+        app(CartManager::class)->add($product->id, 2);
+
+        $coupon = Coupon::create([
+            'code' => 'ROCHA20',
+            'name' => 'Campanha Rocha',
+            'type' => 'fixed',
+            'value' => 2000,
+            'is_active' => true,
+        ]);
+
+        app(CartManager::class)->applyCoupon('ROCHA20');
+
+        Livewire::test(CheckoutPage::class)
+            ->set('customer_name', 'Yuri Machado')
+            ->set('customer_email', 'yuri@example.com')
+            ->set('customer_phone', '22999990000')
+            ->set('fulfillment_method', 'delivery')
+            ->set('postal_code', '28000-000')
+            ->set('street', 'Rua Teste')
+            ->set('number', '123')
+            ->set('neighborhood', 'Centro')
+            ->set('city', 'Campos dos Goytacazes')
+            ->set('state', 'RJ')
+            ->set('payment_method', 'pix')
+            ->set('privacy_accepted', true)
+            ->call('placeOrder')
+            ->assertHasNoErrors();
+
+        $order = Order::query()->first();
+
+        $this->assertSame('ROCHA20', $order->coupon_code);
+        $this->assertSame(17980, $order->subtotal_cents);
+        $this->assertSame(2000, $order->discount_cents);
+        $this->assertSame(15980, $order->total_cents);
+        $this->assertSame(1, $coupon->refresh()->used_count);
     }
 
     private function createProduct(): Product

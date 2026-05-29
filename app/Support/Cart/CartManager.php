@@ -2,12 +2,16 @@
 
 namespace App\Support\Cart;
 
+use App\Models\Coupon;
 use App\Models\Product;
 use Illuminate\Support\Collection;
+use InvalidArgumentException;
 
 class CartManager
 {
     private const SESSION_KEY = 'cart.items';
+
+    private const COUPON_SESSION_KEY = 'cart.coupon_code';
 
     public function add(int $productId, int $quantity = 1): void
     {
@@ -55,6 +59,7 @@ class CartManager
     public function clear(): void
     {
         session()->forget(self::SESSION_KEY);
+        $this->removeCoupon();
     }
 
     public function items(): Collection
@@ -101,9 +106,70 @@ class CartManager
         return $this->items()->sum('line_total_cents');
     }
 
+    public function applyCoupon(string $code): Coupon
+    {
+        $coupon = Coupon::query()
+            ->where('code', mb_strtoupper(trim($code)))
+            ->first();
+
+        if (! $coupon || ! $coupon->isAvailableForSubtotal($this->subtotalCents())) {
+            throw new InvalidArgumentException('Cupom inválido ou indisponível para este carrinho.');
+        }
+
+        session()->put(self::COUPON_SESSION_KEY, $coupon->code);
+
+        return $coupon;
+    }
+
+    public function removeCoupon(): void
+    {
+        session()->forget(self::COUPON_SESSION_KEY);
+    }
+
+    public function coupon(): ?Coupon
+    {
+        $code = session()->get(self::COUPON_SESSION_KEY);
+
+        if (! $code) {
+            return null;
+        }
+
+        $coupon = Coupon::query()
+            ->where('code', $code)
+            ->first();
+
+        if (! $coupon || ! $coupon->isAvailableForSubtotal($this->subtotalCents())) {
+            $this->removeCoupon();
+
+            return null;
+        }
+
+        return $coupon;
+    }
+
+    public function discountCents(): int
+    {
+        return $this->coupon()?->discountFor($this->subtotalCents()) ?? 0;
+    }
+
+    public function totalCents(): int
+    {
+        return max(0, $this->subtotalCents() - $this->discountCents());
+    }
+
     public function formattedSubtotal(): string
     {
         return $this->formatCurrency($this->subtotalCents());
+    }
+
+    public function formattedDiscount(): string
+    {
+        return $this->formatCurrency($this->discountCents());
+    }
+
+    public function formattedTotal(): string
+    {
+        return $this->formatCurrency($this->totalCents());
     }
 
     public function formatCurrency(int $cents): string

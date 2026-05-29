@@ -71,6 +71,9 @@ class CheckoutPage extends Component
         return view('livewire.checkout.checkout-page', [
             'items' => $cart->items(),
             'subtotal' => $cart->formattedSubtotal(),
+            'coupon' => $cart->coupon(),
+            'discount' => $cart->formattedDiscount(),
+            'total' => $cart->formattedTotal(),
         ]);
     }
 
