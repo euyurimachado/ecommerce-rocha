@@ -150,8 +150,9 @@
                     </div>
                     <div class="mt-2 flex justify-between">
                         <span class="text-slate-600">Entrega</span>
-                        <span class="font-bold">A combinar</span>
+                        <span class="font-bold">{{ $shipping }}</span>
                     </div>
+                    <p class="mt-1 text-xs text-slate-500">{{ $shippingEstimate }}</p>
                     @if ($coupon)
                         <div class="mt-2 flex justify-between text-emerald-700">
                             <span>Cupom {{ $coupon->code }}</span>

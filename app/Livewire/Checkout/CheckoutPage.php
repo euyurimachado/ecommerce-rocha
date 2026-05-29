@@ -4,6 +4,7 @@ namespace App\Livewire\Checkout;
 
 use App\Support\Cart\CartManager;
 use App\Support\Checkout\CreateOrderFromCart;
+use App\Support\Checkout\ShippingCalculator;
 use Illuminate\Contracts\View\View;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
@@ -66,14 +67,21 @@ class CheckoutPage extends Component
         return $this->redirectRoute('orders.status', ['order' => $order->code], navigate: true);
     }
 
-    public function render(CartManager $cart): View
+    public function render(CartManager $cart, ShippingCalculator $shipping): View
     {
+        $shippingCents = $shipping->calculate($this->fulfillment_method, $cart->subtotalCents());
+
         return view('livewire.checkout.checkout-page', [
             'items' => $cart->items(),
             'subtotal' => $cart->formattedSubtotal(),
             'coupon' => $cart->coupon(),
             'discount' => $cart->formattedDiscount(),
-            'total' => $cart->formattedTotal(),
+            'shipping' => $shipping->formatted($shippingCents),
+            'shippingCents' => $shippingCents,
+            'shippingEstimate' => $this->fulfillment_method === 'pickup'
+                ? config('commerce.shipping.pickup_estimate')
+                : config('commerce.shipping.delivery_estimate'),
+            'total' => $cart->formatCurrency($cart->totalCents() + $shippingCents),
         ]);
     }
 

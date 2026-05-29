@@ -41,8 +41,9 @@
                     </div>
                     <div class="flex justify-between">
                         <span class="text-slate-600">Entrega</span>
-                        <span class="font-bold">Calcular na finalização</span>
+                        <span class="font-bold">A partir de R$ {{ number_format(config('commerce.shipping.local_delivery_fee_cents') / 100, 2, ',', '.') }}</span>
                     </div>
+                    <p class="text-xs text-slate-500">Retirada grátis na loja. Frete grátis acima de R$ {{ number_format(config('commerce.shipping.free_shipping_threshold_cents') / 100, 2, ',', '.') }}.</p>
                     @if ($coupon)
                         <div class="flex justify-between text-emerald-700">
                             <span>Cupom {{ $coupon->code }}</span>

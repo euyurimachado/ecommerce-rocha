@@ -10,6 +10,8 @@ use RuntimeException;
 
 class CreateOrderFromCart
 {
+    public function __construct(private readonly ShippingCalculator $shipping) {}
+
     public function __invoke(CartManager $cart, array $data): Order
     {
         $items = $cart->items();
@@ -20,6 +22,7 @@ class CreateOrderFromCart
 
         return DB::transaction(function () use ($cart, $data, $items) {
             $coupon = $cart->coupon();
+            $shippingCents = $this->shipping->calculate($data['fulfillment_method'], $cart->subtotalCents());
 
             $order = Order::create([
                 'code' => $this->generateCode(),
@@ -38,9 +41,9 @@ class CreateOrderFromCart
                 'payment_method' => $data['payment_method'],
                 'coupon_code' => $coupon?->code,
                 'subtotal_cents' => $cart->subtotalCents(),
-                'shipping_cents' => 0,
+                'shipping_cents' => $shippingCents,
                 'discount_cents' => $cart->discountCents(),
-                'total_cents' => $cart->totalCents(),
+                'total_cents' => $cart->totalCents() + $shippingCents,
                 'notes' => $data['notes'] ?? null,
                 'privacy_accepted_at' => now(),
             ]);
