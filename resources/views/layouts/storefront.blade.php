@@ -6,7 +6,15 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Rocha Sports | Suplementos em Campos dos Goytacazes')</title>
     <meta name="description" content="@yield('meta_description', 'Suplementos originais com entrega rápida em Campos dos Goytacazes, RJ. Whey, creatina, pré-treino, vitaminas e combos na Rocha Sports.')">
+    <meta name="theme-color" content="#0098d7">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Rocha Sports">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <link rel="canonical" href="{{ url()->current() }}">
+    <link rel="manifest" href="{{ route('pwa.manifest') }}">
+    <link rel="icon" href="{{ asset('images/pwa-icon.svg') }}" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="{{ asset('images/pwa-icon.svg') }}">
     <meta property="og:title" content="@yield('title', 'Rocha Sports')">
     <meta property="og:description" content="@yield('meta_description', 'Suplementos originais com entrega rápida em Campos dos Goytacazes.')">
     <meta property="og:type" content="website">

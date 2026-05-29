@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Rocha Sports">
+    <rect width="512" height="512" rx="104" fill="#0098d7"/>
+    <path fill="#ffffff" d="M133 363V149h154c50 0 86 31 86 76 0 32-18 58-48 70l61 68h-91l-52-60h-36v60h-74Zm74-122h72c13 0 22-7 22-18s-9-18-22-18h-72v36Z"/>
+    <path fill="#d8dde3" d="M129 390h254v42H129z"/>
+    <path fill="#ffffff" fill-opacity=".25" d="M410 76 98 388h73L438 121c-8-18-17-33-28-45Z"/>
+</svg>

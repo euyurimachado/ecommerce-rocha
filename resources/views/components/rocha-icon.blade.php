@@ -107,6 +107,14 @@
             <circle cx="17" cy="18" r="2" />
             @break
 
+        @case('wifi-off')
+            <path d="M12 20h.01" />
+            <path d="M8.5 16.5a5 5 0 0 1 7 0" />
+            <path d="M2 8.8a15 15 0 0 1 4.2-2.6" />
+            <path d="M9.5 4.2A15 15 0 0 1 22 8.8" />
+            <path d="m2 2 20 20" />
+            @break
+
         @case('user')
             <path d="M19 21a7 7 0 0 0-14 0" />
             <circle cx="12" cy="7" r="4" />

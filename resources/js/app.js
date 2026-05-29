@@ -117,3 +117,11 @@ const initializeCookieConsent = () => {
 
 document.addEventListener('DOMContentLoaded', initializeCookieConsent);
 document.addEventListener('livewire:navigated', initializeCookieConsent);
+
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(() => {
+            // A loja continua funcionando mesmo quando o navegador bloqueia PWA.
+        });
+    });
+}
