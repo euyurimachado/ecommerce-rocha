@@ -26,6 +26,23 @@ class CartTest extends TestCase
         $this->assertSame(8990, app(CartManager::class)->subtotalCents());
     }
 
+    public function test_buy_now_adds_product_and_redirects_to_checkout(): void
+    {
+        $product = $this->createProduct();
+
+        Livewire::test(AddToCartButton::class, [
+            'product' => $product,
+            'label' => 'Comprar agora',
+            'fullWidth' => true,
+            'redirectToCheckout' => true,
+        ])
+            ->call('add')
+            ->assertDispatched('cart-updated')
+            ->assertRedirect(route('checkout'));
+
+        $this->assertSame(1, app(CartManager::class)->count());
+    }
+
     public function test_cart_page_renders_items_and_summary(): void
     {
         $product = $this->createProduct();

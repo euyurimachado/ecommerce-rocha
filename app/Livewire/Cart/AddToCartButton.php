@@ -14,11 +14,19 @@ class AddToCartButton extends Component
 
     public bool $fullWidth = false;
 
-    public function add(CartManager $cart): void
+    public bool $redirectToCheckout = false;
+
+    public function add(CartManager $cart)
     {
         $cart->add($this->product->id);
 
         $this->dispatch('cart-updated');
+
+        if ($this->redirectToCheckout) {
+            return $this->redirectRoute('checkout', navigate: true);
+        }
+
+        return null;
     }
 
     public function render()

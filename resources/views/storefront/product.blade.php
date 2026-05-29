@@ -79,7 +79,7 @@
                 <p class="text-3xl font-black text-slate-950">{{ $product->formatted_price }}</p>
                 <p class="mt-2 text-sm font-semibold text-emerald-700">Entrega local ou retirada na loja</p>
                 <div class="mt-5 grid gap-3 sm:grid-cols-2">
-                    <button class="rounded-lg bg-rocha-blue px-5 py-3 font-black text-white">Comprar agora</button>
+                    <livewire:cart.add-to-cart-button :product="$product" label="Comprar agora" :full-width="true" :redirect-to-checkout="true" :key="'buy-product-page-'.$product->id" />
                     <livewire:cart.add-to-cart-button :product="$product" label="Adicionar ao carrinho" :full-width="true" :key="'add-product-page-'.$product->id" />
                 </div>
                 <div class="mt-3">
