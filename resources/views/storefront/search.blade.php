@@ -6,8 +6,8 @@
 @section('content')
     <section class="border-b border-slate-200 bg-white">
         <div class="mx-auto max-w-7xl px-4 py-8 lg:px-6">
-            <p class="text-sm font-bold text-rocha-blue">Busca Rocha Sports</p>
-            <h1 class="mt-2 text-3xl font-black text-slate-950">
+            <p class="text-sm font-semibold text-rocha-blue">Busca Rocha Sports</p>
+            <h1 class="mt-2 text-2xl font-bold leading-snug text-slate-950 md:text-3xl">
                 {{ $query ? 'Resultados para "'.$query.'"' : 'Buscar suplementos' }}
             </h1>
             <p class="mt-3 max-w-2xl text-slate-600">Encontre produtos por nome, marca, categoria ou objetivo e compre com entrega local ou retirada.</p>
@@ -15,12 +15,12 @@
             <form action="{{ route('search') }}" method="GET" class="mt-6 grid gap-3 md:grid-cols-[1fr_auto]">
                 <label class="sr-only" for="search-page-input">Buscar</label>
                 <input id="search-page-input" name="q" value="{{ $query }}" class="h-12 rounded-lg border border-slate-200 px-4 outline-none focus:border-rocha-blue" type="search" placeholder="Whey, creatina, Max Titanium...">
-                <button class="rounded-lg bg-rocha-blue px-6 py-3 font-black text-white" type="submit">Buscar</button>
+                <button class="rounded-lg bg-rocha-blue px-6 py-3 font-bold text-white" type="submit">Buscar</button>
             </form>
 
             <div class="mt-4 flex flex-wrap gap-2">
                 @foreach ($popularSearches as $popularSearch)
-                    <a href="{{ route('search', ['q' => $popularSearch]) }}" class="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-bold text-slate-700">
+                    <a href="{{ route('search', ['q' => $popularSearch]) }}" class="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-700">
                         {{ $popularSearch }}
                     </a>
                 @endforeach
@@ -30,7 +30,7 @@
 
     <section class="mx-auto grid max-w-7xl gap-6 px-4 py-8 lg:grid-cols-[16rem_1fr] lg:px-6">
         <aside class="h-fit rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-            <h2 class="font-black text-slate-950">Filtros</h2>
+            <h2 class="font-bold text-slate-950">Filtros</h2>
             <form action="{{ route('search') }}" method="GET" class="mt-4 space-y-4">
                 <input type="hidden" name="q" value="{{ $query }}">
 
@@ -65,7 +65,7 @@
                     </select>
                 </label>
 
-                <button class="w-full rounded-lg bg-slate-950 px-4 py-3 text-sm font-black text-white" type="submit">Aplicar filtros</button>
+                <button class="w-full rounded-lg bg-slate-950 px-4 py-3 text-sm font-bold text-white" type="submit">Aplicar filtros</button>
                 <a href="{{ route('search') }}" class="block text-center text-sm font-bold text-slate-600">Limpar</a>
             </form>
         </aside>
@@ -80,9 +80,9 @@
 
             @if ($products->isEmpty())
                 <div class="rounded-lg border border-slate-200 bg-white p-8 text-center">
-                    <h2 class="text-xl font-black text-slate-950">Nenhum produto encontrado</h2>
+                    <h2 class="text-lg font-bold text-slate-950 md:text-xl">Nenhum produto encontrado</h2>
                     <p class="mt-2 text-slate-600">Tente buscar por whey, creatina, marca ou objetivo.</p>
-                    <a href="{{ route('home') }}" class="mt-5 inline-flex rounded-lg bg-rocha-blue px-5 py-3 font-black text-white">Voltar para a loja</a>
+                    <a href="{{ route('home') }}" class="mt-5 inline-flex rounded-lg bg-rocha-blue px-5 py-3 font-bold text-white">Voltar para a loja</a>
                 </div>
             @else
                 <div class="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">

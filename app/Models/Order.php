@@ -22,6 +22,12 @@ class Order extends Model
         'city',
         'state',
         'payment_method',
+        'mercado_pago_preference_id',
+        'mercado_pago_payment_id',
+        'mercado_pago_status',
+        'mercado_pago_status_detail',
+        'mercado_pago_init_point',
+        'mercado_pago_sandbox_init_point',
         'coupon_code',
         'subtotal_cents',
         'shipping_cents',
@@ -29,12 +35,14 @@ class Order extends Model
         'total_cents',
         'notes',
         'privacy_accepted_at',
+        'payment_approved_at',
     ];
 
     protected function casts(): array
     {
         return [
             'privacy_accepted_at' => 'datetime',
+            'payment_approved_at' => 'datetime',
         ];
     }
 
@@ -56,7 +64,10 @@ class Order extends Model
     public function getStatusLabelAttribute(): string
     {
         return match ($this->status) {
+            'payment_pending' => 'Aguardando pagamento',
             'payment_approved' => 'Pagamento aprovado',
+            'payment_rejected' => 'Pagamento recusado',
+            'payment_refunded' => 'Pagamento estornado',
             'preparing' => 'Em separação',
             'out_for_delivery' => 'Saiu para entrega',
             'ready_for_pickup' => 'Pronto para retirada',
@@ -74,8 +85,11 @@ class Order extends Model
     public function getPaymentMethodLabelAttribute(): string
     {
         return match ($this->payment_method) {
+            'mercado_pago' => 'Mercado Pago',
             'credit_card' => 'Cartão de crédito',
             'boleto' => 'Boleto',
+            'payment_on_delivery_pix' => 'PIX na entrega',
+            'payment_on_delivery_card' => 'Cartão na entrega',
             default => 'Pix',
         };
     }

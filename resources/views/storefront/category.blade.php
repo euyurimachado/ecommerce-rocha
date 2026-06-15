@@ -36,8 +36,8 @@
                     <li class="text-slate-700">{{ $category->name }}</li>
                 </ol>
             </nav>
-            <p class="text-sm font-bold text-rocha-blue">Categoria</p>
-            <h1 class="mt-2 text-3xl font-black text-slate-950">{{ $category->name }}</h1>
+            <p class="text-sm font-semibold text-rocha-blue">Categoria</p>
+            <h1 class="mt-2 text-2xl font-bold leading-snug text-slate-950 md:text-3xl">{{ $category->name }}</h1>
             <p class="mt-3 max-w-2xl text-slate-600">{{ $category->seo_description ?? $category->short_description }}</p>
         </div>
     </section>
@@ -45,7 +45,7 @@
     <section class="mx-auto max-w-7xl px-4 py-8 lg:px-6">
         <div class="mb-5 flex items-center justify-between gap-4">
             <p class="text-sm font-semibold text-slate-600">{{ $products->total() }} produtos encontrados</p>
-            <button class="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-bold">Filtros</button>
+            <button class="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold">Filtros</button>
         </div>
         <div class="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
             @foreach ($products as $product)

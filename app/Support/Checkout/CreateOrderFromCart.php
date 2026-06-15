@@ -12,15 +12,19 @@ class CreateOrderFromCart
 {
     public function __construct(private readonly ShippingCalculator $shipping) {}
 
-    public function __invoke(CartManager $cart, array $data): Order
-    {
+    public function __invoke(
+        CartManager $cart,
+        array $data,
+        bool $clearCart = true,
+        bool $decrementStock = true,
+    ): Order {
         $items = $cart->items();
 
         if ($items->isEmpty()) {
             throw new RuntimeException('Não é possível finalizar um pedido com carrinho vazio.');
         }
 
-        return DB::transaction(function () use ($cart, $data, $items) {
+        return DB::transaction(function () use ($cart, $data, $items, $clearCart, $decrementStock) {
             $coupon = $cart->coupon();
             $shippingCents = $this->shipping->calculate($data['fulfillment_method'], $cart->subtotalCents());
 
@@ -67,12 +71,16 @@ class CreateOrderFromCart
                     'line_total_cents' => $item['line_total_cents'],
                 ]);
 
-                $product->decrement('stock_quantity', $quantity);
-                $product->increment('sales_count', $quantity);
+                if ($decrementStock) {
+                    $product->decrement('stock_quantity', $quantity);
+                    $product->increment('sales_count', $quantity);
+                }
             }
 
-            $cart->clear();
-            $coupon?->increment('used_count');
+            if ($clearCart) {
+                $cart->clear();
+                $coupon?->increment('used_count');
+            }
 
             return $order->refresh();
         });

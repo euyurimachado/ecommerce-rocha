@@ -20,7 +20,10 @@ class OrderForm
                 Select::make('status')
                     ->options([
                         'received' => 'Pedido recebido',
+                        'payment_pending' => 'Aguardando pagamento',
                         'payment_approved' => 'Pagamento aprovado',
+                        'payment_rejected' => 'Pagamento recusado',
+                        'payment_refunded' => 'Pagamento estornado',
                         'preparing' => 'Em separação',
                         'out_for_delivery' => 'Saiu para entrega',
                         'ready_for_pickup' => 'Pronto para retirada',
@@ -63,9 +66,12 @@ class OrderForm
                 Select::make('payment_method')
                     ->label('Pagamento')
                     ->options([
+                        'mercado_pago' => 'Mercado Pago',
                         'pix' => 'Pix',
                         'credit_card' => 'Cartão de crédito',
                         'boleto' => 'Boleto',
+                        'payment_on_delivery_pix' => 'PIX na entrega',
+                        'payment_on_delivery_card' => 'Cartão na entrega',
                     ])
                     ->required(),
                 TextInput::make('subtotal_cents')
@@ -91,6 +97,8 @@ class OrderForm
                     ->columnSpanFull(),
                 DateTimePicker::make('privacy_accepted_at')
                     ->label('Privacidade aceita em'),
+                DateTimePicker::make('payment_approved_at')
+                    ->label('Pagamento aprovado em'),
             ]);
     }
 }

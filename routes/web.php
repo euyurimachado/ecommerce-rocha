@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\PwaController;
+use App\Http\Controllers\MercadoPagoController;
 use App\Http\Controllers\SeoController;
 use App\Http\Controllers\StorefrontController;
 use Illuminate\Support\Facades\Route;
@@ -16,6 +17,7 @@ Route::get('/produto/{product:slug}', [StorefrontController::class, 'product'])-
 Route::view('/favoritos', 'storefront.favorites')->name('favorites.index');
 Route::view('/carrinho', 'storefront.cart')->name('cart');
 Route::view('/checkout', 'storefront.checkout')->name('checkout');
+Route::get('/pagamentos/mercado-pago/retorno/{order:code}', [MercadoPagoController::class, 'return'])->name('payments.mercado-pago.return');
 Route::get('/pedidos', [StorefrontController::class, 'orders'])->name('orders.index');
 Route::get('/pedido/{order:code}/status', [StorefrontController::class, 'orderStatus'])->name('orders.status');
 Route::view('/politica-de-privacidade', 'legal.privacy')->name('legal.privacy');

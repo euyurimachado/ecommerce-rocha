@@ -9,12 +9,12 @@
             <x-rocha-icon name="wifi-off" class="size-8" />
         </div>
 
-        <h1 class="mt-6 text-3xl font-black text-slate-950">Você está offline</h1>
+        <h1 class="mt-6 text-2xl font-bold text-slate-950 md:text-3xl">Você está offline</h1>
         <p class="mt-3 text-slate-600">
             Não conseguimos carregar a loja agora. Verifique sua conexão e tente novamente para continuar comprando na Rocha Sports.
         </p>
 
-        <a href="{{ route('home') }}" class="mt-6 inline-flex rounded-lg bg-rocha-blue px-5 py-3 font-black text-white transition hover:bg-rocha-blue-dark">
+        <a href="{{ route('home') }}" class="mt-6 inline-flex rounded-lg bg-rocha-blue px-5 py-3 font-bold text-white transition hover:bg-rocha-blue-dark">
             Tentar novamente
         </a>
     </section>

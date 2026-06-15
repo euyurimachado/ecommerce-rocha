@@ -5,7 +5,9 @@ namespace App\Livewire\Checkout;
 use App\Support\Cart\CartManager;
 use App\Support\Checkout\CreateOrderFromCart;
 use App\Support\Checkout\ShippingCalculator;
+use App\Support\Payments\MercadoPago\MercadoPagoClient;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
 use Throwable;
@@ -34,7 +36,7 @@ class CheckoutPage extends Component
 
     public string $state = 'RJ';
 
-    public string $payment_method = 'pix';
+    public string $payment_method = 'mercado_pago';
 
     public string $notes = '';
 
@@ -42,8 +44,12 @@ class CheckoutPage extends Component
 
     public ?string $checkoutError = null;
 
-    public function placeOrder(CartManager $cart, CreateOrderFromCart $createOrder)
+    public ?string $addressLookupError = null;
+
+    public function placeOrder(CartManager $cart, CreateOrderFromCart $createOrder, MercadoPagoClient $mercadoPago)
     {
+        $this->normalizeFields();
+
         $validated = $this->validate();
 
         if ($cart->items()->isEmpty()) {
@@ -53,7 +59,41 @@ class CheckoutPage extends Component
         }
 
         try {
-            $order = $createOrder($cart, $validated);
+            $isMercadoPago = $validated['payment_method'] === 'mercado_pago';
+
+            $order = $createOrder(
+                $cart,
+                $validated,
+                clearCart: ! $isMercadoPago,
+                decrementStock: ! $isMercadoPago,
+            );
+
+            if ($order->payment_method === 'mercado_pago') {
+                try {
+                    $preference = $mercadoPago->createPreference($order);
+                } catch (Throwable $exception) {
+                    $order->delete();
+
+                    throw $exception;
+                }
+
+                $order->forceFill([
+                    'status' => 'payment_pending',
+                    'mercado_pago_preference_id' => $preference['id'] ?? null,
+                    'mercado_pago_init_point' => $preference['init_point'] ?? null,
+                    'mercado_pago_sandbox_init_point' => $preference['sandbox_init_point'] ?? null,
+                ])->save();
+
+                $cart->coupon()?->increment('used_count');
+                $cart->clear();
+                $this->dispatch('cart-updated');
+
+                return redirect()->away(
+                    $mercadoPago->shouldUseSandboxInitPoint()
+                        ? ($preference['sandbox_init_point'] ?? $preference['init_point'])
+                        : $preference['init_point']
+                );
+            }
         } catch (Throwable $exception) {
             report($exception);
 
@@ -65,6 +105,48 @@ class CheckoutPage extends Component
         $this->dispatch('cart-updated');
 
         return $this->redirectRoute('orders.status', ['order' => $order->code], navigate: true);
+    }
+
+    public function lookupPostalCode(): void
+    {
+        $digits = $this->onlyDigits($this->postal_code);
+
+        $this->addressLookupError = null;
+
+        if ($digits === '') {
+            return;
+        }
+
+        if (strlen($digits) !== 8) {
+            $this->addressLookupError = 'Informe um CEP com 8 dígitos.';
+
+            return;
+        }
+
+        $this->postal_code = $this->formatPostalCode($digits);
+
+        try {
+            $response = Http::acceptJson()
+                ->timeout(5)
+                ->get("https://viacep.com.br/ws/{$digits}/json/");
+        } catch (Throwable $exception) {
+            report($exception);
+
+            $this->addressLookupError = 'Não foi possível buscar o CEP agora.';
+
+            return;
+        }
+
+        if ($response->failed() || $response->json('erro')) {
+            $this->addressLookupError = 'CEP não encontrado.';
+
+            return;
+        }
+
+        $this->street = (string) ($response->json('logradouro') ?: $this->street);
+        $this->neighborhood = (string) ($response->json('bairro') ?: $this->neighborhood);
+        $this->city = (string) ($response->json('localidade') ?: $this->city);
+        $this->state = strtoupper((string) ($response->json('uf') ?: $this->state));
     }
 
     public function render(CartManager $cart, ShippingCalculator $shipping): View
@@ -89,17 +171,24 @@ class CheckoutPage extends Component
     {
         return [
             'customer_name' => ['required', 'string', 'min:3', 'max:120'],
-            'customer_email' => ['required', 'email', 'max:160'],
-            'customer_phone' => ['required', 'string', 'min:10', 'max:20'],
+            'customer_email' => ['required', 'email:rfc,filter', 'max:160'],
+            'customer_phone' => ['required', 'digits_between:10,11'],
             'fulfillment_method' => ['required', Rule::in(['delivery', 'pickup'])],
-            'postal_code' => [Rule::requiredIf($this->fulfillment_method === 'delivery'), 'nullable', 'string', 'max:12'],
+            'postal_code' => [Rule::requiredIf($this->fulfillment_method === 'delivery'), 'nullable', 'digits:8'],
             'street' => [Rule::requiredIf($this->fulfillment_method === 'delivery'), 'nullable', 'string', 'max:160'],
             'number' => [Rule::requiredIf($this->fulfillment_method === 'delivery'), 'nullable', 'string', 'max:20'],
             'complement' => ['nullable', 'string', 'max:120'],
             'neighborhood' => [Rule::requiredIf($this->fulfillment_method === 'delivery'), 'nullable', 'string', 'max:120'],
             'city' => [Rule::requiredIf($this->fulfillment_method === 'delivery'), 'nullable', 'string', 'max:120'],
             'state' => [Rule::requiredIf($this->fulfillment_method === 'delivery'), 'nullable', 'string', 'size:2'],
-            'payment_method' => ['required', Rule::in(['pix', 'credit_card', 'boleto'])],
+            'payment_method' => ['required', Rule::in([
+                'mercado_pago',
+                'pix',
+                'credit_card',
+                'boleto',
+                'payment_on_delivery_pix',
+                'payment_on_delivery_card',
+            ])],
             'notes' => ['nullable', 'string', 'max:500'],
             'privacy_accepted' => ['accepted'],
         ];
@@ -121,5 +210,25 @@ class CheckoutPage extends Component
             'payment_method' => 'forma de pagamento',
             'privacy_accepted' => 'política de privacidade',
         ];
+    }
+
+    private function normalizeFields(): void
+    {
+        $this->customer_email = mb_strtolower(trim($this->customer_email));
+        $this->customer_phone = $this->onlyDigits($this->customer_phone);
+        $this->postal_code = $this->onlyDigits($this->postal_code);
+        $this->state = strtoupper(trim($this->state));
+    }
+
+    private function onlyDigits(string $value): string
+    {
+        return preg_replace('/\D+/', '', $value) ?? '';
+    }
+
+    private function formatPostalCode(string $digits): string
+    {
+        return strlen($digits) === 8
+            ? substr($digits, 0, 5).'-'.substr($digits, 5)
+            : $digits;
     }
 }

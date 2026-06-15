@@ -22,6 +22,14 @@ return [
         'key' => env('RESEND_API_KEY'),
     ],
 
+    'mercado_pago' => [
+        'access_token' => env('MERCADO_PAGO_ACCESS_TOKEN'),
+        'public_key' => env('MERCADO_PAGO_PUBLIC_KEY'),
+        'webhook_secret' => env('MERCADO_PAGO_WEBHOOK_SECRET'),
+        'sandbox' => (bool) env('MERCADO_PAGO_SANDBOX', true),
+        'statement_descriptor' => env('MERCADO_PAGO_STATEMENT_DESCRIPTOR', 'ROCHA SPORTS'),
+    ],
+
     'ses' => [
         'key' => env('AWS_ACCESS_KEY_ID'),
         'secret' => env('AWS_SECRET_ACCESS_KEY'),

@@ -26,7 +26,10 @@ class BannerForm
                     ->url(),
                 FileUpload::make('image_path')
                     ->label('Imagem')
-                    ->image(),
+                    ->image()
+                    ->disk('public')
+                    ->directory('banners')
+                    ->visibility('public'),
                 TextInput::make('placement')
                     ->label('Posição')
                     ->required()

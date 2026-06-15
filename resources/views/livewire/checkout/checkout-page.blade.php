@@ -3,7 +3,7 @@
         <div class="mt-6 rounded-lg border border-slate-200 bg-white p-6 text-slate-600">
             <p class="font-semibold text-slate-950">Seu carrinho ainda está vazio.</p>
             <p class="mt-2">Adicione produtos antes de finalizar a compra.</p>
-            <a href="{{ route('home') }}" class="mt-5 inline-flex rounded-lg bg-rocha-blue px-5 py-3 font-black text-white">Continuar comprando</a>
+            <a href="{{ route('home') }}" class="mt-5 inline-flex rounded-lg bg-rocha-blue px-5 py-3 font-bold text-white">Continuar comprando</a>
         </div>
     @else
         <form wire:submit="placeOrder" class="mt-6 grid gap-6 lg:grid-cols-[1fr_22rem]">
@@ -15,7 +15,7 @@
                 @endif
 
                 <section class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-                    <h2 class="text-xl font-black">1. Identificação</h2>
+                    <h2 class="text-lg font-bold md:text-xl">1. Identificação</h2>
                     <div class="mt-5 grid gap-4 md:grid-cols-2">
                         <label class="block">
                             <span class="text-sm font-bold text-slate-700">Nome completo</span>
@@ -24,31 +24,31 @@
                         </label>
                         <label class="block">
                             <span class="text-sm font-bold text-slate-700">Telefone / WhatsApp</span>
-                            <input wire:model="customer_phone" class="mt-2 h-11 w-full rounded-lg border border-slate-200 px-3 outline-none focus:border-rocha-blue" type="tel" autocomplete="tel">
+                            <input wire:model="customer_phone" class="mt-2 h-11 w-full rounded-lg border border-slate-200 px-3 outline-none focus:border-rocha-blue" type="tel" autocomplete="tel" inputmode="tel" maxlength="15" placeholder="(22) 99999-0000" data-phone-mask>
                             @error('customer_phone') <span class="mt-1 block text-sm text-rose-700">{{ $message }}</span> @enderror
                         </label>
                         <label class="block md:col-span-2">
                             <span class="text-sm font-bold text-slate-700">E-mail</span>
-                            <input wire:model="customer_email" class="mt-2 h-11 w-full rounded-lg border border-slate-200 px-3 outline-none focus:border-rocha-blue" type="email" autocomplete="email">
+                            <input wire:model="customer_email" class="mt-2 h-11 w-full rounded-lg border border-slate-200 px-3 outline-none focus:border-rocha-blue" type="email" autocomplete="email" inputmode="email" placeholder="voce@email.com" data-email-normalize>
                             @error('customer_email') <span class="mt-1 block text-sm text-rose-700">{{ $message }}</span> @enderror
                         </label>
                     </div>
                 </section>
 
                 <section class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-                    <h2 class="text-xl font-black">2. Entrega ou retirada</h2>
+                    <h2 class="text-lg font-bold md:text-xl">2. Entrega ou retirada</h2>
                     <div class="mt-5 grid gap-3 sm:grid-cols-2">
                         <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-200 p-4">
                             <input wire:model.live="fulfillment_method" class="mt-1" type="radio" value="delivery">
                             <span>
-                                <span class="block font-black">Entrega local</span>
+                                <span class="block font-bold">Entrega local</span>
                                 <span class="mt-1 block text-sm text-slate-600">Receba em Campos dos Goytacazes.</span>
                             </span>
                         </label>
                         <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-200 p-4">
                             <input wire:model.live="fulfillment_method" class="mt-1" type="radio" value="pickup">
                             <span>
-                                <span class="block font-black">Retirada na loja</span>
+                                <span class="block font-bold">Retirada na loja</span>
                                 <span class="mt-1 block text-sm text-slate-600">Separaremos o pedido para retirada.</span>
                             </span>
                         </label>
@@ -58,7 +58,11 @@
                         <div class="mt-5 grid gap-4 md:grid-cols-6">
                             <label class="block md:col-span-2">
                                 <span class="text-sm font-bold text-slate-700">CEP</span>
-                                <input wire:model="postal_code" class="mt-2 h-11 w-full rounded-lg border border-slate-200 px-3 outline-none focus:border-rocha-blue" type="text" autocomplete="postal-code">
+                                <input wire:model="postal_code" wire:blur="lookupPostalCode" class="mt-2 h-11 w-full rounded-lg border border-slate-200 px-3 outline-none focus:border-rocha-blue" type="text" autocomplete="postal-code" inputmode="numeric" maxlength="9" placeholder="28000-000" data-cep-mask>
+                                <span wire:loading wire:target="lookupPostalCode" class="mt-1 block text-sm text-slate-500">Buscando endereço...</span>
+                                @if ($addressLookupError)
+                                    <span class="mt-1 block text-sm text-rose-700">{{ $addressLookupError }}</span>
+                                @endif
                                 @error('postal_code') <span class="mt-1 block text-sm text-rose-700">{{ $message }}</span> @enderror
                             </label>
                             <label class="block md:col-span-3">
@@ -71,7 +75,7 @@
                                 <input wire:model="number" class="mt-2 h-11 w-full rounded-lg border border-slate-200 px-3 outline-none focus:border-rocha-blue" type="text">
                                 @error('number') <span class="mt-1 block text-sm text-rose-700">{{ $message }}</span> @enderror
                             </label>
-                            <label class="block md:col-span-2">
+                            <label class="block md:col-span-3">
                                 <span class="text-sm font-bold text-slate-700">Bairro</span>
                                 <input wire:model="neighborhood" class="mt-2 h-11 w-full rounded-lg border border-slate-200 px-3 outline-none focus:border-rocha-blue" type="text">
                                 @error('neighborhood') <span class="mt-1 block text-sm text-rose-700">{{ $message }}</span> @enderror
@@ -86,8 +90,8 @@
                                 <input wire:model="state" class="mt-2 h-11 w-full rounded-lg border border-slate-200 px-3 uppercase outline-none focus:border-rocha-blue" type="text" maxlength="2">
                                 @error('state') <span class="mt-1 block text-sm text-rose-700">{{ $message }}</span> @enderror
                             </label>
-                            <label class="block md:col-span-1">
-                                <span class="text-sm font-bold text-slate-700">Compl.</span>
+                            <label class="block md:col-span-6">
+                                <span class="text-sm font-bold text-slate-700">Complemento</span>
                                 <input wire:model="complement" class="mt-2 h-11 w-full rounded-lg border border-slate-200 px-3 outline-none focus:border-rocha-blue" type="text">
                             </label>
                         </div>
@@ -99,20 +103,29 @@
                 </section>
 
                 <section class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-                    <h2 class="text-xl font-black">3. Pagamento</h2>
-                    <div class="mt-5 grid gap-3 sm:grid-cols-3">
-                        <label class="flex cursor-pointer gap-3 rounded-lg border border-slate-200 p-4">
-                            <input wire:model="payment_method" class="mt-1" type="radio" value="pix">
-                            <span class="font-black">Pix</span>
+                    <h2 class="text-lg font-bold md:text-xl">3. Pagamento</h2>
+                    <div class="mt-5 grid gap-3">
+                        <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-rocha-blue/30 bg-rocha-blue/5 p-4">
+                            <input wire:model="payment_method" class="mt-1" type="radio" value="mercado_pago">
+                            <span>
+                                <span class="block font-bold text-slate-950">Mercado Pago</span>
+                                <span class="mt-1 block text-sm text-slate-600">Pix, cartão, boleto e saldo Mercado Pago em ambiente seguro.</span>
+                            </span>
                         </label>
-                        <label class="flex cursor-pointer gap-3 rounded-lg border border-slate-200 p-4">
-                            <input wire:model="payment_method" class="mt-1" type="radio" value="credit_card">
-                            <span class="font-black">Cartão</span>
-                        </label>
-                        <label class="flex cursor-pointer gap-3 rounded-lg border border-slate-200 p-4">
-                            <input wire:model="payment_method" class="mt-1" type="radio" value="boleto">
-                            <span class="font-black">Boleto</span>
-                        </label>
+                        <div class="rounded-lg border border-slate-200 p-4">
+                            <p class="font-bold text-slate-950">Pagamento na entrega</p>
+                            <p class="mt-1 text-sm text-slate-600">Escolha como deseja pagar ao receber o pedido.</p>
+                            <div class="mt-4 grid gap-3 sm:grid-cols-2">
+                                <label class="flex cursor-pointer items-center gap-3 rounded-lg border border-slate-200 px-4 py-3">
+                                    <input wire:model="payment_method" type="radio" value="payment_on_delivery_pix">
+                                    <span class="font-semibold text-slate-800">PIX na entrega</span>
+                                </label>
+                                <label class="flex cursor-pointer items-center gap-3 rounded-lg border border-slate-200 px-4 py-3">
+                                    <input wire:model="payment_method" type="radio" value="payment_on_delivery_card">
+                                    <span class="font-semibold text-slate-800">Cartão na entrega</span>
+                                </label>
+                            </div>
+                        </div>
                     </div>
                     @error('payment_method') <span class="mt-2 block text-sm text-rose-700">{{ $message }}</span> @enderror
 
@@ -130,12 +143,12 @@
             </div>
 
             <aside class="h-fit rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-                <h2 class="text-xl font-black">Resumo</h2>
+                <h2 class="text-lg font-bold md:text-xl">Resumo</h2>
                 <div class="mt-5 space-y-4">
                     @foreach ($items as $item)
                         @php($product = $item['product'])
                         <div class="flex gap-3 text-sm">
-                            <div class="grid size-12 place-items-center rounded-md bg-slate-100 text-xs font-black text-rocha-blue">{{ $product->category->icon ?? 'RS' }}</div>
+                            <div class="grid size-12 place-items-center rounded-md bg-slate-100 text-xs font-bold text-rocha-blue">{{ $product->category->icon ?? 'RS' }}</div>
                             <div class="min-w-0 flex-1">
                                 <p class="font-bold text-slate-950">{{ $product->name }}</p>
                                 <p class="mt-1 text-slate-500">{{ $item['quantity'] }} x {{ $product->formatted_price }}</p>
@@ -160,11 +173,11 @@
                         </div>
                     @endif
                     <div class="mt-4 flex justify-between text-lg">
-                        <span class="font-black">Total</span>
-                        <span class="font-black">{{ $total }}</span>
+                        <span class="font-bold">Total</span>
+                        <span class="font-bold">{{ $total }}</span>
                     </div>
                 </div>
-                <button wire:loading.attr="disabled" wire:target="placeOrder" class="mt-6 flex w-full justify-center rounded-lg bg-rocha-blue px-5 py-3 font-black text-white disabled:cursor-wait disabled:opacity-70" type="submit">
+                <button wire:loading.attr="disabled" wire:target="placeOrder" class="mt-6 flex w-full justify-center rounded-lg bg-rocha-blue px-5 py-3 font-bold text-white disabled:cursor-wait disabled:opacity-70" type="submit">
                     <span wire:loading.remove wire:target="placeOrder">Finalizar pedido</span>
                     <span wire:loading wire:target="placeOrder">Finalizando...</span>
                 </button>

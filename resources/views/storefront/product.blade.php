@@ -48,71 +48,179 @@
 @endsection
 
 @section('content')
-    <section class="mx-auto grid max-w-7xl gap-8 px-4 py-8 md:grid-cols-2 lg:px-6">
-        <div class="rounded-lg border border-slate-200 bg-white p-6">
-            <div class="grid aspect-square place-items-center rounded-lg bg-slate-100">
-                <div class="grid size-44 place-items-center rounded-lg border border-slate-200 bg-white text-center shadow-inner">
-                    <span class="text-lg font-black text-rocha-blue">{{ $product->category->icon ?? 'RS' }}</span>
-                    <span class="text-sm font-semibold text-slate-500">{{ $product->weight }}</span>
+    @php
+        $productImage = $product->image_path ? asset('storage/'.$product->image_path) : asset('images/products/placeholder.svg');
+        $galleryImages = collect([$productImage, asset('images/products/placeholder.svg')])->unique()->values();
+        $hasDiscount = $product->compare_at_price_cents && $product->compare_at_price_cents > $product->price_cents;
+        $discountPercentage = $hasDiscount ? round((1 - ($product->price_cents / $product->compare_at_price_cents)) * 100) : null;
+    @endphp
+
+    <section class="bg-white">
+        <div class="mx-auto grid max-w-7xl gap-8 px-4 py-4 md:grid-cols-[minmax(0,1fr)_24rem] md:py-8 lg:px-6">
+            <div class="min-w-0">
+                <div class="relative">
+                    <div class="absolute inset-x-0 top-3 z-20 flex items-center justify-between px-3 md:hidden">
+                        <a href="{{ url()->previous() !== url()->current() ? url()->previous() : route('home') }}" class="grid size-11 place-items-center rounded-full bg-white/92 text-slate-900 shadow-sm ring-1 ring-slate-200" aria-label="Voltar">
+                            <x-rocha-icon name="arrow-left" class="size-5" />
+                        </a>
+                        <div class="flex items-center gap-2">
+                            <livewire:favorites.favorite-toggle :product="$product" :compact="true" :key="'favorite-product-mobile-'.$product->id" />
+                            <button class="grid size-11 place-items-center rounded-full bg-white/92 text-slate-700 shadow-sm ring-1 ring-slate-200 transition hover:text-rocha-blue" type="button" aria-label="Compartilhar produto" data-share-product>
+                                <x-rocha-icon name="share-2" class="size-5" />
+                            </button>
+                            <livewire:cart.cart-badge />
+                        </div>
+                    </div>
+
+                    <div class="overflow-hidden rounded-lg bg-slate-100 md:rounded-xl">
+                        <div class="grid aspect-square place-items-center p-6 md:aspect-[1.05/1] md:p-10">
+                            <img class="max-h-full w-full max-w-xl object-contain" src="{{ $galleryImages->first() }}" alt="{{ $product->name }}" data-product-main-image>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
 
-        <div>
-            <nav class="text-sm text-slate-500">
-                <ol class="flex flex-wrap gap-2">
-                    <li><a href="{{ route('home') }}">Início</a></li>
-                    <li>/</li>
-                    <li><a href="{{ route('categories.show', $product->category) }}">{{ $product->category->name }}</a></li>
-                    <li>/</li>
-                    <li class="text-slate-700">{{ $product->name }}</li>
-                </ol>
-            </nav>
-            <h1 class="mt-3 text-3xl font-black text-slate-950">{{ $product->name }}</h1>
-            <p class="mt-2 text-sm font-bold text-rocha-blue">{{ $product->brand?->name }} - {{ $product->weight }}</p>
-            <p class="mt-4 text-slate-600">{{ $product->short_description }}</p>
-
-            <div class="mt-6 rounded-lg border border-slate-200 bg-white p-5">
-                @if ($product->formatted_compare_at_price)
-                    <p class="text-sm text-slate-400 line-through">{{ $product->formatted_compare_at_price }}</p>
-                @endif
-                <p class="text-3xl font-black text-slate-950">{{ $product->formatted_price }}</p>
-                <p class="mt-2 text-sm font-semibold text-emerald-700">Entrega local ou retirada na loja</p>
-                <div class="mt-5 grid gap-3 sm:grid-cols-2">
-                    <livewire:cart.add-to-cart-button :product="$product" label="Comprar agora" :full-width="true" :redirect-to-checkout="true" :key="'buy-product-page-'.$product->id" />
-                    <livewire:cart.add-to-cart-button :product="$product" label="Adicionar ao carrinho" :full-width="true" :key="'add-product-page-'.$product->id" />
-                </div>
-                <div class="mt-3">
-                    <livewire:favorites.favorite-toggle :product="$product" :key="'favorite-product-page-'.$product->id" />
-                </div>
-            </div>
-
-            <div class="mt-6 grid gap-3 text-sm sm:grid-cols-3">
-                <div class="rounded-lg border border-slate-200 bg-white p-4 font-semibold">Produto original</div>
-                <div class="rounded-lg border border-slate-200 bg-white p-4 font-semibold">Pagamento seguro</div>
-                <div class="rounded-lg border border-slate-200 bg-white p-4 font-semibold">Suporte especializado</div>
-            </div>
-        </div>
-    </section>
-
-    <section class="mx-auto max-w-7xl px-4 pb-10 lg:px-6">
-        <div class="grid gap-6 md:grid-cols-3">
-            <article class="rounded-lg border border-slate-200 bg-white p-5 md:col-span-2">
-                <h2 class="text-xl font-black">Descrição</h2>
-                <p class="mt-3 text-slate-600">{{ $product->description }}</p>
-                <h3 class="mt-6 font-black">Benefícios</h3>
-                <ul class="mt-3 grid gap-2 text-sm text-slate-600 sm:grid-cols-2">
-                    @foreach ($product->benefits ?? [] as $benefit)
-                        <li class="rounded-md bg-slate-50 p-3">{{ $benefit }}</li>
+                <div class="mt-4 flex gap-3 overflow-x-auto pb-1" data-product-gallery>
+                    @foreach ($galleryImages as $image)
+                        <button class="{{ $loop->first ? 'border-rocha-blue ring-2 ring-rocha-blue/20' : 'border-slate-200' }} grid size-16 shrink-0 place-items-center overflow-hidden rounded-lg border bg-white p-1 transition hover:border-rocha-blue md:size-20" type="button" data-product-gallery-thumb="{{ $image }}" aria-label="Ver imagem {{ $loop->iteration }}">
+                            <img class="h-full w-full object-contain" src="{{ $image }}" alt="">
+                        </button>
                     @endforeach
-                </ul>
-            </article>
-            <aside class="rounded-lg border border-slate-200 bg-white p-5">
-                <h2 class="text-xl font-black">Modo de uso</h2>
-                <p class="mt-3 text-sm text-slate-600">{{ $product->usage_instructions }}</p>
-                <h3 class="mt-6 font-black">Ingredientes</h3>
-                <p class="mt-3 text-sm text-slate-600">{{ $product->ingredients }}</p>
+                </div>
+
+                <div class="mt-6 md:hidden">
+                    <p class="text-xs font-bold uppercase text-rocha-blue">{{ $product->brand?->name ?? $product->category->name }}</p>
+                    <h1 class="mt-2 text-xl font-bold leading-snug text-slate-950">{{ $product->name }}</h1>
+                </div>
+            </div>
+
+            <aside class="md:sticky md:top-24 md:self-start">
+                <div class="hidden items-center justify-between gap-3 md:flex">
+                    <a href="{{ route('home') }}" class="inline-flex items-center gap-2 text-sm font-bold text-slate-600 transition hover:text-rocha-blue">
+                        <x-rocha-icon name="arrow-left" class="size-4" />
+                        Voltar
+                    </a>
+                    <div class="flex items-center gap-2">
+                        <livewire:favorites.favorite-toggle :product="$product" :compact="true" :key="'favorite-product-desktop-'.$product->id" />
+                        <button class="grid size-10 place-items-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:border-rocha-blue/30 hover:bg-rocha-blue/5 hover:text-rocha-blue" type="button" aria-label="Compartilhar produto" data-share-product>
+                            <x-rocha-icon name="share-2" class="size-5" />
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mt-0 rounded-lg border border-slate-200 bg-white p-5 shadow-sm md:mt-4">
+                    <p class="hidden text-xs font-bold uppercase text-rocha-blue md:block">{{ $product->brand?->name ?? $product->category->name }}</p>
+                    <h1 class="hidden text-3xl font-bold leading-tight text-slate-950 md:mt-2 md:block">{{ $product->name }}</h1>
+
+                    <div class="mt-3 flex flex-wrap items-center gap-3 text-sm">
+                        <span class="inline-flex items-center gap-1 font-bold text-slate-700">
+                            <x-rocha-icon name="star" class="size-4 text-rocha-blue" />
+                            {{ $product->rating }}
+                        </span>
+                        <span class="text-slate-400">|</span>
+                        <a href="{{ route('categories.show', $product->category) }}" class="font-bold text-rocha-blue">{{ $product->category->name }}</a>
+                        @if ($discountPercentage)
+                            <span class="rounded-md bg-emerald-50 px-2 py-1 text-xs font-bold text-emerald-700">{{ $discountPercentage }}% OFF</span>
+                        @endif
+                    </div>
+
+                    <div class="mt-5">
+                        @if ($product->formatted_compare_at_price)
+                            <p class="text-sm text-slate-400 line-through">{{ $product->formatted_compare_at_price }}</p>
+                        @endif
+                        <p class="text-2xl font-bold text-slate-950 md:text-3xl">{{ $product->formatted_price }}</p>
+                        <p class="mt-2 text-sm font-semibold text-emerald-700">
+                            {{ $product->available_quantity > 0 ? 'Disponível para entrega local ou retirada' : 'Produto indisponível no momento' }}
+                        </p>
+                    </div>
+
+                    @if ($product->flavor)
+                        <div class="mt-6">
+                            <p class="text-sm font-bold text-slate-950">Sabor</p>
+                            <div class="mt-3 flex flex-wrap gap-2">
+                                <button class="rounded-full border border-rocha-blue bg-rocha-blue/5 px-4 py-2 text-sm font-semibold text-rocha-blue" type="button">{{ $product->flavor }}</button>
+                            </div>
+                        </div>
+                    @endif
+
+                    @if ($product->weight)
+                        <div class="mt-6">
+                            <p class="text-sm font-bold text-slate-950">Tamanho</p>
+                            <div class="mt-3 flex flex-wrap gap-2">
+                                <button class="rounded-full border border-rocha-blue bg-rocha-blue/5 px-4 py-2 text-sm font-semibold text-rocha-blue" type="button">{{ $product->weight }}</button>
+                            </div>
+                        </div>
+                    @endif
+
+                    <div class="mt-6 hidden gap-3 md:grid">
+                        <livewire:cart.add-to-cart-button :product="$product" label="Comprar agora" :full-width="true" :redirect-to-checkout="true" :key="'buy-product-page-'.$product->id" />
+                        <livewire:cart.add-to-cart-button :product="$product" label="Adicionar ao carrinho" :full-width="true" :key="'add-product-page-'.$product->id" />
+                    </div>
+                </div>
             </aside>
         </div>
     </section>
+
+    <section class="mx-auto max-w-7xl px-4 pb-28 md:pb-10 lg:px-6">
+        <div class="grid gap-6 md:grid-cols-[minmax(0,1fr)_24rem]">
+            <article class="rounded-lg border border-slate-200 bg-white p-5">
+                <h2 class="text-lg font-bold text-slate-950 md:text-xl">Descrição</h2>
+                <p class="mt-3 leading-relaxed text-slate-600">{{ $product->description ?: $product->short_description }}</p>
+
+                @if ($product->benefits)
+                    <h3 class="mt-7 font-bold text-slate-950">Visão rápida</h3>
+                    <ul class="mt-3 grid gap-3 text-sm text-slate-700 sm:grid-cols-2">
+                        @foreach ($product->benefits as $benefit)
+                            <li class="flex items-center gap-3 rounded-lg bg-slate-50 p-3">
+                                <span class="grid size-9 shrink-0 place-items-center rounded-full bg-rocha-blue/10 text-rocha-blue">
+                                    <x-rocha-icon name="badge-check" class="size-4" />
+                                </span>
+                                <span>{{ $benefit }}</span>
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
+            </article>
+
+            <aside class="rounded-lg border border-slate-200 bg-white p-5">
+                <h2 class="text-lg font-bold text-slate-950 md:text-xl">Detalhes</h2>
+                <dl class="mt-4 grid gap-3 text-sm">
+                    <div class="flex items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                        <dt class="text-slate-500">Marca</dt>
+                        <dd class="font-bold text-slate-900">{{ $product->brand?->name ?? 'Rocha Sports' }}</dd>
+                    </div>
+                    <div class="flex items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                        <dt class="text-slate-500">Categoria</dt>
+                        <dd class="font-bold text-slate-900">{{ $product->category->name }}</dd>
+                    </div>
+                    @if ($product->sku)
+                        <div class="flex items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                            <dt class="text-slate-500">SKU</dt>
+                            <dd class="font-bold text-slate-900">{{ $product->sku }}</dd>
+                        </div>
+                    @endif
+                    <div class="flex items-center justify-between gap-3">
+                        <dt class="text-slate-500">Estoque</dt>
+                        <dd class="font-bold text-slate-900">{{ $product->available_quantity }} un.</dd>
+                    </div>
+                </dl>
+
+                @if ($product->usage_instructions)
+                    <h3 class="mt-7 font-bold text-slate-950">Modo de uso</h3>
+                    <p class="mt-2 text-sm leading-relaxed text-slate-600">{{ $product->usage_instructions }}</p>
+                @endif
+
+                @if ($product->ingredients)
+                    <h3 class="mt-7 font-bold text-slate-950">Ingredientes</h3>
+                    <p class="mt-2 text-sm leading-relaxed text-slate-600">{{ $product->ingredients }}</p>
+                @endif
+            </aside>
+        </div>
+    </section>
+
+    <div class="fixed inset-x-0 bottom-16 z-40 border-t border-slate-200 bg-white/95 px-4 py-3 shadow-[0_-12px_28px_rgba(15,23,42,0.12)] backdrop-blur md:hidden">
+        <div class="mx-auto grid max-w-md grid-cols-2 gap-3">
+            <livewire:cart.add-to-cart-button :product="$product" label="Comprar agora" :full-width="true" :redirect-to-checkout="true" :key="'buy-product-page-mobile-'.$product->id" />
+            <livewire:cart.add-to-cart-button :product="$product" label="Adicionar" :full-width="true" :key="'add-product-page-mobile-'.$product->id" />
+        </div>
+    </div>
 @endsection

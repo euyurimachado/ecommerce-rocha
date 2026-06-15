@@ -16,11 +16,17 @@ class StorefrontController extends Controller
     public function home(): View
     {
         return view('storefront.home', [
-            'banner' => Banner::query()
+            'banners' => Banner::query()
                 ->where('placement', 'home_hero')
                 ->where('is_active', true)
+                ->where(fn (Builder $builder) => $builder
+                    ->whereNull('starts_at')
+                    ->orWhere('starts_at', '<=', now()))
+                ->where(fn (Builder $builder) => $builder
+                    ->whereNull('ends_at')
+                    ->orWhere('ends_at', '>=', now()))
                 ->orderBy('sort_order')
-                ->first(),
+                ->get(),
             'categories' => Category::query()
                 ->where('is_active', true)
                 ->where('is_featured', true)

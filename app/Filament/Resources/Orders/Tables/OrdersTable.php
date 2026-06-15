@@ -23,7 +23,10 @@ class OrdersTable
                     ->label('Status')
                     ->badge()
                     ->formatStateUsing(fn (string $state): string => match ($state) {
+                        'payment_pending' => 'Aguardando pagamento',
                         'payment_approved' => 'Pagamento aprovado',
+                        'payment_rejected' => 'Pagamento recusado',
+                        'payment_refunded' => 'Pagamento estornado',
                         'preparing' => 'Em separação',
                         'out_for_delivery' => 'Saiu para entrega',
                         'ready_for_pickup' => 'Pronto para retirada',
@@ -46,8 +49,11 @@ class OrdersTable
                 TextColumn::make('payment_method')
                     ->label('Pagamento')
                     ->formatStateUsing(fn (string $state): string => match ($state) {
+                        'mercado_pago' => 'Mercado Pago',
                         'credit_card' => 'Cartão',
                         'boleto' => 'Boleto',
+                        'payment_on_delivery_pix' => 'PIX na entrega',
+                        'payment_on_delivery_card' => 'Cartão na entrega',
                         default => 'Pix',
                     }),
                 TextColumn::make('total_cents')
@@ -69,7 +75,10 @@ class OrdersTable
                     ->label('Status')
                     ->options([
                         'received' => 'Pedido recebido',
+                        'payment_pending' => 'Aguardando pagamento',
                         'payment_approved' => 'Pagamento aprovado',
+                        'payment_rejected' => 'Pagamento recusado',
+                        'payment_refunded' => 'Pagamento estornado',
                         'preparing' => 'Em separação',
                         'out_for_delivery' => 'Saiu para entrega',
                         'ready_for_pickup' => 'Pronto para retirada',
@@ -85,9 +94,12 @@ class OrdersTable
                 SelectFilter::make('payment_method')
                     ->label('Pagamento')
                     ->options([
+                        'mercado_pago' => 'Mercado Pago',
                         'pix' => 'Pix',
                         'credit_card' => 'Cartão',
                         'boleto' => 'Boleto',
+                        'payment_on_delivery_pix' => 'PIX na entrega',
+                        'payment_on_delivery_card' => 'Cartão na entrega',
                     ]),
             ])
             ->recordActions([

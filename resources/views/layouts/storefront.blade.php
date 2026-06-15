@@ -101,12 +101,11 @@
     @include('partials.cookie-consent')
 
     <nav class="fixed inset-x-0 bottom-0 z-50 border-t border-slate-200 bg-white px-2 py-2 md:hidden">
-        <div class="mx-auto grid max-w-md grid-cols-5 text-center text-xs font-semibold text-slate-600">
-            <a class="flex flex-col items-center gap-1 rounded-lg px-2 py-2 text-rocha-blue" href="{{ route('home') }}"><x-rocha-icon name="home" class="size-5" />Início</a>
-            <a class="flex flex-col items-center gap-1 rounded-lg px-2 py-2" href="{{ route('search') }}"><x-rocha-icon name="search" class="size-5" />Busca</a>
-            <a class="flex flex-col items-center gap-1 rounded-lg px-2 py-2" href="{{ route('search', ['ordenar' => 'ofertas']) }}"><x-rocha-icon name="tag" class="size-5" />Ofertas</a>
-            <a class="flex flex-col items-center gap-1 rounded-lg px-2 py-2" href="{{ route('orders.index') }}"><x-rocha-icon name="package" class="size-5" />Pedidos</a>
-            <a class="flex flex-col items-center gap-1 rounded-lg px-2 py-2" href="{{ route('favorites.index') }}"><x-rocha-icon name="heart" class="size-5" />Favoritos</a>
+        <div class="mx-auto grid max-w-md grid-cols-4 text-center text-[11px] font-medium leading-tight text-slate-600">
+            <a class="flex flex-col items-center gap-1 rounded-lg px-1.5 py-2 text-rocha-blue" href="{{ route('home') }}"><x-rocha-icon name="home" class="size-5" />Início</a>
+            <a class="flex flex-col items-center gap-1 rounded-lg px-1.5 py-2" href="{{ route('search', ['ordenar' => 'ofertas']) }}"><x-rocha-icon name="tag" class="size-5" />Ofertas</a>
+            <a class="flex flex-col items-center gap-1 rounded-lg px-1.5 py-2" href="{{ route('orders.index') }}"><x-rocha-icon name="package" class="size-5" />Pedidos</a>
+            <a class="flex flex-col items-center gap-1 rounded-lg px-1.5 py-2" href="{{ route('favorites.index') }}"><x-rocha-icon name="heart" class="size-5" />Favoritos</a>
         </div>
     </nav>
 

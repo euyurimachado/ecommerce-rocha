@@ -27,6 +27,14 @@ class OrderInfolist
                             ->label('Recebimento'),
                         TextEntry::make('payment_method_label')
                             ->label('Pagamento'),
+                        TextEntry::make('mercado_pago_status')
+                            ->label('Status Mercado Pago')
+                            ->placeholder('-')
+                            ->badge(),
+                        TextEntry::make('mercado_pago_payment_id')
+                            ->label('ID pagamento MP')
+                            ->placeholder('-')
+                            ->copyable(),
                         TextEntry::make('coupon_code')
                             ->label('Cupom')
                             ->placeholder('-'),

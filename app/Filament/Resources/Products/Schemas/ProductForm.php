@@ -33,7 +33,10 @@ class ProductForm
                     ->required(),
                 FileUpload::make('image_path')
                     ->label('Imagem')
-                    ->image(),
+                    ->image()
+                    ->disk('public')
+                    ->directory('products')
+                    ->visibility('public'),
                 TextInput::make('weight')
                     ->label('Peso/volume'),
                 TextInput::make('flavor')
