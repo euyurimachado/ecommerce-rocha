@@ -2,14 +2,16 @@
 
 namespace App\Filament\Resources\Products\Schemas;
 
+use App\Models\Product;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Forms\Components\ViewField;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 
 class ProductForm
@@ -42,7 +44,8 @@ class ProductForm
                             ->image()
                             ->disk('public')
                             ->directory('products')
-                            ->visibility('public'),
+                            ->visibility('public')
+                            ->live(),
                         FileUpload::make('gallery_images')
                             ->label('Galeria de imagens')
                             ->image()
@@ -50,13 +53,12 @@ class ProductForm
                             ->reorderable()
                             ->disk('public')
                             ->directory('products/gallery')
-                            ->visibility('public'),
+                            ->visibility('public')
+                            ->live(),
                     ])
                     ->columnSpanFull(),
                 TextInput::make('weight')
                     ->label('Peso/volume'),
-                TextInput::make('flavor')
-                    ->label('Sabor'),
                 Repeater::make('variations')
                     ->label('Variações do produto')
                     ->schema([
@@ -64,10 +66,30 @@ class ProductForm
                             ->label('Nome da variação')
                             ->placeholder('Sabor, Cor, Tamanho...')
                             ->required(),
-                        TagsInput::make('values')
+                        Repeater::make('options')
                             ->label('Opções')
-                            ->placeholder('Digite uma opção e pressione Enter')
-                            ->required(),
+                            ->schema([
+                                TextInput::make('value')
+                                    ->label('Nome da opção')
+                                    ->placeholder('Baunilha, Azul, M...')
+                                    ->required(),
+                                ViewField::make('image_path')
+                                    ->label('Imagem da opção')
+                                    ->view('filament.forms.product-variation-image-picker')
+                                    ->viewData(fn (Get $get): array => [
+                                        'images' => self::productImageLibrary($get),
+                                    ]),
+                                FileUpload::make('uploaded_image_path')
+                                    ->label('Anexar nova imagem')
+                                    ->image()
+                                    ->disk('public')
+                                    ->directory('products/gallery')
+                                    ->visibility('public'),
+                            ])
+                            ->addActionLabel('Nova opção')
+                            ->reorderable()
+                            ->required()
+                            ->columnSpanFull(),
                     ])
                     ->addActionLabel('Nova variação')
                     ->reorderable()
@@ -139,5 +161,44 @@ class ProductForm
                 TextInput::make('meta_description')
                     ->label('Meta description'),
             ]);
+    }
+
+    private static function productImageLibrary(Get $get): array
+    {
+        $currentProductImages = collect([$get('image_path', true)])
+            ->flatten()
+            ->merge(collect($get('gallery_images', true) ?? [])->flatten())
+            ->filter();
+
+        $savedProductImages = Product::query()
+            ->select(['name', 'image_path', 'gallery_images'])
+            ->latest('updated_at')
+            ->get()
+            ->flatMap(function (Product $product): array {
+                return collect([$product->image_path])
+                    ->merge($product->gallery_images ?? [])
+                    ->filter()
+                    ->map(fn (string $path): array => [
+                        'path' => $path,
+                        'label' => $product->name,
+                    ])
+                    ->all();
+            });
+
+        return $currentProductImages
+            ->map(fn (string $path): array => [
+                'path' => $path,
+                'label' => 'Imagem deste produto',
+            ])
+            ->merge($savedProductImages)
+            ->unique('path')
+            ->map(fn (array $image): array => [
+                'path' => $image['path'],
+                'url' => asset('storage/'.$image['path']),
+                'label' => $image['label'],
+                'filename' => basename($image['path']),
+            ])
+            ->values()
+            ->all();
     }
 }

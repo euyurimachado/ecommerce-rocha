@@ -20,7 +20,7 @@
                             @if ($item['variant_summary'])
                                 <p class="mt-1 text-sm font-semibold text-slate-600">{{ $item['variant_summary'] }}</p>
                             @else
-                                <p class="mt-1 text-sm text-slate-500">{{ $product->weight }}{{ $product->flavor ? ' - '.$product->flavor : '' }}</p>
+                                <p class="mt-1 text-sm text-slate-500">{{ $product->weight }}</p>
                             @endif
                             <button wire:click="remove('{{ $item['key'] }}')" class="mt-3 text-sm font-bold text-rose-700" type="button">Remover</button>
                         </div>

@@ -19,7 +19,6 @@ class ProductResource extends JsonResource
             'brand' => BrandResource::make($this->whenLoaded('brand')),
             'category' => CategoryResource::make($this->whenLoaded('category')),
             'weight' => $this->weight,
-            'flavor' => $this->flavor,
             'variations' => $this->variationOptions(),
             'short_description' => $this->short_description,
             'description' => $this->description,

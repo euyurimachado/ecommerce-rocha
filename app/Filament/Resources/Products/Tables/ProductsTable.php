@@ -34,9 +34,6 @@ class ProductsTable
                 TextColumn::make('weight')
                     ->label('Peso/volume')
                     ->searchable(),
-                TextColumn::make('flavor')
-                    ->label('Sabor')
-                    ->searchable(),
                 TextColumn::make('stock_quantity')
                     ->label('Estoque')
                     ->numeric()

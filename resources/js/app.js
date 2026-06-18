@@ -247,6 +247,22 @@ const initializeHomeHeroSlider = () => {
 const initializeProductPage = () => {
     const mainImage = document.querySelector('[data-product-main-image]');
     const gallery = document.querySelector('[data-product-gallery]');
+    const setActiveGalleryImage = (imageUrl) => {
+        if (!mainImage || !imageUrl) {
+            return;
+        }
+
+        mainImage.src = imageUrl;
+
+        gallery?.querySelectorAll('[data-product-gallery-thumb]').forEach((thumb) => {
+            const isActive = thumb.dataset.productGalleryThumb === imageUrl;
+
+            thumb.classList.toggle('border-rocha-blue', isActive);
+            thumb.classList.toggle('ring-2', isActive);
+            thumb.classList.toggle('ring-rocha-blue/20', isActive);
+            thumb.classList.toggle('border-slate-200', !isActive);
+        });
+    };
 
     gallery?.querySelectorAll('[data-product-gallery-thumb]').forEach((button) => {
         if (button.dataset.galleryReady === 'true') {
@@ -256,20 +272,7 @@ const initializeProductPage = () => {
         button.dataset.galleryReady = 'true';
 
         button.addEventListener('click', () => {
-            if (!mainImage) {
-                return;
-            }
-
-            mainImage.src = button.dataset.productGalleryThumb;
-
-            gallery.querySelectorAll('[data-product-gallery-thumb]').forEach((thumb) => {
-                const isActive = thumb === button;
-
-                thumb.classList.toggle('border-rocha-blue', isActive);
-                thumb.classList.toggle('ring-2', isActive);
-                thumb.classList.toggle('ring-rocha-blue/20', isActive);
-                thumb.classList.toggle('border-slate-200', !isActive);
-            });
+            setActiveGalleryImage(button.dataset.productGalleryThumb);
         });
     });
 
@@ -285,6 +288,10 @@ const initializeProductPage = () => {
         }
 
         window.rochaProductVariantSelections[variationName] = variationValue;
+
+        if (button.dataset.variationImage) {
+            setActiveGalleryImage(button.dataset.variationImage);
+        }
 
         variationButtons.forEach((option) => {
             if (option.dataset.variationName !== variationName) {

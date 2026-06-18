@@ -54,12 +54,12 @@ class CommerceSeeder extends Seeder
             });
 
         $products = [
-            ['name' => 'Whey Protein 100% Concentrado 900g', 'category' => 'Whey Protein', 'brand' => 'Max Titanium', 'weight' => '900g', 'flavor' => 'Chocolate', 'price_cents' => 12990, 'compare_at_price_cents' => 14990, 'rating' => 4.8, 'reviews_count' => 42, 'sales_count' => 180, 'is_featured' => true, 'is_offer' => true],
-            ['name' => 'Creatina Monohidratada 300g', 'category' => 'Creatina', 'brand' => 'Integralmedica', 'weight' => '300g', 'flavor' => 'Sem sabor', 'price_cents' => 8990, 'compare_at_price_cents' => 9990, 'rating' => 4.9, 'reviews_count' => 68, 'sales_count' => 230, 'is_featured' => true, 'is_offer' => true],
-            ['name' => 'Pré-treino Energy Focus 300g', 'category' => 'Pré-treino', 'brand' => 'Dux Nutrition', 'weight' => '300g', 'flavor' => 'Blue Ice', 'price_cents' => 11990, 'rating' => 4.7, 'reviews_count' => 31, 'sales_count' => 96, 'is_featured' => true, 'is_offer' => false],
-            ['name' => 'Multivitamínico Performance 120 caps', 'category' => 'Vitaminas', 'brand' => 'Growth Supplements', 'weight' => '120 caps', 'flavor' => null, 'price_cents' => 5490, 'rating' => 4.6, 'reviews_count' => 19, 'sales_count' => 77, 'is_featured' => true, 'is_offer' => false],
-            ['name' => 'Barra Proteica Cookies 12 unidades', 'category' => 'Snacks', 'brand' => 'Probiotica', 'weight' => '12 un', 'flavor' => 'Cookies', 'price_cents' => 6990, 'compare_at_price_cents' => 7990, 'rating' => 4.5, 'reviews_count' => 14, 'sales_count' => 61, 'is_featured' => false, 'is_offer' => true],
-            ['name' => 'Combo Massa: Whey + Creatina + Coqueteleira', 'category' => 'Combos e Kits', 'brand' => 'Max Titanium', 'weight' => 'Kit', 'flavor' => 'Chocolate', 'price_cents' => 21990, 'compare_at_price_cents' => 24990, 'rating' => 4.9, 'reviews_count' => 23, 'sales_count' => 88, 'is_featured' => true, 'is_offer' => true],
+            ['name' => 'Whey Protein 100% Concentrado 900g', 'category' => 'Whey Protein', 'brand' => 'Max Titanium', 'weight' => '900g', 'default_flavor' => 'Chocolate', 'price_cents' => 12990, 'compare_at_price_cents' => 14990, 'rating' => 4.8, 'reviews_count' => 42, 'sales_count' => 180, 'is_featured' => true, 'is_offer' => true],
+            ['name' => 'Creatina Monohidratada 300g', 'category' => 'Creatina', 'brand' => 'Integralmedica', 'weight' => '300g', 'default_flavor' => 'Sem sabor', 'price_cents' => 8990, 'compare_at_price_cents' => 9990, 'rating' => 4.9, 'reviews_count' => 68, 'sales_count' => 230, 'is_featured' => true, 'is_offer' => true],
+            ['name' => 'Pré-treino Energy Focus 300g', 'category' => 'Pré-treino', 'brand' => 'Dux Nutrition', 'weight' => '300g', 'default_flavor' => 'Blue Ice', 'price_cents' => 11990, 'rating' => 4.7, 'reviews_count' => 31, 'sales_count' => 96, 'is_featured' => true, 'is_offer' => false],
+            ['name' => 'Multivitamínico Performance 120 caps', 'category' => 'Vitaminas', 'brand' => 'Growth Supplements', 'weight' => '120 caps', 'default_flavor' => null, 'price_cents' => 5490, 'rating' => 4.6, 'reviews_count' => 19, 'sales_count' => 77, 'is_featured' => true, 'is_offer' => false],
+            ['name' => 'Barra Proteica Cookies 12 unidades', 'category' => 'Snacks', 'brand' => 'Probiotica', 'weight' => '12 un', 'default_flavor' => 'Cookies', 'price_cents' => 6990, 'compare_at_price_cents' => 7990, 'rating' => 4.5, 'reviews_count' => 14, 'sales_count' => 61, 'is_featured' => false, 'is_offer' => true],
+            ['name' => 'Combo Massa: Whey + Creatina + Coqueteleira', 'category' => 'Combos e Kits', 'brand' => 'Max Titanium', 'weight' => 'Kit', 'default_flavor' => 'Chocolate', 'price_cents' => 21990, 'compare_at_price_cents' => 24990, 'rating' => 4.9, 'reviews_count' => 23, 'sales_count' => 88, 'is_featured' => true, 'is_offer' => true],
         ];
 
         foreach ($products as $index => $data) {
@@ -71,7 +71,13 @@ class CommerceSeeder extends Seeder
                     'name' => $data['name'],
                     'sku' => 'RS-'.str_pad((string) ($index + 1), 4, '0', STR_PAD_LEFT),
                     'weight' => $data['weight'],
-                    'flavor' => $data['flavor'],
+                    'variations' => $data['default_flavor'] ? [[
+                        'name' => 'Sabor',
+                        'options' => [[
+                            'value' => $data['default_flavor'],
+                            'image_path' => null,
+                        ]],
+                    ]] : null,
                     'short_description' => 'Produto original com curadoria Rocha Sports, ideal para rotina de performance.',
                     'description' => 'Selecionado para atletas e praticantes de atividade física que buscam praticidade, resultado e compra segura em Campos dos Goytacazes.',
                     'benefits' => ['Produto original', 'Entrega local rápida', 'Retirada disponível na loja', 'Atendimento especializado'],

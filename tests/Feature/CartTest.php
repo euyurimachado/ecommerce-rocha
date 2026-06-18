@@ -61,8 +61,14 @@ class CartTest extends TestCase
     {
         $product = $this->createProduct([
             'variations' => [
-                ['name' => 'Sabor', 'values' => ['Chocolate', 'Baunilha']],
-                ['name' => 'Tamanho', 'values' => ['900g', '1.8kg']],
+                ['name' => 'Sabor', 'options' => [
+                    ['value' => 'Chocolate', 'image_path' => 'products/gallery/chocolate.jpg'],
+                    ['value' => 'Baunilha', 'image_path' => 'products/gallery/baunilha.jpg'],
+                ]],
+                ['name' => 'Tamanho', 'options' => [
+                    ['value' => '900g', 'image_path' => null],
+                    ['value' => '1.8kg', 'image_path' => null],
+                ]],
             ],
         ]);
 
