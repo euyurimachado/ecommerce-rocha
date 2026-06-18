@@ -273,6 +273,49 @@ const initializeProductPage = () => {
         });
     });
 
+    const variationButtons = document.querySelectorAll('[data-product-variation-option]');
+    window.rochaProductVariantSelections = {};
+
+    const selectVariation = (button) => {
+        const variationName = button.dataset.variationName;
+        const variationValue = button.dataset.variationValue;
+
+        if (!variationName || !variationValue) {
+            return;
+        }
+
+        window.rochaProductVariantSelections[variationName] = variationValue;
+
+        variationButtons.forEach((option) => {
+            if (option.dataset.variationName !== variationName) {
+                return;
+            }
+
+            const isActive = option === button;
+
+            option.classList.toggle('border-rocha-blue', isActive);
+            option.classList.toggle('bg-rocha-blue/5', isActive);
+            option.classList.toggle('text-rocha-blue', isActive);
+            option.classList.toggle('border-slate-200', !isActive);
+            option.classList.toggle('bg-white', !isActive);
+            option.classList.toggle('text-slate-600', !isActive);
+            option.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+        });
+    };
+
+    variationButtons.forEach((button) => {
+        if (button.getAttribute('aria-pressed') === 'true') {
+            selectVariation(button);
+        }
+
+        if (button.dataset.variationReady === 'true') {
+            return;
+        }
+
+        button.dataset.variationReady = 'true';
+        button.addEventListener('click', () => selectVariation(button));
+    });
+
     document.querySelectorAll('[data-share-product]').forEach((button) => {
         if (button.dataset.shareReady === 'true') {
             return;

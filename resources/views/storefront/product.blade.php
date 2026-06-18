@@ -49,8 +49,8 @@
 
 @section('content')
     @php
-        $productImage = $product->image_path ? asset('storage/'.$product->image_path) : asset('images/products/placeholder.svg');
-        $galleryImages = collect([$productImage, asset('images/products/placeholder.svg')])->unique()->values();
+        $galleryImages = collect($product->galleryImageUrls());
+        $variationGroups = collect($product->variationOptions());
         $hasDiscount = $product->compare_at_price_cents && $product->compare_at_price_cents > $product->price_cents;
         $discountPercentage = $hasDiscount ? round((1 - ($product->price_cents / $product->compare_at_price_cents)) * 100) : null;
     @endphp
@@ -133,22 +133,46 @@
                         </p>
                     </div>
 
-                    @if ($product->flavor)
-                        <div class="mt-6">
-                            <p class="text-sm font-bold text-slate-950">Sabor</p>
-                            <div class="mt-3 flex flex-wrap gap-2">
-                                <button class="rounded-full border border-rocha-blue bg-rocha-blue/5 px-4 py-2 text-sm font-semibold text-rocha-blue" type="button">{{ $product->flavor }}</button>
-                            </div>
+                    @if ($variationGroups->isNotEmpty())
+                        <div class="mt-6 space-y-5" data-product-variations>
+                            @foreach ($variationGroups as $variation)
+                                <div>
+                                    <p class="text-sm font-bold text-slate-950">{{ $variation['name'] }}</p>
+                                    <div class="mt-3 flex flex-wrap gap-2">
+                                        @foreach ($variation['values'] as $value)
+                                            <button
+                                                class="{{ $loop->first ? 'border-rocha-blue bg-rocha-blue/5 text-rocha-blue' : 'border-slate-200 bg-white text-slate-600' }} rounded-full border px-4 py-2 text-sm font-semibold transition hover:border-rocha-blue hover:text-rocha-blue"
+                                                type="button"
+                                                data-product-variation-option
+                                                data-variation-name="{{ $variation['name'] }}"
+                                                data-variation-value="{{ $value }}"
+                                                aria-pressed="{{ $loop->first ? 'true' : 'false' }}"
+                                            >
+                                                {{ $value }}
+                                            </button>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endforeach
                         </div>
-                    @endif
+                    @else
+                        @if ($product->flavor)
+                            <div class="mt-6">
+                                <p class="text-sm font-bold text-slate-950">Sabor</p>
+                                <div class="mt-3 flex flex-wrap gap-2">
+                                    <button class="rounded-full border border-rocha-blue bg-rocha-blue/5 px-4 py-2 text-sm font-semibold text-rocha-blue" type="button">{{ $product->flavor }}</button>
+                                </div>
+                            </div>
+                        @endif
 
-                    @if ($product->weight)
-                        <div class="mt-6">
-                            <p class="text-sm font-bold text-slate-950">Tamanho</p>
-                            <div class="mt-3 flex flex-wrap gap-2">
-                                <button class="rounded-full border border-rocha-blue bg-rocha-blue/5 px-4 py-2 text-sm font-semibold text-rocha-blue" type="button">{{ $product->weight }}</button>
+                        @if ($product->weight)
+                            <div class="mt-6">
+                                <p class="text-sm font-bold text-slate-950">Tamanho</p>
+                                <div class="mt-3 flex flex-wrap gap-2">
+                                    <button class="rounded-full border border-rocha-blue bg-rocha-blue/5 px-4 py-2 text-sm font-semibold text-rocha-blue" type="button">{{ $product->weight }}</button>
+                                </div>
                             </div>
-                        </div>
+                        @endif
                     @endif
 
                     <div class="mt-6 hidden gap-3 md:grid">

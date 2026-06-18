@@ -16,9 +16,9 @@ class AddToCartButton extends Component
 
     public bool $redirectToCheckout = false;
 
-    public function add(CartManager $cart)
+    public function add(CartManager $cart, array $variantSelections = [])
     {
-        $cart->add($this->product->id);
+        $cart->add($this->product->id, variantSelections: $variantSelections);
 
         $this->dispatch('cart-updated');
 

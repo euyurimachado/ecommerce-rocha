@@ -41,6 +41,9 @@
                     <div class="flex items-center justify-between gap-4 rounded-lg bg-slate-50 p-4 text-sm">
                         <div>
                             <p class="font-semibold text-slate-950">{{ $item->product_name }}</p>
+                            @if ($item->variant_summary)
+                                <p class="mt-1 text-slate-500">{{ $item->variant_summary }}</p>
+                            @endif
                             <p class="mt-1 text-slate-500">{{ $item->quantity }} unidade(s)</p>
                         </div>
                         <p class="font-bold">R$ {{ number_format($item->line_total_cents / 100, 2, ',', '.') }}</p>

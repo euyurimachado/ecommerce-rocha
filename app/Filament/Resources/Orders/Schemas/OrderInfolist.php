@@ -93,6 +93,7 @@ class OrderInfolist
                             ->label('Itens')
                             ->table([
                                 TableColumn::make('Produto'),
+                                TableColumn::make('Variação'),
                                 TableColumn::make('SKU'),
                                 TableColumn::make('Qtd.'),
                                 TableColumn::make('Unitário'),
@@ -101,6 +102,9 @@ class OrderInfolist
                             ->schema([
                                 TextEntry::make('product_name')
                                     ->label('Produto'),
+                                TextEntry::make('variant_summary')
+                                    ->label('Variação')
+                                    ->placeholder('-'),
                                 TextEntry::make('product_sku')
                                     ->label('SKU'),
                                 TextEntry::make('quantity')

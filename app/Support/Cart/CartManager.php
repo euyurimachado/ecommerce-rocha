@@ -13,45 +13,55 @@ class CartManager
 
     private const COUPON_SESSION_KEY = 'cart.coupon_code';
 
-    public function add(int $productId, int $quantity = 1): void
+    public function add(int $productId, int $quantity = 1, array $variantSelections = []): void
     {
         $product = $this->findPurchasableProduct($productId);
         $items = $this->rawItems();
-        $currentQuantity = $items[$product->id]['quantity'] ?? 0;
+        $variantSelections = $this->normalizeVariantSelections($product, $variantSelections);
+        $itemKey = $this->itemKey($product->id, $variantSelections);
+        $currentQuantity = $items[$itemKey]['quantity'] ?? 0;
 
-        $items[$product->id] = [
+        $items[$itemKey] = [
             'product_id' => $product->id,
             'quantity' => min($product->available_quantity, $currentQuantity + max(1, $quantity)),
+            'variant_selections' => $variantSelections,
         ];
 
         $this->store($items);
     }
 
-    public function update(int $productId, int $quantity): void
+    public function update(string|int $itemKey, int $quantity): void
     {
         $items = $this->rawItems();
 
         if ($quantity <= 0) {
-            unset($items[$productId]);
+            unset($items[$itemKey]);
             $this->store($items);
 
             return;
         }
 
-        $product = $this->findPurchasableProduct($productId);
+        $item = $items[$itemKey] ?? null;
 
-        $items[$product->id] = [
+        if (! $item) {
+            return;
+        }
+
+        $product = $this->findPurchasableProduct((int) $item['product_id']);
+
+        $items[$itemKey] = [
             'product_id' => $product->id,
             'quantity' => min($product->available_quantity, $quantity),
+            'variant_selections' => $item['variant_selections'] ?? [],
         ];
 
         $this->store($items);
     }
 
-    public function remove(int $productId): void
+    public function remove(string|int $itemKey): void
     {
         $items = $this->rawItems();
-        unset($items[$productId]);
+        unset($items[$itemKey]);
 
         $this->store($items);
     }
@@ -72,12 +82,12 @@ class CartManager
 
         $products = Product::query()
             ->with(['brand', 'category'])
-            ->whereIn('id', $items->keys())
+            ->whereIn('id', $items->pluck('product_id')->unique())
             ->get()
             ->keyBy('id');
 
         return $items
-            ->map(function (array $item) use ($products) {
+            ->map(function (array $item, string|int $itemKey) use ($products) {
                 $product = $products->get($item['product_id']);
 
                 if (! $product || ! $product->is_active) {
@@ -87,8 +97,11 @@ class CartManager
                 $quantity = min((int) $item['quantity'], $product->available_quantity);
 
                 return [
+                    'key' => (string) $itemKey,
                     'product' => $product,
                     'quantity' => $quantity,
+                    'variant_selections' => $item['variant_selections'] ?? [],
+                    'variant_summary' => $this->variantSummary($item['variant_selections'] ?? []),
                     'line_total_cents' => $product->price_cents * $quantity,
                 ];
             })
@@ -179,7 +192,18 @@ class CartManager
 
     private function rawItems(): array
     {
-        return session()->get(self::SESSION_KEY, []);
+        return collect(session()->get(self::SESSION_KEY, []))
+            ->mapWithKeys(function (array $item, string|int $key): array {
+                $variantSelections = $item['variant_selections'] ?? [];
+                $itemKey = is_numeric($key) ? $this->itemKey((int) $item['product_id'], $variantSelections) : (string) $key;
+
+                return [$itemKey => [
+                    'product_id' => (int) $item['product_id'],
+                    'quantity' => (int) $item['quantity'],
+                    'variant_selections' => $variantSelections,
+                ]];
+            })
+            ->all();
     }
 
     private function store(array $items): void
@@ -194,5 +218,42 @@ class CartManager
             ->where('is_active', true)
             ->where('stock_quantity', '>', 0)
             ->firstOrFail();
+    }
+
+    private function itemKey(int $productId, array $variantSelections = []): string
+    {
+        if ($variantSelections === []) {
+            return (string) $productId;
+        }
+
+        return $productId.':'.md5(json_encode($variantSelections));
+    }
+
+    private function normalizeVariantSelections(Product $product, array $variantSelections): array
+    {
+        return collect($product->variationOptions())
+            ->mapWithKeys(function (array $variation) use ($variantSelections): array {
+                $name = $variation['name'];
+                $selectedValue = trim((string) ($variantSelections[$name] ?? ''));
+
+                if ($selectedValue === '' || ! in_array($selectedValue, $variation['values'], true)) {
+                    $selectedValue = $variation['values'][0] ?? '';
+                }
+
+                return $selectedValue === '' ? [] : [$name => $selectedValue];
+            })
+            ->filter()
+            ->all();
+    }
+
+    private function variantSummary(array $variantSelections): ?string
+    {
+        if ($variantSelections === []) {
+            return null;
+        }
+
+        return collect($variantSelections)
+            ->map(fn (string $value, string $name): string => "{$name}: {$value}")
+            ->implode(' / ');
     }
 }

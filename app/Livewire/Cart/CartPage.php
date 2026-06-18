@@ -17,25 +17,25 @@ class CartPage extends Component
         $this->couponCode = $cart->coupon()?->code ?? '';
     }
 
-    public function increment(CartManager $cart, int $productId): void
+    public function increment(CartManager $cart, string $itemKey): void
     {
-        $current = $cart->items()->firstWhere('product.id', $productId);
+        $current = $cart->items()->firstWhere('key', $itemKey);
 
-        $cart->update($productId, ($current['quantity'] ?? 0) + 1);
+        $cart->update($itemKey, ($current['quantity'] ?? 0) + 1);
         $this->dispatch('cart-updated');
     }
 
-    public function decrement(CartManager $cart, int $productId): void
+    public function decrement(CartManager $cart, string $itemKey): void
     {
-        $current = $cart->items()->firstWhere('product.id', $productId);
+        $current = $cart->items()->firstWhere('key', $itemKey);
 
-        $cart->update($productId, ($current['quantity'] ?? 1) - 1);
+        $cart->update($itemKey, ($current['quantity'] ?? 1) - 1);
         $this->dispatch('cart-updated');
     }
 
-    public function remove(CartManager $cart, int $productId): void
+    public function remove(CartManager $cart, string $itemKey): void
     {
-        $cart->remove($productId);
+        $cart->remove($itemKey);
         $this->dispatch('cart-updated');
     }
 

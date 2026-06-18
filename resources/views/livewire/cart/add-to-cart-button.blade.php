@@ -1,5 +1,6 @@
 <button
-    wire:click="add"
+    x-data
+    x-on:click.prevent="$wire.add(window.rochaProductVariantSelections || {})"
     wire:loading.attr="disabled"
     wire:target="add"
     type="button"

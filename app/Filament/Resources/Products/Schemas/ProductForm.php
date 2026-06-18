@@ -3,10 +3,13 @@
 namespace App\Filament\Resources\Products\Schemas;
 
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
 class ProductForm
@@ -31,16 +34,44 @@ class ProductForm
                 TextInput::make('sku')
                     ->label('SKU')
                     ->required(),
-                FileUpload::make('image_path')
-                    ->label('Imagem')
-                    ->image()
-                    ->disk('public')
-                    ->directory('products')
-                    ->visibility('public'),
+                Section::make('Imagens')
+                    ->columns(2)
+                    ->schema([
+                        FileUpload::make('image_path')
+                            ->label('Imagem destacada')
+                            ->image()
+                            ->disk('public')
+                            ->directory('products')
+                            ->visibility('public'),
+                        FileUpload::make('gallery_images')
+                            ->label('Galeria de imagens')
+                            ->image()
+                            ->multiple()
+                            ->reorderable()
+                            ->disk('public')
+                            ->directory('products/gallery')
+                            ->visibility('public'),
+                    ])
+                    ->columnSpanFull(),
                 TextInput::make('weight')
                     ->label('Peso/volume'),
                 TextInput::make('flavor')
                     ->label('Sabor'),
+                Repeater::make('variations')
+                    ->label('Variações do produto')
+                    ->schema([
+                        TextInput::make('name')
+                            ->label('Nome da variação')
+                            ->placeholder('Sabor, Cor, Tamanho...')
+                            ->required(),
+                        TagsInput::make('values')
+                            ->label('Opções')
+                            ->placeholder('Digite uma opção e pressione Enter')
+                            ->required(),
+                    ])
+                    ->addActionLabel('Nova variação')
+                    ->reorderable()
+                    ->columnSpanFull(),
                 Textarea::make('short_description')
                     ->label('Descrição curta')
                     ->columnSpanFull(),

@@ -14,8 +14,10 @@ class Product extends Model
         'slug',
         'sku',
         'image_path',
+        'gallery_images',
         'weight',
         'flavor',
+        'variations',
         'short_description',
         'description',
         'benefits',
@@ -41,6 +43,8 @@ class Product extends Model
     {
         return [
             'benefits' => 'array',
+            'gallery_images' => 'array',
+            'variations' => 'array',
             'rating' => 'decimal:1',
             'is_active' => 'boolean',
             'is_featured' => 'boolean',
@@ -77,5 +81,43 @@ class Product extends Model
     public function getAvailableQuantityAttribute(): int
     {
         return max(0, $this->stock_quantity - $this->reserved_quantity);
+    }
+
+    public function galleryImageUrls(): array
+    {
+        return collect([$this->image_path])
+            ->merge($this->gallery_images ?? [])
+            ->filter()
+            ->unique()
+            ->map(fn (string $path): string => asset('storage/'.$path))
+            ->whenEmpty(fn ($images) => $images->push(asset('images/products/placeholder.svg')))
+            ->values()
+            ->all();
+    }
+
+    public function variationOptions(): array
+    {
+        return collect($this->variations ?? [])
+            ->map(function (array $variation): ?array {
+                $name = trim((string) ($variation['name'] ?? ''));
+                $values = collect($variation['values'] ?? [])
+                    ->map(fn ($value): string => trim((string) $value))
+                    ->filter()
+                    ->unique()
+                    ->values()
+                    ->all();
+
+                if ($name === '' || $values === []) {
+                    return null;
+                }
+
+                return [
+                    'name' => $name,
+                    'values' => $values,
+                ];
+            })
+            ->filter()
+            ->values()
+            ->all();
     }
 }

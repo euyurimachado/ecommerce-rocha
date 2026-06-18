@@ -17,14 +17,18 @@
                         <div>
                             <p class="text-sm font-bold text-rocha-blue">{{ $product->brand?->name }}</p>
                             <a href="{{ route('products.show', $product) }}" class="mt-1 block font-semibold leading-snug text-slate-950">{{ $product->name }}</a>
-                            <p class="mt-1 text-sm text-slate-500">{{ $product->weight }}{{ $product->flavor ? ' - '.$product->flavor : '' }}</p>
-                            <button wire:click="remove({{ $product->id }})" class="mt-3 text-sm font-bold text-rose-700" type="button">Remover</button>
+                            @if ($item['variant_summary'])
+                                <p class="mt-1 text-sm font-semibold text-slate-600">{{ $item['variant_summary'] }}</p>
+                            @else
+                                <p class="mt-1 text-sm text-slate-500">{{ $product->weight }}{{ $product->flavor ? ' - '.$product->flavor : '' }}</p>
+                            @endif
+                            <button wire:click="remove('{{ $item['key'] }}')" class="mt-3 text-sm font-bold text-rose-700" type="button">Remover</button>
                         </div>
                         <div class="flex items-center justify-between gap-4 sm:flex-col sm:items-end">
                             <div class="flex h-10 items-center rounded-lg border border-slate-200">
-                                <button wire:click="decrement({{ $product->id }})" class="grid size-10 place-items-center font-bold" type="button" aria-label="Diminuir quantidade">-</button>
+                                <button wire:click="decrement('{{ $item['key'] }}')" class="grid size-10 place-items-center font-bold" type="button" aria-label="Diminuir quantidade">-</button>
                                 <span class="w-8 text-center text-sm font-bold">{{ $item['quantity'] }}</span>
-                                <button wire:click="increment({{ $product->id }})" class="grid size-10 place-items-center font-bold" type="button" aria-label="Aumentar quantidade">+</button>
+                                <button wire:click="increment('{{ $item['key'] }}')" class="grid size-10 place-items-center font-bold" type="button" aria-label="Aumentar quantidade">+</button>
                             </div>
                             <p class="font-bold text-slate-950">R$ {{ number_format($item['line_total_cents'] / 100, 2, ',', '.') }}</p>
                         </div>

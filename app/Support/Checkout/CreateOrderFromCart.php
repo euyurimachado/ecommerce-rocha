@@ -64,6 +64,7 @@ class CreateOrderFromCart
                     'product_id' => $product->id,
                     'product_name' => $product->name,
                     'product_sku' => $product->sku,
+                    'variant_summary' => $item['variant_summary'],
                     'brand_name' => $product->brand?->name,
                     'category_name' => $product->category?->name,
                     'quantity' => $quantity,

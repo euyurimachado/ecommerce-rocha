@@ -1,7 +1,8 @@
 <?php
 
-use App\Http\Controllers\PwaController;
+use App\Http\Controllers\Admin\PrintOrderController;
 use App\Http\Controllers\MercadoPagoController;
+use App\Http\Controllers\PwaController;
 use App\Http\Controllers\SeoController;
 use App\Http\Controllers\StorefrontController;
 use Illuminate\Support\Facades\Route;
@@ -22,3 +23,8 @@ Route::get('/pedidos', [StorefrontController::class, 'orders'])->name('orders.in
 Route::get('/pedido/{order:code}/status', [StorefrontController::class, 'orderStatus'])->name('orders.status');
 Route::view('/politica-de-privacidade', 'legal.privacy')->name('legal.privacy');
 Route::view('/politica-de-cookies', 'legal.cookies')->name('legal.cookies');
+
+Route::middleware(['web', 'auth'])->group(function () {
+    Route::get('/admin/print/orders/{order}', PrintOrderController::class)
+        ->name('admin.orders.print');
+});

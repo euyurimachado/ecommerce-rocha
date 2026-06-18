@@ -57,6 +57,34 @@ class CartTest extends TestCase
             ->assertSee('R$ 179,80');
     }
 
+    public function test_same_product_with_different_variations_becomes_separate_cart_items(): void
+    {
+        $product = $this->createProduct([
+            'variations' => [
+                ['name' => 'Sabor', 'values' => ['Chocolate', 'Baunilha']],
+                ['name' => 'Tamanho', 'values' => ['900g', '1.8kg']],
+            ],
+        ]);
+
+        app(CartManager::class)->add($product->id, variantSelections: [
+            'Sabor' => 'Chocolate',
+            'Tamanho' => '900g',
+        ]);
+        app(CartManager::class)->add($product->id, variantSelections: [
+            'Sabor' => 'Baunilha',
+            'Tamanho' => '900g',
+        ]);
+
+        $items = app(CartManager::class)->items();
+
+        $this->assertCount(2, $items);
+        $this->assertSame(2, app(CartManager::class)->count());
+        $this->assertSame([
+            'Sabor: Chocolate / Tamanho: 900g',
+            'Sabor: Baunilha / Tamanho: 900g',
+        ], $items->pluck('variant_summary')->all());
+    }
+
     public function test_coupon_can_be_applied_to_cart(): void
     {
         $product = $this->createProduct();
@@ -93,7 +121,7 @@ class CartTest extends TestCase
             ->assertSee('Cupom inválido ou indisponível para este carrinho.');
     }
 
-    private function createProduct(): Product
+    private function createProduct(array $overrides = []): Product
     {
         $category = Category::create([
             'name' => 'Creatina',
@@ -103,7 +131,7 @@ class CartTest extends TestCase
             'is_featured' => true,
         ]);
 
-        return Product::create([
+        return Product::create(array_merge([
             'category_id' => $category->id,
             'name' => 'Creatina Monohidratada 300g',
             'slug' => 'creatina-monohidratada-300g',
@@ -116,6 +144,6 @@ class CartTest extends TestCase
             'is_offer' => true,
             'allows_pickup' => true,
             'allows_local_delivery' => true,
-        ]);
+        ], $overrides));
     }
 }

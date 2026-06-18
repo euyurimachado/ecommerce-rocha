@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Orders\Tables;
 
+use App\Models\Order;
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -103,6 +105,12 @@ class OrdersTable
                     ]),
             ])
             ->recordActions([
+                Action::make('printDelivery')
+                    ->label('Imprimir')
+                    ->icon('heroicon-o-printer')
+                    ->color('gray')
+                    ->url(fn (Order $record): string => route('admin.orders.print', $record))
+                    ->openUrlInNewTab(),
                 ViewAction::make(),
                 EditAction::make(),
             ])
