@@ -3,7 +3,10 @@
 namespace App\Filament\Resources\Products\Schemas;
 
 use App\Models\Product;
+use App\Models\ProductVariation;
+use App\Models\ProductVariationOption;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\KeyValue;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -62,16 +65,42 @@ class ProductForm
                 Repeater::make('variations')
                     ->label('Variações do produto')
                     ->schema([
-                        TextInput::make('name')
+                        Select::make('name')
                             ->label('Nome da variação')
                             ->placeholder('Sabor, Cor, Tamanho...')
+                            ->options(fn (): array => ProductVariation::query()
+                                ->where('is_active', true)
+                                ->orderBy('sort_order')
+                                ->orderBy('name')
+                                ->pluck('name', 'name')
+                                ->all())
+                            ->searchable()
+                            ->preload()
+                            ->live()
+                            ->createOptionForm([
+                                TextInput::make('name')
+                                    ->label('Nome da variação')
+                                    ->required()
+                                    ->maxLength(255),
+                            ])
+                            ->createOptionUsing(fn (array $data): string => ProductVariation::findOrCreateByName($data['name'])->name)
                             ->required(),
                         Repeater::make('options')
                             ->label('Opções')
                             ->schema([
-                                TextInput::make('value')
+                                Select::make('value')
                                     ->label('Nome da opção')
                                     ->placeholder('Baunilha, Azul, M...')
+                                    ->options(fn (Get $get): array => self::variationOptionChoices($get))
+                                    ->searchable()
+                                    ->preload()
+                                    ->createOptionForm([
+                                        TextInput::make('value')
+                                            ->label('Nome da opção')
+                                            ->required()
+                                            ->maxLength(255),
+                                    ])
+                                    ->createOptionUsing(fn (array $data): string => trim((string) $data['value']))
                                     ->required(),
                                 ViewField::make('image_path')
                                     ->label('Imagem da opção')
@@ -85,7 +114,26 @@ class ProductForm
                                     ->disk('public')
                                     ->directory('products/gallery')
                                     ->visibility('public'),
+                                TextInput::make('sku')
+                                    ->label('SKU da opção')
+                                    ->maxLength(255),
+                                TextInput::make('price_cents')
+                                    ->label('Preço da opção')
+                                    ->helperText('Deixe vazio para usar o preço principal do produto.')
+                                    ->numeric(),
+                                TextInput::make('compare_at_price_cents')
+                                    ->label('Preço anterior da opção')
+                                    ->numeric(),
+                                TextInput::make('stock_quantity')
+                                    ->label('Estoque da opção')
+                                    ->helperText('Deixe vazio para usar o estoque principal do produto.')
+                                    ->numeric(),
+                                TextInput::make('reserved_quantity')
+                                    ->label('Estoque reservado da opção')
+                                    ->numeric()
+                                    ->default(0),
                             ])
+                            ->columns(2)
                             ->addActionLabel('Nova opção')
                             ->reorderable()
                             ->required()
@@ -109,6 +157,20 @@ class ProductForm
                 Textarea::make('ingredients')
                     ->label('Ingredientes')
                     ->columnSpanFull(),
+                KeyValue::make('nutrition_facts')
+                    ->label('Tabela nutricional')
+                    ->keyLabel('Nutriente')
+                    ->valueLabel('Quantidade')
+                    ->columnSpanFull(),
+                TextInput::make('serving_size')
+                    ->label('Porção'),
+                Textarea::make('allergen_info')
+                    ->label('Informações de alergênicos')
+                    ->columnSpanFull(),
+                TextInput::make('manufacturer_url')
+                    ->label('URL do fabricante'),
+                TextInput::make('image_source_url')
+                    ->label('Fonte da imagem'),
                 TextInput::make('stock_quantity')
                     ->label('Estoque')
                     ->required()
@@ -161,6 +223,30 @@ class ProductForm
                 TextInput::make('meta_description')
                     ->label('Meta description'),
             ]);
+    }
+
+    private static function variationOptionChoices(Get $get): array
+    {
+        $variationName = self::selectedVariationName($get);
+
+        if ($variationName === '') {
+            return [];
+        }
+
+        return ProductVariationOption::query()
+            ->whereHas('variation', fn ($query) => $query
+                ->where('normalized_name', ProductVariation::normalize($variationName))
+                ->where('is_active', true))
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->orderBy('value')
+            ->pluck('value', 'value')
+            ->all();
+    }
+
+    private static function selectedVariationName(Get $get): string
+    {
+        return trim((string) $get('../../name'));
     }
 
     private static function productImageLibrary(Get $get): array

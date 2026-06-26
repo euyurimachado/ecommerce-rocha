@@ -151,7 +151,7 @@
                             <div class="grid size-12 place-items-center rounded-md bg-slate-100 text-xs font-bold text-rocha-blue">{{ $product->category->icon ?? 'RS' }}</div>
                             <div class="min-w-0 flex-1">
                                 <p class="font-bold text-slate-950">{{ $product->name }}</p>
-                                <p class="mt-1 text-slate-500">{{ $item['quantity'] }} x {{ $product->formatted_price }}</p>
+                                <p class="mt-1 text-slate-500">{{ $item['quantity'] }} x R$ {{ number_format($item['unit_price_cents'] / 100, 2, ',', '.') }}</p>
                             </div>
                         </div>
                     @endforeach

@@ -4,6 +4,7 @@
     wire:loading.attr="disabled"
     wire:target="add"
     type="button"
+    data-add-to-cart-button
     class="{{ $fullWidth ? 'w-full rounded-lg px-4 py-3 text-sm' : 'grid size-10 place-items-center rounded-lg text-xl' }} bg-rocha-blue font-bold text-white transition hover:bg-rocha-blue-dark disabled:cursor-wait disabled:opacity-70"
     aria-label="Adicionar {{ $product->name }} ao carrinho"
 >

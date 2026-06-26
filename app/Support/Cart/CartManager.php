@@ -20,10 +20,11 @@ class CartManager
         $variantSelections = $this->normalizeVariantSelections($product, $variantSelections);
         $itemKey = $this->itemKey($product->id, $variantSelections);
         $currentQuantity = $items[$itemKey]['quantity'] ?? 0;
+        $availableQuantity = $product->availableQuantityForSelections($variantSelections);
 
         $items[$itemKey] = [
             'product_id' => $product->id,
-            'quantity' => min($product->available_quantity, $currentQuantity + max(1, $quantity)),
+            'quantity' => min($availableQuantity, $currentQuantity + max(1, $quantity)),
             'variant_selections' => $variantSelections,
         ];
 
@@ -48,11 +49,12 @@ class CartManager
         }
 
         $product = $this->findPurchasableProduct((int) $item['product_id']);
+        $variantSelections = $item['variant_selections'] ?? [];
 
         $items[$itemKey] = [
             'product_id' => $product->id,
-            'quantity' => min($product->available_quantity, $quantity),
-            'variant_selections' => $item['variant_selections'] ?? [],
+            'quantity' => min($product->availableQuantityForSelections($variantSelections), $quantity),
+            'variant_selections' => $variantSelections,
         ];
 
         $this->store($items);
@@ -94,15 +96,19 @@ class CartManager
                     return null;
                 }
 
-                $quantity = min((int) $item['quantity'], $product->available_quantity);
+                $variantSelections = $item['variant_selections'] ?? [];
+                $quantity = min((int) $item['quantity'], $product->availableQuantityForSelections($variantSelections));
+                $unitPriceCents = $product->priceCentsForSelections($variantSelections);
 
                 return [
                     'key' => (string) $itemKey,
                     'product' => $product,
                     'quantity' => $quantity,
-                    'variant_selections' => $item['variant_selections'] ?? [],
-                    'variant_summary' => $this->variantSummary($item['variant_selections'] ?? []),
-                    'line_total_cents' => $product->price_cents * $quantity,
+                    'unit_price_cents' => $unitPriceCents,
+                    'product_sku' => $product->skuForSelections($variantSelections),
+                    'variant_selections' => $variantSelections,
+                    'variant_summary' => $this->variantSummary($variantSelections),
+                    'line_total_cents' => $unitPriceCents * $quantity,
                 ];
             })
             ->filter()
@@ -216,7 +222,6 @@ class CartManager
         return Product::query()
             ->whereKey($productId)
             ->where('is_active', true)
-            ->where('stock_quantity', '>', 0)
             ->firstOrFail();
     }
 

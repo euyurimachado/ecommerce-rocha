@@ -10,7 +10,7 @@
             margin: 0;
             background: #f8fafc;
             color: #0f172a;
-            font-family: Arial, Helvetica, sans-serif;
+            font-family: Ubuntu, ui-sans-serif, system-ui, sans-serif;
             font-size: 14px;
             line-height: 1.4;
         }

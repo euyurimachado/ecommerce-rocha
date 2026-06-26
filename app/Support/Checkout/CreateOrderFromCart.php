@@ -55,25 +55,26 @@ class CreateOrderFromCart
             foreach ($items as $item) {
                 $product = $item['product'];
                 $quantity = $item['quantity'];
+                $variantSelections = $item['variant_selections'] ?? [];
 
-                if ($product->available_quantity < $quantity) {
+                if ($product->availableQuantityForSelections($variantSelections) < $quantity) {
                     throw new RuntimeException("Estoque insuficiente para {$product->name}.");
                 }
 
                 $order->items()->create([
                     'product_id' => $product->id,
                     'product_name' => $product->name,
-                    'product_sku' => $product->sku,
+                    'product_sku' => $item['product_sku'],
                     'variant_summary' => $item['variant_summary'],
                     'brand_name' => $product->brand?->name,
                     'category_name' => $product->category?->name,
                     'quantity' => $quantity,
-                    'unit_price_cents' => $product->price_cents,
+                    'unit_price_cents' => $item['unit_price_cents'],
                     'line_total_cents' => $item['line_total_cents'],
                 ]);
 
                 if ($decrementStock) {
-                    $product->decrement('stock_quantity', $quantity);
+                    $product->decrementStockForSelections($variantSelections, $quantity);
                     $product->increment('sales_count', $quantity);
                 }
             }

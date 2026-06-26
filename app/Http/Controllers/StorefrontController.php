@@ -19,6 +19,8 @@ class StorefrontController extends Controller
             'banners' => Banner::query()
                 ->where('placement', 'home_hero')
                 ->where('is_active', true)
+                ->whereNotNull('image_path')
+                ->where('image_path', '!=', '')
                 ->where(fn (Builder $builder) => $builder
                     ->whereNull('starts_at')
                     ->orWhere('starts_at', '<=', now()))
@@ -27,7 +29,24 @@ class StorefrontController extends Controller
                     ->orWhere('ends_at', '>=', now()))
                 ->orderBy('sort_order')
                 ->get(),
+            'energyBanner' => Banner::query()
+                ->where('placement', 'home_energy')
+                ->where('is_active', true)
+                ->whereNotNull('image_path')
+                ->where('image_path', '!=', '')
+                ->where(fn (Builder $builder) => $builder
+                    ->whereNull('starts_at')
+                    ->orWhere('starts_at', '<=', now()))
+                ->where(fn (Builder $builder) => $builder
+                    ->whereNull('ends_at')
+                    ->orWhere('ends_at', '>=', now()))
+                ->orderBy('sort_order')
+                ->first(),
             'categories' => Category::query()
+                ->with(['products' => fn ($query) => $query
+                    ->where('is_active', true)
+                    ->whereNotNull('image_path')
+                    ->orderByDesc('stock_quantity')])
                 ->where('is_active', true)
                 ->where('is_featured', true)
                 ->orderBy('sort_order')
@@ -50,6 +69,51 @@ class StorefrontController extends Controller
                 ->where('is_featured', true)
                 ->orderBy('name')
                 ->get(),
+            'energyProducts' => Product::query()
+                ->with(['brand', 'category'])
+                ->where('is_active', true)
+                ->whereHas('category', fn (Builder $category) => $category->whereIn('slug', ['energia', 'pre-treino']))
+                ->orderByDesc('stock_quantity')
+                ->take(8)
+                ->get(),
+            'massProducts' => Product::query()
+                ->with(['brand', 'category'])
+                ->where('is_active', true)
+                ->where(function (Builder $builder) {
+                    $builder
+                        ->whereHas('category', fn (Builder $category) => $category->whereIn('slug', ['hipercalorico', 'whey-protein', 'creatina']))
+                        ->orWhere('name', 'like', '%MASS%');
+                })
+                ->orderByDesc('price_cents')
+                ->take(6)
+                ->get(),
+            'wheyFestival' => Product::query()
+                ->with(['brand', 'category'])
+                ->where('is_active', true)
+                ->whereHas('category', fn (Builder $category) => $category->where('slug', 'whey-protein'))
+                ->orderBy('price_cents')
+                ->take(10)
+                ->get(),
+            'creatineHouse' => Product::query()
+                ->with(['brand', 'category'])
+                ->where('is_active', true)
+                ->whereHas('category', fn (Builder $category) => $category->where('slug', 'creatina'))
+                ->orderByDesc('stock_quantity')
+                ->take(5)
+                ->get(),
+            'weightLossProducts' => Product::query()
+                ->with(['brand', 'category'])
+                ->where('is_active', true)
+                ->where(function (Builder $builder) {
+                    $builder
+                        ->where('name', 'like', '%CONTROL%')
+                        ->orWhere('name', 'like', '%CAFEINA%')
+                        ->orWhere('name', 'like', '%COFFEE%')
+                        ->orWhereHas('category', fn (Builder $category) => $category->whereIn('slug', ['termogenico', 'pre-treino']));
+                })
+                ->orderBy('price_cents')
+                ->take(4)
+                ->get(),
         ]);
     }
 
@@ -71,18 +135,41 @@ class StorefrontController extends Controller
         ]);
     }
 
-    public function category(Category $category): View
+    public function category(Request $request, Category $category): View
     {
         abort_unless($category->is_active, 404);
 
+        $brandSlug = $request->query('marca');
+        $sort = (string) $request->query('ordenar', 'relevancia');
+
+        $productsQuery = Product::query()
+            ->with(['brand', 'category'])
+            ->where('is_active', true)
+            ->where('category_id', $category->id)
+            ->when($brandSlug, fn (Builder $builder) => $builder->whereHas('brand', fn (Builder $brand) => $brand->where('slug', $brandSlug)));
+
+        match ($sort) {
+            'menor-preco' => $productsQuery->orderBy('price_cents'),
+            'maior-preco' => $productsQuery->orderByDesc('price_cents'),
+            'mais-vendidos' => $productsQuery->orderByDesc('sales_count'),
+            'ofertas' => $productsQuery->orderByDesc('is_offer')->orderByDesc('sales_count'),
+            default => $productsQuery->orderByDesc('is_featured')->orderByDesc('sales_count'),
+        };
+
         return view('storefront.category', [
             'category' => $category,
-            'products' => Product::query()
-                ->with(['brand', 'category'])
+            'selectedBrand' => $brandSlug,
+            'selectedSort' => $sort,
+            'brands' => Brand::query()
                 ->where('is_active', true)
-                ->where('category_id', $category->id)
-                ->orderByDesc('sales_count')
-                ->paginate(12),
+                ->whereHas('products', fn (Builder $product) => $product
+                    ->where('is_active', true)
+                    ->where('category_id', $category->id))
+                ->orderBy('name')
+                ->get(),
+            'products' => $productsQuery
+                ->paginate(12)
+                ->withQueryString(),
         ]);
     }
 

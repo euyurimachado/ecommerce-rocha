@@ -51,8 +51,15 @@
     @php
         $galleryImages = collect($product->galleryImageUrls());
         $variationGroups = collect($product->variationOptions());
-        $hasDiscount = $product->compare_at_price_cents && $product->compare_at_price_cents > $product->price_cents;
-        $discountPercentage = $hasDiscount ? round((1 - ($product->price_cents / $product->compare_at_price_cents)) * 100) : null;
+        $defaultVariantSelections = $variationGroups
+            ->mapWithKeys(fn (array $variation): array => [$variation['name'] => $variation['values'][0] ?? ''])
+            ->filter()
+            ->all();
+        $displayPriceCents = $product->priceCentsForSelections($defaultVariantSelections);
+        $displayCompareAtPriceCents = $product->compareAtPriceCentsForSelections($defaultVariantSelections);
+        $displayAvailableQuantity = $product->availableQuantityForSelections($defaultVariantSelections);
+        $hasDiscount = $displayCompareAtPriceCents && $displayCompareAtPriceCents > $displayPriceCents;
+        $discountPercentage = $hasDiscount ? round((1 - ($displayPriceCents / $displayCompareAtPriceCents)) * 100) : null;
     @endphp
 
     <section class="bg-white">
@@ -124,17 +131,23 @@
                     </div>
 
                     <div class="mt-5">
-                        @if ($product->formatted_compare_at_price)
-                            <p class="text-sm text-slate-400 line-through">{{ $product->formatted_compare_at_price }}</p>
-                        @endif
-                        <p class="text-2xl font-bold text-slate-950 md:text-3xl">{{ $product->formatted_price }}</p>
-                        <p class="mt-2 text-sm font-semibold text-emerald-700">
-                            {{ $product->available_quantity > 0 ? 'Disponível para entrega local ou retirada' : 'Produto indisponível no momento' }}
+                        <p class="{{ $hasDiscount ? '' : 'hidden' }} text-sm text-slate-400 line-through" data-product-compare-price>
+                            {{ $hasDiscount ? $product->formattedCompareAtPriceForSelections($defaultVariantSelections) : '' }}
+                        </p>
+                        <p class="text-2xl font-bold text-slate-950 md:text-3xl" data-product-price>{{ $product->formattedPriceForSelections($defaultVariantSelections) }}</p>
+                        <p class="mt-2 text-sm font-semibold {{ $displayAvailableQuantity > 0 ? 'text-emerald-700' : 'text-rose-700' }}" data-product-availability>
+                            {{ $displayAvailableQuantity > 0 ? 'Disponível para entrega local ou retirada' : 'Produto indisponível no momento' }}
                         </p>
                     </div>
 
                     @if ($variationGroups->isNotEmpty())
-                        <div class="mt-6 space-y-5" data-product-variations>
+                        <div
+                            class="mt-6 space-y-5"
+                            data-product-variations
+                            data-base-price="{{ $product->formatted_price }}"
+                            data-base-compare-price="{{ $product->formatted_compare_at_price }}"
+                            data-base-available="{{ $product->available_quantity }}"
+                        >
                             @foreach ($variationGroups as $variation)
                                 <div>
                                     <p class="text-sm font-bold text-slate-950">{{ $variation['name'] }}</p>
@@ -146,6 +159,12 @@
                                                 data-product-variation-option
                                                 data-variation-name="{{ $variation['name'] }}"
                                                 data-variation-value="{{ $option['value'] }}"
+                                                data-variation-price="{{ $product->formattedPriceForSelections([$variation['name'] => $option['value']]) }}"
+                                                data-variation-compare-price="{{ $product->formattedCompareAtPriceForSelections([$variation['name'] => $option['value']]) }}"
+                                                data-variation-available="{{ $product->availableQuantityForSelections([$variation['name'] => $option['value']]) }}"
+                                                data-variation-has-price="{{ $option['price_cents'] !== null ? 'true' : 'false' }}"
+                                                data-variation-has-compare-price="{{ $option['compare_at_price_cents'] !== null ? 'true' : 'false' }}"
+                                                data-variation-controls-stock="{{ $option['stock_quantity'] !== null ? 'true' : 'false' }}"
                                                 @if ($option['image_url'])
                                                     data-variation-image="{{ $option['image_url'] }}"
                                                 @endif
@@ -218,7 +237,7 @@
                     @endif
                     <div class="flex items-center justify-between gap-3">
                         <dt class="text-slate-500">Estoque</dt>
-                        <dd class="font-bold text-slate-900">{{ $product->available_quantity }} un.</dd>
+                        <dd class="font-bold text-slate-900" data-product-stock>{{ $displayAvailableQuantity }} un.</dd>
                     </div>
                 </dl>
 
@@ -231,6 +250,27 @@
                     <h3 class="mt-7 font-bold text-slate-950">Ingredientes</h3>
                     <p class="mt-2 text-sm leading-relaxed text-slate-600">{{ $product->ingredients }}</p>
                 @endif
+
+                @if ($product->nutrition_facts)
+                    <h3 class="mt-7 font-bold text-slate-950">Tabela nutricional</h3>
+                    @if ($product->serving_size)
+                        <p class="mt-2 text-sm font-semibold text-slate-600">Porção: {{ $product->serving_size }}</p>
+                    @endif
+                    <dl class="mt-3 overflow-hidden rounded-lg border border-slate-200 text-sm">
+                        @foreach ($product->nutrition_facts as $nutrient => $amount)
+                            <div class="flex items-center justify-between gap-4 border-b border-slate-100 px-3 py-2 last:border-b-0">
+                                <dt class="text-slate-600">{{ $nutrient }}</dt>
+                                <dd class="font-bold text-slate-950">{{ $amount }}</dd>
+                            </div>
+                        @endforeach
+                    </dl>
+                @endif
+
+                @if ($product->allergen_info)
+                    <h3 class="mt-7 font-bold text-slate-950">Alergênicos</h3>
+                    <p class="mt-2 text-sm leading-relaxed text-slate-600">{{ $product->allergen_info }}</p>
+                @endif
+
             </aside>
         </div>
     </section>

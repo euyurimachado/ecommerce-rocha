@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Banners\Schemas;
 
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
@@ -30,8 +31,13 @@ class BannerForm
                     ->disk('public')
                     ->directory('banners')
                     ->visibility('public'),
-                TextInput::make('placement')
+                Select::make('placement')
                     ->label('Posição')
+                    ->options([
+                        'home_hero' => 'Home - slider principal',
+                        'home_energy' => 'Home - seção Para ter energia',
+                    ])
+                    ->searchable()
                     ->required()
                     ->default('home_hero'),
                 TextInput::make('device')

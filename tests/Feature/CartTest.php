@@ -91,6 +91,39 @@ class CartTest extends TestCase
         ], $items->pluck('variant_summary')->all());
     }
 
+    public function test_variant_option_price_and_stock_are_used_in_cart(): void
+    {
+        $product = $this->createProduct([
+            'price_cents' => 8990,
+            'stock_quantity' => 10,
+            'variations' => [
+                ['name' => 'Sabor', 'options' => [
+                    [
+                        'value' => 'Chocolate',
+                        'price_cents' => 9990,
+                        'stock_quantity' => 2,
+                        'reserved_quantity' => 0,
+                    ],
+                    [
+                        'value' => 'Baunilha',
+                        'price_cents' => 10990,
+                        'stock_quantity' => 5,
+                        'reserved_quantity' => 1,
+                    ],
+                ]],
+            ],
+        ]);
+
+        app(CartManager::class)->add($product->id, 5, ['Sabor' => 'Chocolate']);
+
+        $item = app(CartManager::class)->items()->first();
+
+        $this->assertSame(2, $item['quantity']);
+        $this->assertSame(9990, $item['unit_price_cents']);
+        $this->assertSame(19980, $item['line_total_cents']);
+        $this->assertSame(19980, app(CartManager::class)->subtotalCents());
+    }
+
     public function test_coupon_can_be_applied_to_cart(): void
     {
         $product = $this->createProduct();

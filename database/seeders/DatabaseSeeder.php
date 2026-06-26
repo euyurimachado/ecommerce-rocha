@@ -22,5 +22,6 @@ class DatabaseSeeder extends Seeder
         );
 
         $this->call(CommerceSeeder::class);
+        $this->call(RochaSportsCatalogSeeder::class);
     }
 }

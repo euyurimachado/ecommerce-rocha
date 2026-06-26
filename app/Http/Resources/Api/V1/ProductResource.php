@@ -25,6 +25,9 @@ class ProductResource extends JsonResource
             'benefits' => $this->benefits ?? [],
             'usage_instructions' => $this->usage_instructions,
             'ingredients' => $this->ingredients,
+            'nutrition_facts' => $this->nutrition_facts ?? [],
+            'serving_size' => $this->serving_size,
+            'allergen_info' => $this->allergen_info,
             'price' => [
                 'cents' => $this->price_cents,
                 'formatted' => $this->formatted_price,

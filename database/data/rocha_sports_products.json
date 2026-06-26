@@ -1,0 +1,2624 @@
+[
+    {
+        "name":  "ENERGEL BLACK CX C/ 10 SACHES - Guarana com Acai",
+        "brand":  "BODY ACTION",
+        "category":  "ENERGIA",
+        "price_cents":  450,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  105,
+        "options":  [
+                        {
+                            "value":  "GUARANÁ COM AÇAÍ",
+                            "price_cents":  450,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  105
+                        }
+                    ]
+    },
+    {
+        "name":  "ENERGEL OUTDOORS CAIXA 10 SACHES - Guarana com Acai",
+        "brand":  "BODY ACTION",
+        "category":  "ENERGIA",
+        "price_cents":  450,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  99,
+        "options":  [
+                        {
+                            "value":  "GUARANÁ COM AÇAÍ",
+                            "price_cents":  450,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  99
+                        }
+                    ]
+    },
+    {
+        "name":  "HARD MASS 3KG - Baunilha",
+        "brand":  "BODY ACTION",
+        "category":  "HIPERCALÓRICO",
+        "price_cents":  9650,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  7,
+        "options":  [
+                        {
+                            "value":  "BAUNILHA",
+                            "price_cents":  9650,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  7
+                        }
+                    ]
+    },
+    {
+        "name":  "HARD MASS 3KG - Chocolate",
+        "brand":  "BODY ACTION",
+        "category":  "HIPERCALÓRICO",
+        "price_cents":  9650,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  14,
+        "options":  [
+                        {
+                            "value":  "CHOCOLATE",
+                            "price_cents":  9650,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  14
+                        }
+                    ]
+    },
+    {
+        "name":  "HARD MASS 3KG - Morango",
+        "brand":  "BODY ACTION",
+        "category":  "HIPERCALÓRICO",
+        "price_cents":  9650,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  18,
+        "options":  [
+                        {
+                            "value":  "MORANGO",
+                            "price_cents":  9650,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  18
+                        }
+                    ]
+    },
+    {
+        "name":  "CAIBROFF 60 CAPSULAS",
+        "brand":  "BODY ACTION",
+        "category":  "Outros",
+        "price_cents":  4800,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  8,
+        "options":  [
+                        {
+                            "value":  null,
+                            "price_cents":  4800,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  8
+                        }
+                    ]
+    },
+    {
+        "name":  "NUCLEAR RUSH GEL 25G - FRUTAS VERMELHAS",
+        "brand":  "BODY ACTION",
+        "category":  "PRÉ-TREINO",
+        "price_cents":  320,
+        "compare_at_price_cents":  400,
+        "stock_quantity":  29,
+        "options":  [
+                        {
+                            "value":  "FRUTAS VERMELHAS",
+                            "price_cents":  320,
+                            "compare_at_price_cents":  400,
+                            "stock_quantity":  29
+                        }
+                    ]
+    },
+    {
+        "name":  "NUCLEAR RUSH GEL 25G - GUARANA",
+        "brand":  "BODY ACTION",
+        "category":  "PRÉ-TREINO",
+        "price_cents":  320,
+        "compare_at_price_cents":  400,
+        "stock_quantity":  8,
+        "options":  [
+                        {
+                            "value":  "GUARANÁ",
+                            "price_cents":  320,
+                            "compare_at_price_cents":  400,
+                            "stock_quantity":  8
+                        }
+                    ]
+    },
+    {
+        "name":  "SALT RELOAD",
+        "brand":  "BODY ACTION",
+        "category":  "REPOSITORES",
+        "price_cents":  3950,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  8,
+        "options":  [
+                        {
+                            "value":  null,
+                            "price_cents":  3950,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  8
+                        }
+                    ]
+    },
+    {
+        "name":  "ISOLATE PRIME WHEY 900G BAUNILHA",
+        "brand":  "BODY ACTION",
+        "category":  "WHEY PROTEIN",
+        "price_cents":  26240,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  5,
+        "options":  [
+                        {
+                            "value":  "BAUNILHA",
+                            "price_cents":  26240,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  5
+                        }
+                    ]
+    },
+    {
+        "name":  "ISOLATE PRIME WHEY 900G CHOCOLATE",
+        "brand":  "BODY ACTION",
+        "category":  "WHEY PROTEIN",
+        "price_cents":  26240,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  1,
+        "options":  [
+                        {
+                            "value":  "CHOCOLATE",
+                            "price_cents":  26240,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  1
+                        }
+                    ]
+    },
+    {
+        "name":  "ISOLATE PRIME WHEY 900G MORANGO",
+        "brand":  "BODY ACTION",
+        "category":  "WHEY PROTEIN",
+        "price_cents":  26240,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  2,
+        "options":  [
+                        {
+                            "value":  "MORANGO",
+                            "price_cents":  26240,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  2
+                        }
+                    ]
+    },
+    {
+        "name":  "AMINNU 10G C/ 30 SACHES",
+        "brand":  "CENTRAL NUTRITION",
+        "category":  "AMINOÁCIDOS",
+        "price_cents":  22410,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  12,
+        "options":  [
+                        {
+                            "value":  "TANGERINA",
+                            "price_cents":  22410,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  6
+                        },
+                        {
+                            "value":  "LIMAO",
+                            "price_cents":  22410,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  6
+                        }
+                    ]
+    },
+    {
+        "name":  "AMINNU LIVRE DE XILITOL C/ 30 SACHES",
+        "brand":  "CENTRAL NUTRITION",
+        "category":  "AMINOÁCIDOS",
+        "price_cents":  22410,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  3,
+        "options":  [
+                        {
+                            "value":  "BLUEBERRY",
+                            "price_cents":  22410,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  3
+                        }
+                    ]
+    },
+    {
+        "name":  "ENERGY ATP + SEM XILITOL 10 G",
+        "brand":  "CENTRAL NUTRITION",
+        "category":  "AMINOÁCIDOS",
+        "price_cents":  22410,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  3,
+        "options":  [
+                        {
+                            "value":  "AÇAÍ",
+                            "price_cents":  22410,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  3
+                        }
+                    ]
+    },
+    {
+        "name":  "ENERGY ATP C/ 30 SACHES",
+        "brand":  "CENTRAL NUTRITION",
+        "category":  "AMINOÁCIDOS",
+        "price_cents":  22410,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  12,
+        "options":  [
+                        {
+                            "value":  "LIMAO",
+                            "price_cents":  22410,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  6
+                        },
+                        {
+                            "value":  "TANGERINA",
+                            "price_cents":  22410,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  6
+                        }
+                    ]
+    },
+    {
+        "name":  "CREATINA MONOHIDRATADA - Lata 300 Gramas",
+        "brand":  "CENTRAL NUTRITION",
+        "category":  "CREATINA",
+        "price_cents":  10180,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  4,
+        "options":  [
+                        {
+                            "value":  null,
+                            "price_cents":  10180,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  4
+                        }
+                    ]
+    },
+    {
+        "name":  "3MAG - POOL DE MAGNESIO - 90 caps",
+        "brand":  "CENTRAL NUTRITION",
+        "category":  "VITAMINAS",
+        "price_cents":  6167,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  4,
+        "options":  [
+                        {
+                            "value":  null,
+                            "price_cents":  6167,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  4
+                        }
+                    ]
+    },
+    {
+        "name":  "GUARDIAN C/ 30 SACHES",
+        "brand":  "CENTRAL NUTRITION",
+        "category":  "VITAMINAS",
+        "price_cents":  22410,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  15,
+        "options":  [
+                        {
+                            "value":  "LIMAO",
+                            "price_cents":  22410,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  6
+                        },
+                        {
+                            "value":  "MANGA",
+                            "price_cents":  22410,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  3
+                        },
+                        {
+                            "value":  "TANGERINA",
+                            "price_cents":  22410,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  6
+                        }
+                    ]
+    },
+    {
+        "name":  "MAGNESIO - Pote 90 caps",
+        "brand":  "CENTRAL NUTRITION",
+        "category":  "VITAMINAS",
+        "price_cents":  4570,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  4,
+        "options":  [
+                        {
+                            "value":  null,
+                            "price_cents":  4570,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  4
+                        }
+                    ]
+    },
+    {
+        "name":  "OMEGA 3 660EPA 440DHA IFOS - 30 CAPS",
+        "brand":  "CENTRAL NUTRITION",
+        "category":  "VITAMINAS",
+        "price_cents":  6745,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  1,
+        "options":  [
+                        {
+                            "value":  null,
+                            "price_cents":  6745,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  1
+                        }
+                    ]
+    },
+    {
+        "name":  "RESTAURE GOTAS - 15ML",
+        "brand":  "CENTRAL NUTRITION",
+        "category":  "VITAMINAS",
+        "price_cents":  15540,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  4,
+        "options":  [
+                        {
+                            "value":  null,
+                            "price_cents":  15540,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  4
+                        }
+                    ]
+    },
+    {
+        "name":  "THREE PROTEIN LATA 520G",
+        "brand":  "CENTRAL NUTRITION",
+        "category":  "WHEY PROTEIN",
+        "price_cents":  26490,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  2,
+        "options":  [
+                        {
+                            "value":  "BAUNILHA CREAM",
+                            "price_cents":  26490,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  1
+                        },
+                        {
+                            "value":  "CAFE",
+                            "price_cents":  26490,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  1
+                        }
+                    ]
+    },
+    {
+        "name":  "DK EVORA 300G",
+        "brand":  "DARKNESS",
+        "category":  "PRÉ-TREINO",
+        "price_cents":  11816,
+        "compare_at_price_cents":  14770,
+        "stock_quantity":  4,
+        "options":  [
+                        {
+                            "value":  "FRUTAS VERMELHAS",
+                            "price_cents":  11816,
+                            "compare_at_price_cents":  14770,
+                            "stock_quantity":  4
+                        }
+                    ]
+    },
+    {
+        "name":  "DK EVORA XT 300G",
+        "brand":  "DARKNESS",
+        "category":  "PRÉ-TREINO",
+        "price_cents":  12224,
+        "compare_at_price_cents":  15280,
+        "stock_quantity":  2,
+        "options":  [
+                        {
+                            "value":  "BLOODY BERRY",
+                            "price_cents":  12224,
+                            "compare_at_price_cents":  15280,
+                            "stock_quantity":  2
+                        }
+                    ]
+    },
+    {
+        "name":  "DK VASCULOR POWDER",
+        "brand":  "DARKNESS",
+        "category":  "PRÉ-TREINO",
+        "price_cents":  12224,
+        "compare_at_price_cents":  15280,
+        "stock_quantity":  5,
+        "options":  [
+                        {
+                            "value":  "FRUTAS AMARELAS",
+                            "price_cents":  12224,
+                            "compare_at_price_cents":  15280,
+                            "stock_quantity":  3
+                        },
+                        {
+                            "value":  "MAÇÃ VERDE",
+                            "price_cents":  12224,
+                            "compare_at_price_cents":  15280,
+                            "stock_quantity":  2
+                        }
+                    ]
+    },
+    {
+        "name":  "DK CARNIBOL 900G",
+        "brand":  "DARKNESS",
+        "category":  "WHEY PROTEIN",
+        "price_cents":  19530,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  1,
+        "options":  [
+                        {
+                            "value":  "CHOCOLATE",
+                            "price_cents":  19530,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  1
+                        }
+                    ]
+    },
+    {
+        "name":  "BCAA POWDER 200G",
+        "brand":  "DUX",
+        "category":  "AMINOÁCIDOS",
+        "price_cents":  8728,
+        "compare_at_price_cents":  10910,
+        "stock_quantity":  3,
+        "options":  [
+                        {
+                            "value":  "ABACAXI",
+                            "price_cents":  8728,
+                            "compare_at_price_cents":  10910,
+                            "stock_quantity":  1
+                        },
+                        {
+                            "value":  "LARANJA",
+                            "price_cents":  8728,
+                            "compare_at_price_cents":  10910,
+                            "stock_quantity":  1
+                        },
+                        {
+                            "value":  "LIMÃO",
+                            "price_cents":  8728,
+                            "compare_at_price_cents":  10910,
+                            "stock_quantity":  1
+                        }
+                    ]
+    },
+    {
+        "name":  "GLUTAMINA 300G",
+        "brand":  "DUX",
+        "category":  "AMINOÁCIDOS",
+        "price_cents":  10360,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  5,
+        "options":  [
+                        {
+                            "value":  null,
+                            "price_cents":  10360,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  5
+                        }
+                    ]
+    },
+    {
+        "name":  "COLLAGEN 330G",
+        "brand":  "DUX",
+        "category":  "COLÁGENO",
+        "price_cents":  14760,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  8,
+        "options":  [
+                        {
+                            "value":  "CRANBERRY",
+                            "price_cents":  14760,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  2
+                        },
+                        {
+                            "value":  "MAÇÃ",
+                            "price_cents":  14760,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  2
+                        },
+                        {
+                            "value":  "TANGERINA",
+                            "price_cents":  14760,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  4
+                        }
+                    ]
+    },
+    {
+        "name":  "COLLAGEN ADVANCED 540G",
+        "brand":  "DUX",
+        "category":  "COLÁGENO",
+        "price_cents":  26000,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  10,
+        "options":  [
+                        {
+                            "value":  "CRANBERRY COM PITAYA",
+                            "price_cents":  26000,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  2
+                        },
+                        {
+                            "value":  "DARKBERRIES",
+                            "price_cents":  26000,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  5
+                        },
+                        {
+                            "value":  "MACA",
+                            "price_cents":  26000,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  3
+                        }
+                    ]
+    },
+    {
+        "name":  "COLLAGEN II MINI CAPS - 60 CAPS",
+        "brand":  "DUX",
+        "category":  "COLÁGENO",
+        "price_cents":  14808,
+        "compare_at_price_cents":  18510,
+        "stock_quantity":  3,
+        "options":  [
+                        {
+                            "value":  null,
+                            "price_cents":  14808,
+                            "compare_at_price_cents":  18510,
+                            "stock_quantity":  3
+                        }
+                    ]
+    },
+    {
+        "name":  "MULTI COLLAGEN 450G - NEUTRO",
+        "brand":  "DUX",
+        "category":  "COLÁGENO",
+        "price_cents":  26320,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  2,
+        "options":  [
+                        {
+                            "value":  "NEUTRO",
+                            "price_cents":  26320,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  2
+                        }
+                    ]
+    },
+    {
+        "name":  "MULTI COLLAGEN 475g - ABACAXI COM HORTELA",
+        "brand":  "DUX",
+        "category":  "COLÁGENO",
+        "price_cents":  26320,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  3,
+        "options":  [
+                        {
+                            "value":  "ABACAXI COM HORTELÃ",
+                            "price_cents":  26320,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  3
+                        }
+                    ]
+    },
+    {
+        "name":  "MULTI COLLAGEN 475g - FRUTAS VERMELHAS",
+        "brand":  "DUX",
+        "category":  "COLÁGENO",
+        "price_cents":  26320,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  4,
+        "options":  [
+                        {
+                            "value":  "FRUTAS VERMELHAS",
+                            "price_cents":  26320,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  4
+                        }
+                    ]
+    },
+    {
+        "name":  "CREATINA CREAPURE - POTE 300G",
+        "brand":  "DUX",
+        "category":  "CREATINA",
+        "price_cents":  26850,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  5,
+        "options":  [
+                        {
+                            "value":  null,
+                            "price_cents":  26850,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  5
+                        }
+                    ]
+    },
+    {
+        "name":  "CREATINA MONOHIDRATADA - POTE 300G",
+        "brand":  "DUX",
+        "category":  "CREATINA",
+        "price_cents":  8510,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  22,
+        "options":  [
+                        {
+                            "value":  null,
+                            "price_cents":  8510,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  22
+                        }
+                    ]
+    },
+    {
+        "name":  "CREATINA MONOHIDRATADA - POTE 600G",
+        "brand":  "DUX",
+        "category":  "CREATINA",
+        "price_cents":  14620,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  4,
+        "options":  [
+                        {
+                            "value":  null,
+                            "price_cents":  14620,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  4
+                        }
+                    ]
+    },
+    {
+        "name":  "ENERGY KICK CAFFEINE POTE 1000G",
+        "brand":  "DUX",
+        "category":  "ENERGIA",
+        "price_cents":  12144,
+        "compare_at_price_cents":  15180,
+        "stock_quantity":  17,
+        "options":  [
+                        {
+                            "value":  "ABACAXI",
+                            "price_cents":  12144,
+                            "compare_at_price_cents":  15180,
+                            "stock_quantity":  2
+                        },
+                        {
+                            "value":  "LARANJA",
+                            "price_cents":  15180,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  9
+                        },
+                        {
+                            "value":  "LIMÃO",
+                            "price_cents":  15180,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  6
+                        }
+                    ]
+    },
+    {
+        "name":  "ENERGY KICK CAFFEINE SACHE",
+        "brand":  "DUX",
+        "category":  "ENERGIA",
+        "price_cents":  850,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  45,
+        "options":  [
+                        {
+                            "value":  "ABACAXI",
+                            "price_cents":  850,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  43
+                        },
+                        {
+                            "value":  "LIMÃO",
+                            "price_cents":  850,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  2
+                        }
+                    ]
+    },
+    {
+        "name":  "ENERGY KICK POTE 1000G",
+        "brand":  "DUX",
+        "category":  "ENERGIA",
+        "price_cents":  15180,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  24,
+        "options":  [
+                        {
+                            "value":  "ABACAXI",
+                            "price_cents":  15180,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  6
+                        },
+                        {
+                            "value":  "LARANJA",
+                            "price_cents":  15180,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  5
+                        },
+                        {
+                            "value":  "LIMÃO",
+                            "price_cents":  15180,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  5
+                        },
+                        {
+                            "value":  "MAÇA VERDE",
+                            "price_cents":  15180,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  4
+                        },
+                        {
+                            "value":  "MELANCIA",
+                            "price_cents":  15180,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  4
+                        }
+                    ]
+    },
+    {
+        "name":  "ENERGY KICK SACHE",
+        "brand":  "DUX",
+        "category":  "ENERGIA",
+        "price_cents":  7650,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  3,
+        "options":  [
+                        {
+                            "value":  "LARANJA",
+                            "price_cents":  7650,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  3
+                        }
+                    ]
+    },
+    {
+        "name":  "HYDROLITE POTE 1000G",
+        "brand":  "DUX",
+        "category":  "ENERGIA",
+        "price_cents":  10910,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  13,
+        "options":  [
+                        {
+                            "value":  "FRUTAS VERMELHAS",
+                            "price_cents":  10910,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  6
+                        },
+                        {
+                            "value":  "LARANJA",
+                            "price_cents":  10910,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  4
+                        },
+                        {
+                            "value":  "LIMÃO",
+                            "price_cents":  10910,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  3
+                        }
+                    ]
+    },
+    {
+        "name":  "PALATINOSE - POTE 400G",
+        "brand":  "DUX",
+        "category":  "ENERGIA",
+        "price_cents":  6952,
+        "compare_at_price_cents":  8690,
+        "stock_quantity":  1,
+        "options":  [
+                        {
+                            "value":  null,
+                            "price_cents":  6952,
+                            "compare_at_price_cents":  8690,
+                            "stock_quantity":  1
+                        }
+                    ]
+    },
+    {
+        "name":  "RECHARGE 4:1 POTE 1000G",
+        "brand":  "DUX",
+        "category":  "ENERGIA",
+        "price_cents":  16290,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  2,
+        "options":  [
+                        {
+                            "value":  "CHOCOLATE",
+                            "price_cents":  16290,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  1
+                        },
+                        {
+                            "value":  "COCO",
+                            "price_cents":  16290,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  1
+                        }
+                    ]
+    },
+    {
+        "name":  "PRE WORKOUT ORIGINAL 300G",
+        "brand":  "DUX",
+        "category":  "PRÉ-TREINO",
+        "price_cents":  14990,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  12,
+        "options":  [
+                        {
+                            "value":  "FRUTAS VERMELHAS",
+                            "price_cents":  14990,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  5
+                        },
+                        {
+                            "value":  "MAÇA VERDE",
+                            "price_cents":  14990,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  3
+                        },
+                        {
+                            "value":  "MANGO TWIAT",
+                            "price_cents":  14990,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  2
+                        },
+                        {
+                            "value":  "PINK LIMONADE",
+                            "price_cents":  14990,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  2
+                        }
+                    ]
+    },
+    {
+        "name":  "PRE WORKOUT ORIGINAL STIM FREE 300G",
+        "brand":  "DUX",
+        "category":  "PRÉ-TREINO",
+        "price_cents":  14990,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  4,
+        "options":  [
+                        {
+                            "value":  "FRUTAS VERMELHAS",
+                            "price_cents":  14990,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  1
+                        },
+                        {
+                            "value":  "MAÇA VERDE",
+                            "price_cents":  14990,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  3
+                        }
+                    ]
+    },
+    {
+        "name":  "PROTEIN BAR 60G",
+        "brand":  "DUX",
+        "category":  "SNACK",
+        "price_cents":  1750,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  11,
+        "options":  [
+                        {
+                            "value":  "CHOCOLATE E COCO",
+                            "price_cents":  1750,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  11
+                        }
+                    ]
+    },
+    {
+        "name":  "CAFEINA 90 CAPSULAS",
+        "brand":  "DUX",
+        "category":  "TERMOGÊNICO",
+        "price_cents":  5768,
+        "compare_at_price_cents":  7210,
+        "stock_quantity":  16,
+        "options":  [
+                        {
+                            "value":  null,
+                            "price_cents":  5768,
+                            "compare_at_price_cents":  7210,
+                            "stock_quantity":  16
+                        }
+                    ]
+    },
+    {
+        "name":  "CONTROL NIGHT 60 CAPSULAS",
+        "brand":  "DUX",
+        "category":  "TERMOGÊNICO",
+        "price_cents":  7260,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  2,
+        "options":  [
+                        {
+                            "value":  null,
+                            "price_cents":  7260,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  2
+                        }
+                    ]
+    },
+    {
+        "name":  "CONTROL ORIGINAL - POTE 60 CAPSULAS",
+        "brand":  "DUX",
+        "category":  "TERMOGÊNICO",
+        "price_cents":  8410,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  2,
+        "options":  [
+                        {
+                            "value":  null,
+                            "price_cents":  8410,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  2
+                        }
+                    ]
+    },
+    {
+        "name":  "COENZIMA Q10 - POTE 60 CAPS",
+        "brand":  "DUX",
+        "category":  "VITAMINAS",
+        "price_cents":  14808,
+        "compare_at_price_cents":  18510,
+        "stock_quantity":  4,
+        "options":  [
+                        {
+                            "value":  null,
+                            "price_cents":  14808,
+                            "compare_at_price_cents":  18510,
+                            "stock_quantity":  4
+                        }
+                    ]
+    },
+    {
+        "name":  "COMPLEXO B - 30 CAPS",
+        "brand":  "DUX",
+        "category":  "VITAMINAS",
+        "price_cents":  3968,
+        "compare_at_price_cents":  4960,
+        "stock_quantity":  4,
+        "options":  [
+                        {
+                            "value":  null,
+                            "price_cents":  3968,
+                            "compare_at_price_cents":  4960,
+                            "stock_quantity":  4
+                        }
+                    ]
+    },
+    {
+        "name":  "CURCUMA BIO - POTE 60 CAPS",
+        "brand":  "DUX",
+        "category":  "VITAMINAS",
+        "price_cents":  11248,
+        "compare_at_price_cents":  14060,
+        "stock_quantity":  9,
+        "options":  [
+                        {
+                            "value":  null,
+                            "price_cents":  11248,
+                            "compare_at_price_cents":  14060,
+                            "stock_quantity":  9
+                        }
+                    ]
+    },
+    {
+        "name":  "FISH OIL - 120 CÁPSULAS",
+        "brand":  "DUX",
+        "category":  "VITAMINAS",
+        "price_cents":  16290,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  7,
+        "options":  [
+                        {
+                            "value":  null,
+                            "price_cents":  16290,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  7
+                        }
+                    ]
+    },
+    {
+        "name":  "FISH OIL - 180 CAPSULAS",
+        "brand":  "DUX",
+        "category":  "VITAMINAS",
+        "price_cents":  20550,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  4,
+        "options":  [
+                        {
+                            "value":  null,
+                            "price_cents":  20550,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  4
+                        }
+                    ]
+    },
+    {
+        "name":  "GABA COMPLEX 30 CAPS",
+        "brand":  "DUX",
+        "category":  "VITAMINAS",
+        "price_cents":  16470,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  6,
+        "options":  [
+                        {
+                            "value":  null,
+                            "price_cents":  16470,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  6
+                        }
+                    ]
+    },
+    {
+        "name":  "MAG-3 COMPLEX - 90 CAPSULAS",
+        "brand":  "DUX",
+        "category":  "VITAMINAS",
+        "price_cents":  11440,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  5,
+        "options":  [
+                        {
+                            "value":  null,
+                            "price_cents":  11440,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  5
+                        }
+                    ]
+    },
+    {
+        "name":  "MULTIVITAMÍNICO - POTE 90 CÁPSULAS",
+        "brand":  "DUX",
+        "category":  "VITAMINAS",
+        "price_cents":  9800,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  22,
+        "options":  [
+                        {
+                            "value":  null,
+                            "price_cents":  9800,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  22
+                        }
+                    ]
+    },
+    {
+        "name":  "NAC PRO - 60 CAPSULAS",
+        "brand":  "DUX",
+        "category":  "VITAMINAS",
+        "price_cents":  11470,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  3,
+        "options":  [
+                        {
+                            "value":  null,
+                            "price_cents":  11470,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  3
+                        }
+                    ]
+    },
+    {
+        "name":  "FRESH WHEY 900G",
+        "brand":  "DUX",
+        "category":  "WHEY PROTEIN",
+        "price_cents":  26200,
+        "compare_at_price_cents":  32750,
+        "stock_quantity":  6,
+        "options":  [
+                        {
+                            "value":  "CHOCOLATE BELGA E AVELA",
+                            "price_cents":  26200,
+                            "compare_at_price_cents":  32750,
+                            "stock_quantity":  6
+                        }
+                    ]
+    },
+    {
+        "name":  "WHEY PROTEIN CONCENTRADO 900G",
+        "brand":  "DUX",
+        "category":  "WHEY PROTEIN",
+        "price_cents":  18368,
+        "compare_at_price_cents":  22960,
+        "stock_quantity":  60,
+        "options":  [
+                        {
+                            "value":  "BAUNILHA",
+                            "price_cents":  22960,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  18
+                        },
+                        {
+                            "value":  "CARAMELO SALGADO",
+                            "price_cents":  22960,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  7
+                        },
+                        {
+                            "value":  "CHOCOLATE",
+                            "price_cents":  22960,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  15
+                        },
+                        {
+                            "value":  "COCO",
+                            "price_cents":  22960,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  3
+                        },
+                        {
+                            "value":  "COOKIES",
+                            "price_cents":  22960,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  3
+                        },
+                        {
+                            "value":  "DOCE DE LEITE",
+                            "price_cents":  18368,
+                            "compare_at_price_cents":  22960,
+                            "stock_quantity":  1
+                        },
+                        {
+                            "value":  "MORANGO",
+                            "price_cents":  18368,
+                            "compare_at_price_cents":  22960,
+                            "stock_quantity":  1
+                        },
+                        {
+                            "value":  "SEM SABOR",
+                            "price_cents":  22960,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  12
+                        }
+                    ]
+    },
+    {
+        "name":  "WHEY PROTEIN CONCENTRADO SACHE",
+        "brand":  "DUX",
+        "category":  "WHEY PROTEIN",
+        "price_cents":  11250,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  39,
+        "options":  [
+                        {
+                            "value":  "BAUNILHA",
+                            "price_cents":  11250,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  10
+                        },
+                        {
+                            "value":  "CARAMELO SALGADO",
+                            "price_cents":  11250,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  3
+                        },
+                        {
+                            "value":  "CHOCOLATE",
+                            "price_cents":  11250,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  3
+                        },
+                        {
+                            "value":  "CHOCOLATE BRANCO",
+                            "price_cents":  11250,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  10
+                        },
+                        {
+                            "value":  "COOKIES",
+                            "price_cents":  11250,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  3
+                        },
+                        {
+                            "value":  "MORANGO",
+                            "price_cents":  11250,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  4
+                        },
+                        {
+                            "value":  "SEM SABOR",
+                            "price_cents":  11250,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  3
+                        },
+                        {
+                            "value":  "TORTA DE LIMAO",
+                            "price_cents":  11250,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  3
+                        }
+                    ]
+    },
+    {
+        "name":  "WHEY PROTEIN ISOLADO 900G",
+        "brand":  "DUX",
+        "category":  "WHEY PROTEIN",
+        "price_cents":  30824,
+        "compare_at_price_cents":  38530,
+        "stock_quantity":  28,
+        "options":  [
+                        {
+                            "value":  "BAUNILHA",
+                            "price_cents":  38530,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  7
+                        },
+                        {
+                            "value":  "CAPPUCCINO",
+                            "price_cents":  30824,
+                            "compare_at_price_cents":  38530,
+                            "stock_quantity":  1
+                        },
+                        {
+                            "value":  "CARAMELO SALGADO",
+                            "price_cents":  38530,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  4
+                        },
+                        {
+                            "value":  "CHOCOLATE",
+                            "price_cents":  30824,
+                            "compare_at_price_cents":  38530,
+                            "stock_quantity":  1
+                        },
+                        {
+                            "value":  "CHOCOLATE BRANCO",
+                            "price_cents":  38530,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  6
+                        },
+                        {
+                            "value":  "COCO",
+                            "price_cents":  30824,
+                            "compare_at_price_cents":  38530,
+                            "stock_quantity":  1
+                        },
+                        {
+                            "value":  "COOKIES",
+                            "price_cents":  38530,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  6
+                        },
+                        {
+                            "value":  "DOCE DE LEITE",
+                            "price_cents":  38530,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  2
+                        }
+                    ]
+    },
+    {
+        "name":  "WHEY PROTEIN ISOLADO SACHE",
+        "brand":  "DUX",
+        "category":  "WHEY PROTEIN",
+        "price_cents":  2200,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  190,
+        "options":  [
+                        {
+                            "value":  "BAUNILHA",
+                            "price_cents":  2200,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  38
+                        },
+                        {
+                            "value":  "CHOCOLATE",
+                            "price_cents":  2200,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  40
+                        },
+                        {
+                            "value":  "CHOCOLATE BRANCO",
+                            "price_cents":  2200,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  35
+                        },
+                        {
+                            "value":  "COOKIES",
+                            "price_cents":  2200,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  37
+                        },
+                        {
+                            "value":  "SEM SABOR",
+                            "price_cents":  2200,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  40
+                        }
+                    ]
+    },
+    {
+        "name":  "IM CREATINA HARDCORE 300G",
+        "brand":  "INTEGRAL MÉDICA",
+        "category":  "CREATINA",
+        "price_cents":  6664,
+        "compare_at_price_cents":  8330,
+        "stock_quantity":  10,
+        "options":  [
+                        {
+                            "value":  "NEUTRO",
+                            "price_cents":  6664,
+                            "compare_at_price_cents":  8330,
+                            "stock_quantity":  10
+                        }
+                    ]
+    },
+    {
+        "name":  "IM CREATINA HARDCORE 350G",
+        "brand":  "INTEGRAL MÉDICA",
+        "category":  "CREATINA",
+        "price_cents":  6664,
+        "compare_at_price_cents":  8330,
+        "stock_quantity":  24,
+        "options":  [
+                        {
+                            "value":  "LIMAO",
+                            "price_cents":  6664,
+                            "compare_at_price_cents":  8330,
+                            "stock_quantity":  12
+                        },
+                        {
+                            "value":  "MORANGO",
+                            "price_cents":  6664,
+                            "compare_at_price_cents":  8330,
+                            "stock_quantity":  12
+                        }
+                    ]
+    },
+    {
+        "name":  "IM VO2 ENERGY GEL C30",
+        "brand":  "INTEGRAL MÉDICA",
+        "category":  "ENERGIA",
+        "price_cents":  650,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  16,
+        "options":  [
+                        {
+                            "value":  "NEUTRO",
+                            "price_cents":  650,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  16
+                        }
+                    ]
+    },
+    {
+        "name":  "IM VO2 ENERGY GEL C30 C/ CAFEINA",
+        "brand":  "INTEGRAL MÉDICA",
+        "category":  "ENERGIA",
+        "price_cents":  650,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  45,
+        "options":  [
+                        {
+                            "value":  "DOUBLE EXPRESSO",
+                            "price_cents":  650,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  25
+                        },
+                        {
+                            "value":  "SALTED CARAMELO",
+                            "price_cents":  650,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  20
+                        }
+                    ]
+    },
+    {
+        "name":  "IM ISO TRIPLE ZERO 900G",
+        "brand":  "INTEGRAL MÉDICA",
+        "category":  "WHEY PROTEIN",
+        "price_cents":  35010,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  6,
+        "options":  [
+                        {
+                            "value":  "BAUNILHA",
+                            "price_cents":  35010,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  2
+                        },
+                        {
+                            "value":  "CHOCOLATE",
+                            "price_cents":  35010,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  2
+                        },
+                        {
+                            "value":  "MORANGO",
+                            "price_cents":  35010,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  2
+                        }
+                    ]
+    },
+    {
+        "name":  "IM WHEY 100% PURE 900G",
+        "brand":  "INTEGRAL MÉDICA",
+        "category":  "WHEY PROTEIN",
+        "price_cents":  17990,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  11,
+        "options":  [
+                        {
+                            "value":  "CHOCOLATE",
+                            "price_cents":  17990,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  3
+                        },
+                        {
+                            "value":  "COOKIES AND CREAM",
+                            "price_cents":  17990,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  3
+                        },
+                        {
+                            "value":  "GELATO DI LATTE",
+                            "price_cents":  17990,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  3
+                        },
+                        {
+                            "value":  "MORANGO",
+                            "price_cents":  17990,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  2
+                        }
+                    ]
+    },
+    {
+        "name":  "CREATINA CREAPURE - LINHA RAFAEL BRANDÃO POTE 250G",
+        "brand":  "MAX TITANIO",
+        "category":  "CREATINA",
+        "price_cents":  19790,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  7,
+        "options":  [
+                        {
+                            "value":  null,
+                            "price_cents":  19790,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  7
+                        }
+                    ]
+    },
+    {
+        "name":  "CREATINE POTE 300 GR MAX Titânium",
+        "brand":  "MAX TITANIO",
+        "category":  "CREATINA",
+        "price_cents":  6220,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  88,
+        "options":  [
+                        {
+                            "value":  null,
+                            "price_cents":  6220,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  88
+                        }
+                    ]
+    },
+    {
+        "name":  "CREATINE POTE 500G",
+        "brand":  "MAX TITANIO",
+        "category":  "CREATINA",
+        "price_cents":  8140,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  29,
+        "options":  [
+                        {
+                            "value":  null,
+                            "price_cents":  8140,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  29
+                        }
+                    ]
+    },
+    {
+        "name":  "CREATINA MONOHIDRATADA 120 CAPSULAS POTE",
+        "brand":  "NEW MILLEN",
+        "category":  "CREATINA",
+        "price_cents":  6730,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  4,
+        "options":  [
+                        {
+                            "value":  null,
+                            "price_cents":  6730,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  4
+                        }
+                    ]
+    },
+    {
+        "name":  "CREATINA MONOHIDRATADA 300G POTE",
+        "brand":  "NEW MILLEN",
+        "category":  "CREATINA",
+        "price_cents":  9560,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  2,
+        "options":  [
+                        {
+                            "value":  null,
+                            "price_cents":  9560,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  2
+                        }
+                    ]
+    },
+    {
+        "name":  "AGENT ORANGE POTE 250G",
+        "brand":  "NEW MILLEN",
+        "category":  "PRÉ-TREINO",
+        "price_cents":  10790,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  10,
+        "options":  [
+                        {
+                            "value":  "LIMÃO COM HORTELÃ",
+                            "price_cents":  10790,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  3
+                        },
+                        {
+                            "value":  "PINK LEMON",
+                            "price_cents":  10790,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  3
+                        },
+                        {
+                            "value":  "TANGERINA COM MORANGO",
+                            "price_cents":  10790,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  4
+                        }
+                    ]
+    },
+    {
+        "name":  "C4 BETA PUMP PRE WORKOUT POTE 225G",
+        "brand":  "NEW MILLEN",
+        "category":  "PRÉ-TREINO",
+        "price_cents":  8352,
+        "compare_at_price_cents":  10440,
+        "stock_quantity":  5,
+        "options":  [
+                        {
+                            "value":  "LIMÃO",
+                            "price_cents":  8352,
+                            "compare_at_price_cents":  10440,
+                            "stock_quantity":  2
+                        },
+                        {
+                            "value":  "MAÇÃ VERDE",
+                            "price_cents":  8352,
+                            "compare_at_price_cents":  10440,
+                            "stock_quantity":  3
+                        }
+                    ]
+    },
+    {
+        "name":  "FENOTEST  COM 60 CAPSULAS POTE",
+        "brand":  "NEW MILLEN",
+        "category":  "VITAMINAS",
+        "price_cents":  8352,
+        "compare_at_price_cents":  10440,
+        "stock_quantity":  7,
+        "options":  [
+                        {
+                            "value":  null,
+                            "price_cents":  8352,
+                            "compare_at_price_cents":  10440,
+                            "stock_quantity":  7
+                        }
+                    ]
+    },
+    {
+        "name":  "COQUETELEIRA 700 ML INCOLOR - PROBIOTICA",
+        "brand":  "Probiótica",
+        "category":  "ACESSÓRIOS",
+        "price_cents":  2700,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  3,
+        "options":  [
+                        {
+                            "value":  null,
+                            "price_cents":  2700,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  3
+                        }
+                    ]
+    },
+    {
+        "name":  "COQUETELEIRA PREMIUM 2 COMPARTIMENTOS 700 ML PRETO E GRAFITE - PROBIÓTICA",
+        "brand":  "Probiótica",
+        "category":  "ACESSÓRIOS",
+        "price_cents":  3150,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  8,
+        "options":  [
+                        {
+                            "value":  null,
+                            "price_cents":  3150,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  8
+                        }
+                    ]
+    },
+    {
+        "name":  "CREATINA CREAPURE PROBIÓTICA POTE 150G",
+        "brand":  "Probiótica",
+        "category":  "CREATINA",
+        "price_cents":  11800,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  16,
+        "options":  [
+                        {
+                            "value":  null,
+                            "price_cents":  11800,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  16
+                        }
+                    ]
+    },
+    {
+        "name":  "CREATINA PROBIOTICA STICKS DE 5G",
+        "brand":  "Probiótica",
+        "category":  "CREATINA",
+        "price_cents":  250,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  96,
+        "options":  [
+                        {
+                            "value":  null,
+                            "price_cents":  250,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  96
+                        }
+                    ]
+    },
+    {
+        "name":  "CREATINA PURA POTE 300G",
+        "brand":  "Probiótica",
+        "category":  "CREATINA",
+        "price_cents":  5570,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  104,
+        "options":  [
+                        {
+                            "value":  null,
+                            "price_cents":  5570,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  104
+                        }
+                    ]
+    },
+    {
+        "name":  "100% PURE WHEY REFIL 900G",
+        "brand":  "Probiótica",
+        "category":  "ENERGIA",
+        "price_cents":  21130,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  3,
+        "options":  [
+                        {
+                            "value":  "IOGURTE COM MORANGO",
+                            "price_cents":  21130,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  3
+                        }
+                    ]
+    },
+    {
+        "name":  "CARBUP GEL BLACK",
+        "brand":  "Probiótica",
+        "category":  "ENERGIA",
+        "price_cents":  5400,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  30,
+        "options":  [
+                        {
+                            "value":  "ACAI COM GUARANA",
+                            "price_cents":  5400,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  5
+                        },
+                        {
+                            "value":  "BAUNILHA",
+                            "price_cents":  5400,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  8
+                        },
+                        {
+                            "value":  "CARAMELO SALGADO",
+                            "price_cents":  5400,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  5
+                        },
+                        {
+                            "value":  "LARANJA",
+                            "price_cents":  5400,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  6
+                        },
+                        {
+                            "value":  "MORANGO",
+                            "price_cents":  5400,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  6
+                        }
+                    ]
+    },
+    {
+        "name":  "CARBUP GEL SUPER FORMULA",
+        "brand":  "Probiótica",
+        "category":  "ENERGIA",
+        "price_cents":  4950,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  29,
+        "options":  [
+                        {
+                            "value":  "ACAI COM GUARANA",
+                            "price_cents":  4950,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  1
+                        },
+                        {
+                            "value":  "BANANA",
+                            "price_cents":  4950,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  10
+                        },
+                        {
+                            "value":  "BAUNILHA",
+                            "price_cents":  4950,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  5
+                        },
+                        {
+                            "value":  "CHOCOLATE",
+                            "price_cents":  4950,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  5
+                        },
+                        {
+                            "value":  "LARANJA",
+                            "price_cents":  4950,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  5
+                        },
+                        {
+                            "value":  "MORANGO",
+                            "price_cents":  4950,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  3
+                        }
+                    ]
+    },
+    {
+        "name":  "MASSA NITRO REFIL 2,52KG",
+        "brand":  "Probiótica",
+        "category":  "HIPER CALÓRICO",
+        "price_cents":  10450,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  6,
+        "options":  [
+                        {
+                            "value":  "BAUNILHA",
+                            "price_cents":  10450,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  3
+                        },
+                        {
+                            "value":  "CHOCOLATE",
+                            "price_cents":  10450,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  3
+                        }
+                    ]
+    },
+    {
+        "name":  "100% PURE BETA ALANINA 150G",
+        "brand":  "Probiótica",
+        "category":  "PRÉ-TREINO",
+        "price_cents":  10560,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  3,
+        "options":  [
+                        {
+                            "value":  null,
+                            "price_cents":  10560,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  3
+                        }
+                    ]
+    },
+    {
+        "name":  "OMEGA 3 PRO POTE 100 CAPSULAS V01",
+        "brand":  "Probiótica",
+        "category":  "VITAMINAS",
+        "price_cents":  7310,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  4,
+        "options":  [
+                        {
+                            "value":  null,
+                            "price_cents":  7310,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  4
+                        }
+                    ]
+    },
+    {
+        "name":  "100% PURE WHEY POTE 900G",
+        "brand":  "Probiótica",
+        "category":  "WHEY PROTEIN",
+        "price_cents":  21940,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  48,
+        "options":  [
+                        {
+                            "value":  "BAUNILHA",
+                            "price_cents":  21940,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  24
+                        },
+                        {
+                            "value":  "COOKIES AND CREAM",
+                            "price_cents":  21940,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  12
+                        },
+                        {
+                            "value":  "LEITE",
+                            "price_cents":  21940,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  12
+                        }
+                    ]
+    },
+    {
+        "name":  "100% PURE WHEY REFIL 900G",
+        "brand":  "Probiótica",
+        "category":  "WHEY PROTEIN",
+        "price_cents":  21130,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  18,
+        "options":  [
+                        {
+                            "value":  "CHOCOLATE",
+                            "price_cents":  21130,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  7
+                        },
+                        {
+                            "value":  "IOGURTE COM LIMÃO",
+                            "price_cents":  21130,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  3
+                        },
+                        {
+                            "value":  "MORANGO",
+                            "price_cents":  21130,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  8
+                        }
+                    ]
+    },
+    {
+        "name":  "100% PURE WHEY ZERO LACTOSE POTE 900G",
+        "brand":  "Probiótica",
+        "category":  "WHEY PROTEIN",
+        "price_cents":  26490,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  5,
+        "options":  [
+                        {
+                            "value":  "BAUNILHA",
+                            "price_cents":  26490,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  5
+                        }
+                    ]
+    },
+    {
+        "name":  "ISO PRO WHEY POTE 900G",
+        "brand":  "Probiótica",
+        "category":  "WHEY PROTEIN",
+        "price_cents":  38960,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  3,
+        "options":  [
+                        {
+                            "value":  "BAUNILHA",
+                            "price_cents":  38960,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  3
+                        }
+                    ]
+    },
+    {
+        "name":  "SQUEEZE SUDRACT 100 ML",
+        "brand":  "SUDRACT",
+        "category":  "ACESSÓRIOS",
+        "price_cents":  2580,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  1,
+        "options":  [
+                        {
+                            "value":  null,
+                            "price_cents":  2580,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  1
+                        }
+                    ]
+    },
+    {
+        "name":  "ENERGY PRO GEL",
+        "brand":  "SUDRACT",
+        "category":  "ENERGIA",
+        "price_cents":  4930,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  45,
+        "options":  [
+                        {
+                            "value":  "AGUA DE COCO",
+                            "price_cents":  4950,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  5
+                        },
+                        {
+                            "value":  "BANANA COM AÇAÍ",
+                            "price_cents":  4950,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  8
+                        },
+                        {
+                            "value":  "LARANJA",
+                            "price_cents":  4950,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  8
+                        },
+                        {
+                            "value":  "LIMAO",
+                            "price_cents":  4950,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  4
+                        },
+                        {
+                            "value":  "MORANGO COM MARACUJÁ",
+                            "price_cents":  4950,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  5
+                        },
+                        {
+                            "value":  "SABORES DIVERSOS",
+                            "price_cents":  4930,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  15
+                        }
+                    ]
+    },
+    {
+        "name":  "ENERGY PRO GEL BEET",
+        "brand":  "SUDRACT",
+        "category":  "ENERGIA",
+        "price_cents":  10080,
+        "compare_at_price_cents":  12600,
+        "stock_quantity":  8,
+        "options":  [
+                        {
+                            "value":  "LIMÃO",
+                            "price_cents":  10080,
+                            "compare_at_price_cents":  12600,
+                            "stock_quantity":  3
+                        },
+                        {
+                            "value":  "MORANGO",
+                            "price_cents":  10080,
+                            "compare_at_price_cents":  12600,
+                            "stock_quantity":  5
+                        }
+                    ]
+    },
+    {
+        "name":  "ENERGY PRO GEL BLACK",
+        "brand":  "SUDRACT",
+        "category":  "ENERGIA",
+        "price_cents":  5400,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  15,
+        "options":  [
+                        {
+                            "value":  "ABACAXI COM AÇAÍ",
+                            "price_cents":  5400,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  4
+                        },
+                        {
+                            "value":  "CAFE EXPRESSO",
+                            "price_cents":  5400,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  5
+                        },
+                        {
+                            "value":  "CARAMELO SALGADO",
+                            "price_cents":  5400,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  6
+                        }
+                    ]
+    },
+    {
+        "name":  "HYDRAMAXI 400G REFIL",
+        "brand":  "SUDRACT",
+        "category":  "ENERGIA",
+        "price_cents":  4310,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  5,
+        "options":  [
+                        {
+                            "value":  "MAÇÃ VERDE",
+                            "price_cents":  4310,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  5
+                        }
+                    ]
+    },
+    {
+        "name":  "HYDRAMAXI DISPLAY 30GR",
+        "brand":  "SUDRACT",
+        "category":  "ENERGIA",
+        "price_cents":  7875,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  18,
+        "options":  [
+                        {
+                            "value":  "AGUA DE COCO",
+                            "price_cents":  7875,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  2
+                        },
+                        {
+                            "value":  "GUARANA COM AÇAÍ",
+                            "price_cents":  7875,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  5
+                        },
+                        {
+                            "value":  "LARANJA",
+                            "price_cents":  7875,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  1
+                        },
+                        {
+                            "value":  "MACA VERDE",
+                            "price_cents":  7875,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  4
+                        },
+                        {
+                            "value":  "MORANGO COM AÇAÍ",
+                            "price_cents":  7875,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  4
+                        },
+                        {
+                            "value":  "UVA",
+                            "price_cents":  7875,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  2
+                        }
+                    ]
+    },
+    {
+        "name":  "ISOTONIC PRO 900G REFIL",
+        "brand":  "SUDRACT",
+        "category":  "ENERGIA",
+        "price_cents":  5380,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  4,
+        "options":  [
+                        {
+                            "value":  "GUARANA  COM AÇAÍ",
+                            "price_cents":  5380,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  2
+                        },
+                        {
+                            "value":  "LIMAO",
+                            "price_cents":  5380,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  2
+                        }
+                    ]
+    },
+    {
+        "name":  "MAIS CARBO GEL 40GR",
+        "brand":  "SUDRACT",
+        "category":  "ENERGIA",
+        "price_cents":  9600,
+        "compare_at_price_cents":  12000,
+        "stock_quantity":  10,
+        "options":  [
+                        {
+                            "value":  "MARACUJA",
+                            "price_cents":  9600,
+                            "compare_at_price_cents":  12000,
+                            "stock_quantity":  5
+                        },
+                        {
+                            "value":  "MENTOL",
+                            "price_cents":  9600,
+                            "compare_at_price_cents":  12000,
+                            "stock_quantity":  5
+                        }
+                    ]
+    },
+    {
+        "name":  "POTE HYDRAMAXI ZERO 150G",
+        "brand":  "SUDRACT",
+        "category":  "ENERGIA",
+        "price_cents":  7880,
+        "compare_at_price_cents":  9850,
+        "stock_quantity":  5,
+        "options":  [
+                        {
+                            "value":  "LIMAO",
+                            "price_cents":  7880,
+                            "compare_at_price_cents":  9850,
+                            "stock_quantity":  3
+                        },
+                        {
+                            "value":  "MORANGO",
+                            "price_cents":  7880,
+                            "compare_at_price_cents":  9850,
+                            "stock_quantity":  2
+                        }
+                    ]
+    },
+    {
+        "name":  "POTE BEET PRO 450G",
+        "brand":  "SUDRACT",
+        "category":  "PRÉ-TREINO",
+        "price_cents":  18430,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  2,
+        "options":  [
+                        {
+                            "value":  "LIMAO",
+                            "price_cents":  18430,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  2
+                        }
+                    ]
+    },
+    {
+        "name":  "POTE BETA ALANINA 150G",
+        "brand":  "SUDRACT",
+        "category":  "PRÉ-TREINO",
+        "price_cents":  9130,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  3,
+        "options":  [
+                        {
+                            "value":  null,
+                            "price_cents":  9130,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  3
+                        }
+                    ]
+    },
+    {
+        "name":  "ARTICUPRO C/ 30",
+        "brand":  "SUDRACT",
+        "category":  "VITAMINAS",
+        "price_cents":  4896,
+        "compare_at_price_cents":  6120,
+        "stock_quantity":  4,
+        "options":  [
+                        {
+                            "value":  null,
+                            "price_cents":  4896,
+                            "compare_at_price_cents":  6120,
+                            "stock_quantity":  4
+                        }
+                    ]
+    },
+    {
+        "name":  "POTE CREATINA 300G",
+        "brand":  "SUDRACT",
+        "category":  "VITAMINAS",
+        "price_cents":  6408,
+        "compare_at_price_cents":  8010,
+        "stock_quantity":  21,
+        "options":  [
+                        {
+                            "value":  null,
+                            "price_cents":  6408,
+                            "compare_at_price_cents":  8010,
+                            "stock_quantity":  21
+                        }
+                    ]
+    },
+    {
+        "name":  "SUPERCOFFEE 3.0 220G",
+        "brand":  "SUPER COFFE",
+        "category":  "PRÉ-TREINO",
+        "price_cents":  13250,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  8,
+        "options":  [
+                        {
+                            "value":  "CHOCONILLA",
+                            "price_cents":  13250,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  2
+                        },
+                        {
+                            "value":  "LAJOTINHA",
+                            "price_cents":  14200,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  2
+                        },
+                        {
+                            "value":  "LINGUA DE GATO",
+                            "price_cents":  14200,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  2
+                        },
+                        {
+                            "value":  "VANILLA LATTE",
+                            "price_cents":  13250,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  2
+                        }
+                    ]
+    },
+    {
+        "name":  "SUPERCOFFEE 3.0 380G",
+        "brand":  "SUPER COFFE",
+        "category":  "PRÉ-TREINO",
+        "price_cents":  20870,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  19,
+        "options":  [
+                        {
+                            "value":  "CHOCONILLA",
+                            "price_cents":  20870,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  3
+                        },
+                        {
+                            "value":  "LAJOTINHA",
+                            "price_cents":  21870,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  7
+                        },
+                        {
+                            "value":  "LINGUA DE GATO",
+                            "price_cents":  21870,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  5
+                        },
+                        {
+                            "value":  "VANILLA LATTE",
+                            "price_cents":  20870,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  4
+                        }
+                    ]
+    },
+    {
+        "name":  "Garrafa Dobravel Soft Flask de Silicone 250ml  Z2 Always Chasing",
+        "brand":  "Z2 PERFORMANCE",
+        "category":  "ACESSÓRIOS",
+        "price_cents":  9340,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  5,
+        "options":  [
+                        {
+                            "value":  "CHASING",
+                            "price_cents":  9340,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  5
+                        }
+                    ]
+    },
+    {
+        "name":  "Garrafa Dobravel Soft Flask de Silicone 500ml  Z2 Get In The Zone",
+        "brand":  "Z2 PERFORMANCE",
+        "category":  "ACESSÓRIOS",
+        "price_cents":  11210,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  5,
+        "options":  [
+                        {
+                            "value":  "ZONE",
+                            "price_cents":  11210,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  5
+                        }
+                    ]
+    },
+    {
+        "name":  "Garrafa Z2  Nobody Cares Work Harder 620ml",
+        "brand":  "Z2 PERFORMANCE",
+        "category":  "ACESSÓRIOS",
+        "price_cents":  6540,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  9,
+        "options":  [
+                        {
+                            "value":  "ML",
+                            "price_cents":  6540,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  9
+                        }
+                    ]
+    },
+    {
+        "name":  "Creatina - Z2 Performance System  Pote 300g",
+        "brand":  "Z2 PERFORMANCE",
+        "category":  "CREATINA",
+        "price_cents":  9340,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  6,
+        "options":  [
+                        {
+                            "value":  null,
+                            "price_cents":  9340,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  6
+                        }
+                    ]
+    },
+    {
+        "name":  "Energy Drink Power Powder Z2 Pouch 900g",
+        "brand":  "Z2 PERFORMANCE",
+        "category":  "ENERGIA",
+        "price_cents":  16810,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  4,
+        "options":  [
+                        {
+                            "value":  "ORIGINAL",
+                            "price_cents":  16810,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  2
+                        },
+                        {
+                            "value":  "LIME ZEST",
+                            "price_cents":  17740,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  2
+                        }
+                    ]
+    },
+    {
+        "name":  "Energy Drink Power Powder Z2+ Pouch 900g",
+        "brand":  "Z2 PERFORMANCE",
+        "category":  "ENERGIA",
+        "price_cents":  17740,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  2,
+        "options":  [
+                        {
+                            "value":  "GRAPE EXPRESS",
+                            "price_cents":  17740,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  2
+                        }
+                    ]
+    },
+    {
+        "name":  "Energy Gel Z2 (25 Carb)",
+        "brand":  "Z2 PERFORMANCE",
+        "category":  "ENERGIA",
+        "price_cents":  13500,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  21,
+        "options":  [
+                        {
+                            "value":  "AGUA DE COCO",
+                            "price_cents":  13500,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  2
+                        },
+                        {
+                            "value":  "CHOCO TRUFFLE",
+                            "price_cents":  13500,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  4
+                        },
+                        {
+                            "value":  "PITAYA",
+                            "price_cents":  13500,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  5
+                        },
+                        {
+                            "value":  "TROPICAL FRUIT",
+                            "price_cents":  13500,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  5
+                        },
+                        {
+                            "value":  "PINK LEMONADE",
+                            "price_cents":  13500,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  5
+                        }
+                    ]
+    },
+    {
+        "name":  "Energy Gel Z2 (40 Carb)",
+        "brand":  "Z2 PERFORMANCE",
+        "category":  "ENERGIA",
+        "price_cents":  18000,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  4,
+        "options":  [
+                        {
+                            "value":  "ORIGINAL",
+                            "price_cents":  18000,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  4
+                        }
+                    ]
+    },
+    {
+        "name":  "Energy Gel Z2 Speedo PWRD",
+        "brand":  "Z2 PERFORMANCE",
+        "category":  "ENERGIA",
+        "price_cents":  11250,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  2,
+        "options":  [
+                        {
+                            "value":  "FRUTAS VERMELHAS",
+                            "price_cents":  11250,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  1
+                        },
+                        {
+                            "value":  "MACA CARAMELIZADA",
+                            "price_cents":  11250,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  1
+                        }
+                    ]
+    },
+    {
+        "name":  "Energy Gel Z2+ (25 Carb)",
+        "brand":  "Z2 PERFORMANCE",
+        "category":  "ENERGIA",
+        "price_cents":  14400,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  24,
+        "options":  [
+                        {
+                            "value":  "MATE \u0026 LIMÃO",
+                            "price_cents":  14400,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  2
+                        },
+                        {
+                            "value":  "CHOCO MINT",
+                            "price_cents":  14400,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  10
+                        },
+                        {
+                            "value":  "FREEZIN COLA",
+                            "price_cents":  14400,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  5
+                        },
+                        {
+                            "value":  "LIME",
+                            "price_cents":  14400,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  5
+                        },
+                        {
+                            "value":  "ORIGINAL MPR",
+                            "price_cents":  14400,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  2
+                        }
+                    ]
+    },
+    {
+        "name":  "Energy Gel Z2+ (40 Carb)",
+        "brand":  "Z2 PERFORMANCE",
+        "category":  "ENERGIA",
+        "price_cents":  18000,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  2,
+        "options":  [
+                        {
+                            "value":  "ORIGINAL",
+                            "price_cents":  18000,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  2
+                        }
+                    ]
+    },
+    {
+        "name":  "Recovery Mix Ampli Z2 - Pouch 675g - Chocolate",
+        "brand":  "Z2 PERFORMANCE",
+        "category":  "ENERGIA",
+        "price_cents":  22416,
+        "compare_at_price_cents":  28020,
+        "stock_quantity":  1,
+        "options":  [
+                        {
+                            "value":  "CHOCOLATE",
+                            "price_cents":  22416,
+                            "compare_at_price_cents":  28020,
+                            "stock_quantity":  1
+                        }
+                    ]
+    },
+    {
+        "name":  "Saltz 1000 Z2 Pote 300g",
+        "brand":  "Z2 PERFORMANCE",
+        "category":  "ENERGIA",
+        "price_cents":  9340,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  2,
+        "options":  [
+                        {
+                            "value":  "PITAYA",
+                            "price_cents":  9340,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  1
+                        },
+                        {
+                            "value":  "TROPICAL FRUIT",
+                            "price_cents":  9340,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  1
+                        }
+                    ]
+    },
+    {
+        "name":  "Saltz 500 Z2 Pote 300g",
+        "brand":  "Z2 PERFORMANCE",
+        "category":  "ENERGIA",
+        "price_cents":  8870,
+        "compare_at_price_cents":  null,
+        "stock_quantity":  6,
+        "options":  [
+                        {
+                            "value":  "AGUA DE COCO",
+                            "price_cents":  8870,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  2
+                        },
+                        {
+                            "value":  "FRUTAS VERMELHAS",
+                            "price_cents":  8870,
+                            "compare_at_price_cents":  null,
+                            "stock_quantity":  4
+                        }
+                    ]
+    }
+]

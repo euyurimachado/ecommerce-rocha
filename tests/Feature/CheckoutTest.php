@@ -52,6 +52,53 @@ class CheckoutTest extends TestCase
         $this->assertSame(0, app(CartManager::class)->count());
     }
 
+    public function test_checkout_uses_variant_price_sku_and_decrements_variant_stock(): void
+    {
+        $product = $this->createProduct([
+            'stock_quantity' => 10,
+            'price_cents' => 8990,
+            'variations' => [
+                ['name' => 'Sabor', 'options' => [
+                    [
+                        'value' => 'Chocolate',
+                        'sku' => 'WHEY-CHOC',
+                        'price_cents' => 12990,
+                        'stock_quantity' => 3,
+                        'reserved_quantity' => 0,
+                    ],
+                    [
+                        'value' => 'Baunilha',
+                        'sku' => 'WHEY-BAU',
+                        'price_cents' => 11990,
+                        'stock_quantity' => 4,
+                        'reserved_quantity' => 0,
+                    ],
+                ]],
+            ],
+        ]);
+
+        app(CartManager::class)->add($product->id, 2, ['Sabor' => 'Chocolate']);
+
+        Livewire::test(CheckoutPage::class)
+            ->set('customer_name', 'Yuri Machado')
+            ->set('customer_email', 'yuri@example.com')
+            ->set('customer_phone', '22999990000')
+            ->set('fulfillment_method', 'pickup')
+            ->set('payment_method', 'pix')
+            ->set('privacy_accepted', true)
+            ->call('placeOrder')
+            ->assertHasNoErrors();
+
+        $order = Order::query()->with('items')->firstOrFail();
+        $product->refresh();
+
+        $this->assertSame(25980, $order->subtotal_cents);
+        $this->assertSame('WHEY-CHOC', $order->items->first()->product_sku);
+        $this->assertSame(12990, $order->items->first()->unit_price_cents);
+        $this->assertSame(10, $product->stock_quantity);
+        $this->assertSame(1, $product->variationOptions()[0]['options'][0]['stock_quantity']);
+    }
+
     public function test_checkout_redirects_to_mercado_pago_when_selected(): void
     {
         config(['services.mercado_pago.access_token' => 'TEST-ACCESS-TOKEN']);

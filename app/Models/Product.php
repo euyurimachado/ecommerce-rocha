@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Schema;
 
 class Product extends Model
 {
@@ -22,6 +24,11 @@ class Product extends Model
         'benefits',
         'usage_instructions',
         'ingredients',
+        'nutrition_facts',
+        'serving_size',
+        'allergen_info',
+        'manufacturer_url',
+        'image_source_url',
         'stock_quantity',
         'reserved_quantity',
         'price_cents',
@@ -43,6 +50,7 @@ class Product extends Model
         return [
             'benefits' => 'array',
             'gallery_images' => 'array',
+            'nutrition_facts' => 'array',
             'variations' => 'array',
             'rating' => 'decimal:1',
             'is_active' => 'boolean',
@@ -51,6 +59,13 @@ class Product extends Model
             'allows_pickup' => 'boolean',
             'allows_local_delivery' => 'boolean',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::saved(function (Product $product): void {
+            $product->syncReusableVariations();
+        });
     }
 
     public function category(): BelongsTo
@@ -82,6 +97,107 @@ class Product extends Model
         return max(0, $this->stock_quantity - $this->reserved_quantity);
     }
 
+    public function formattedPriceForSelections(array $variantSelections = []): string
+    {
+        return 'R$ '.number_format($this->priceCentsForSelections($variantSelections) / 100, 2, ',', '.');
+    }
+
+    public function formattedCompareAtPriceForSelections(array $variantSelections = []): ?string
+    {
+        $compareAtPriceCents = $this->compareAtPriceCentsForSelections($variantSelections);
+
+        if ($compareAtPriceCents === null) {
+            return null;
+        }
+
+        return 'R$ '.number_format($compareAtPriceCents / 100, 2, ',', '.');
+    }
+
+    public function priceCentsForSelections(array $variantSelections = []): int
+    {
+        return $this->selectedVariationOptions($variantSelections)
+            ->pluck('price_cents')
+            ->filter(fn ($price): bool => $price !== null)
+            ->map(fn ($price): int => (int) $price)
+            ->first() ?? $this->price_cents;
+    }
+
+    public function compareAtPriceCentsForSelections(array $variantSelections = []): ?int
+    {
+        return $this->selectedVariationOptions($variantSelections)
+            ->pluck('compare_at_price_cents')
+            ->filter(fn ($price): bool => $price !== null)
+            ->map(fn ($price): int => (int) $price)
+            ->first() ?? $this->compare_at_price_cents;
+    }
+
+    public function skuForSelections(array $variantSelections = []): string
+    {
+        return $this->selectedVariationOptions($variantSelections)
+            ->pluck('sku')
+            ->map(fn ($sku): string => trim((string) $sku))
+            ->first(fn (string $sku): bool => $sku !== '') ?? $this->sku;
+    }
+
+    public function availableQuantityForSelections(array $variantSelections = []): int
+    {
+        $variantQuantities = $this->selectedVariationOptions($variantSelections)
+            ->filter(fn (array $option): bool => $option['stock_quantity'] !== null)
+            ->map(fn (array $option): int => max(0, (int) $option['stock_quantity'] - (int) ($option['reserved_quantity'] ?? 0)));
+
+        if ($variantQuantities->isEmpty()) {
+            return $this->available_quantity;
+        }
+
+        return min($variantQuantities->all());
+    }
+
+    public function decrementStockForSelections(array $variantSelections, int $quantity): void
+    {
+        $matchedStockOptions = 0;
+        $variations = collect($this->variations ?? [])
+            ->map(function (array $variation) use ($variantSelections, $quantity, &$matchedStockOptions): array {
+                $name = trim((string) ($variation['name'] ?? ''));
+                $selectedValue = trim((string) ($variantSelections[$name] ?? ''));
+
+                if ($name === '' || $selectedValue === '') {
+                    return $variation;
+                }
+
+                $variation['options'] = collect($variation['options'] ?? $variation['values'] ?? [])
+                    ->map(function ($option) use ($selectedValue, $quantity, &$matchedStockOptions) {
+                        if (! is_array($option)) {
+                            $option = ['value' => $option];
+                        }
+
+                        $value = trim((string) ($option['value'] ?? $option['name'] ?? ''));
+
+                        if ($value !== $selectedValue || ! array_key_exists('stock_quantity', $option) || $option['stock_quantity'] === null) {
+                            return $option;
+                        }
+
+                        $option['stock_quantity'] = max(0, (int) $option['stock_quantity'] - $quantity);
+                        $matchedStockOptions++;
+
+                        return $option;
+                    })
+                    ->values()
+                    ->all();
+
+                return $variation;
+            })
+            ->values()
+            ->all();
+
+        if ($matchedStockOptions > 0) {
+            $this->forceFill(['variations' => $variations])->save();
+
+            return;
+        }
+
+        $this->decrement('stock_quantity', $quantity);
+    }
+
     public function galleryImageUrls(): array
     {
         return collect([$this->image_path])
@@ -103,9 +219,11 @@ class Product extends Model
                 $options = collect($variation['options'] ?? $variation['values'] ?? [])
                     ->map(function ($option): ?array {
                         if (is_array($option)) {
+                            $optionData = $option;
                             $value = trim((string) ($option['value'] ?? $option['name'] ?? ''));
                             $imagePath = $this->variationOptionImagePath($option);
                         } else {
+                            $optionData = ['value' => $option];
                             $value = trim((string) $option);
                             $imagePath = null;
                         }
@@ -118,6 +236,11 @@ class Product extends Model
                             'value' => $value,
                             'image_path' => $imagePath,
                             'image_url' => $imagePath ? asset('storage/'.$imagePath) : null,
+                            'sku' => trim((string) ($optionData['sku'] ?? '')) ?: null,
+                            'price_cents' => $this->nullableInteger($optionData['price_cents'] ?? null),
+                            'compare_at_price_cents' => $this->nullableInteger($optionData['compare_at_price_cents'] ?? null),
+                            'stock_quantity' => $this->nullableInteger($optionData['stock_quantity'] ?? null),
+                            'reserved_quantity' => $this->nullableInteger($optionData['reserved_quantity'] ?? 0) ?? 0,
                         ];
                     })
                     ->filter()
@@ -153,6 +276,37 @@ class Product extends Model
             ->all();
     }
 
+    private function selectedVariationOptions(array $variantSelections): Collection
+    {
+        return collect($this->variationOptions())
+            ->flatMap(function (array $variation) use ($variantSelections): array {
+                $name = $variation['name'];
+                $selectedValue = trim((string) ($variantSelections[$name] ?? ''));
+
+                if ($selectedValue === '') {
+                    $selectedValue = $variation['values'][0] ?? '';
+                }
+
+                if ($selectedValue === '') {
+                    return [];
+                }
+
+                $option = collect($variation['options'])
+                    ->first(fn (array $option): bool => $option['value'] === $selectedValue);
+
+                return $option ? [$option] : [];
+            });
+    }
+
+    private function nullableInteger(mixed $value): ?int
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        return (int) $value;
+    }
+
     private function variationOptionImagePath(array $option): ?string
     {
         $imagePath = trim((string) ($option['image_path'] ?? ''));
@@ -168,5 +322,20 @@ class Product extends Model
         }
 
         return null;
+    }
+
+    private function syncReusableVariations(): void
+    {
+        if (! Schema::hasTable('product_variations') || ! Schema::hasTable('product_variation_options')) {
+            return;
+        }
+
+        foreach ($this->variationOptions() as $variationData) {
+            $variation = ProductVariation::findOrCreateByName($variationData['name']);
+
+            foreach ($variationData['values'] as $value) {
+                ProductVariationOption::findOrCreateForVariation($variation, $value);
+            }
+        }
     }
 }
