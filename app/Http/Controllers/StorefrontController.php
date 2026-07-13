@@ -69,52 +69,92 @@ class StorefrontController extends Controller
                 ->where('is_featured', true)
                 ->orderBy('name')
                 ->get(),
-            'energyProducts' => Product::query()
-                ->with(['brand', 'category'])
-                ->where('is_active', true)
-                ->whereHas('category', fn (Builder $category) => $category->whereIn('slug', ['energia', 'pre-treino']))
-                ->orderByDesc('stock_quantity')
-                ->take(8)
-                ->get(),
-            'massProducts' => Product::query()
-                ->with(['brand', 'category'])
-                ->where('is_active', true)
-                ->where(function (Builder $builder) {
-                    $builder
-                        ->whereHas('category', fn (Builder $category) => $category->whereIn('slug', ['hipercalorico', 'whey-protein', 'creatina']))
-                        ->orWhere('name', 'like', '%MASS%');
-                })
-                ->orderByDesc('price_cents')
-                ->take(6)
-                ->get(),
-            'wheyFestival' => Product::query()
-                ->with(['brand', 'category'])
-                ->where('is_active', true)
-                ->whereHas('category', fn (Builder $category) => $category->where('slug', 'whey-protein'))
-                ->orderBy('price_cents')
-                ->take(10)
-                ->get(),
-            'creatineHouse' => Product::query()
-                ->with(['brand', 'category'])
-                ->where('is_active', true)
-                ->whereHas('category', fn (Builder $category) => $category->where('slug', 'creatina'))
-                ->orderByDesc('stock_quantity')
-                ->take(5)
-                ->get(),
-            'weightLossProducts' => Product::query()
-                ->with(['brand', 'category'])
-                ->where('is_active', true)
-                ->where(function (Builder $builder) {
-                    $builder
-                        ->where('name', 'like', '%CONTROL%')
-                        ->orWhere('name', 'like', '%CAFEINA%')
-                        ->orWhere('name', 'like', '%COFFEE%')
-                        ->orWhereHas('category', fn (Builder $category) => $category->whereIn('slug', ['termogenico', 'pre-treino']));
-                })
-                ->orderBy('price_cents')
-                ->take(4)
-                ->get(),
+            'energyProducts' => $this->homeSectionProducts(
+                'show_in_energy',
+                'energy_sort_order',
+                8,
+                fn () => Product::query()
+                    ->with(['brand', 'category'])
+                    ->where('is_active', true)
+                    ->whereHas('category', fn (Builder $category) => $category->whereIn('slug', ['energia', 'pre-treino']))
+                    ->orderByDesc('stock_quantity')
+                    ->take(8)
+                    ->get(),
+            ),
+            'massProducts' => $this->homeSectionProducts(
+                'show_in_mass_gain',
+                'mass_gain_sort_order',
+                6,
+                fn () => Product::query()
+                    ->with(['brand', 'category'])
+                    ->where('is_active', true)
+                    ->where(function (Builder $builder) {
+                        $builder
+                            ->whereHas('category', fn (Builder $category) => $category->whereIn('slug', ['hipercalorico', 'whey-protein', 'creatina']))
+                            ->orWhere('name', 'like', '%MASS%');
+                    })
+                    ->orderByDesc('price_cents')
+                    ->take(6)
+                    ->get(),
+            ),
+            'wheyFestival' => $this->homeSectionProducts(
+                'show_in_whey_festival',
+                'whey_festival_sort_order',
+                10,
+                fn () => Product::query()
+                    ->with(['brand', 'category'])
+                    ->where('is_active', true)
+                    ->whereHas('category', fn (Builder $category) => $category->where('slug', 'whey-protein'))
+                    ->orderBy('price_cents')
+                    ->take(10)
+                    ->get(),
+            ),
+            'creatineHouse' => $this->homeSectionProducts(
+                'show_in_creatine_house',
+                'creatine_house_sort_order',
+                5,
+                fn () => Product::query()
+                    ->with(['brand', 'category'])
+                    ->where('is_active', true)
+                    ->whereHas('category', fn (Builder $category) => $category->where('slug', 'creatina'))
+                    ->orderByDesc('stock_quantity')
+                    ->take(5)
+                    ->get(),
+            ),
+            'weightLossProducts' => $this->homeSectionProducts(
+                'show_in_weight_loss',
+                'weight_loss_sort_order',
+                4,
+                fn () => Product::query()
+                    ->with(['brand', 'category'])
+                    ->where('is_active', true)
+                    ->where(function (Builder $builder) {
+                        $builder
+                            ->where('name', 'like', '%CONTROL%')
+                            ->orWhere('name', 'like', '%CAFEINA%')
+                            ->orWhere('name', 'like', '%COFFEE%')
+                            ->orWhereHas('category', fn (Builder $category) => $category->whereIn('slug', ['termogenico', 'pre-treino']));
+                    })
+                    ->orderBy('price_cents')
+                    ->take(4)
+                    ->get(),
+            ),
         ]);
+    }
+
+    private function homeSectionProducts(string $flagColumn, string $sortColumn, int $limit, callable $fallback)
+    {
+        $products = Product::query()
+            ->with(['brand', 'category'])
+            ->where('is_active', true)
+            ->where($flagColumn, true)
+            ->orderByRaw("{$sortColumn} is null")
+            ->orderBy($sortColumn)
+            ->orderByDesc('sales_count')
+            ->take($limit)
+            ->get();
+
+        return $products->isNotEmpty() ? $products : $fallback();
     }
 
     public function product(Product $product): View
@@ -178,23 +218,43 @@ class StorefrontController extends Controller
         $query = trim((string) $request->query('q', ''));
         $categorySlug = $request->query('categoria');
         $brandSlug = $request->query('marca');
+        $homeSection = (string) $request->query('secao', '');
         $sort = (string) $request->query('ordenar', 'relevancia');
+        $homeSectionFilters = [
+            'emagrecer' => 'show_in_weight_loss',
+            'energia' => 'show_in_energy',
+            'massa' => 'show_in_mass_gain',
+            'whey' => 'show_in_whey_festival',
+            'creatina' => 'show_in_creatine_house',
+        ];
+        $searchTerms = collect(preg_split('/\s+/', $query) ?: [])
+            ->map(fn (string $term): string => trim($term))
+            ->filter(fn (string $term): bool => mb_strlen($term) >= 2)
+            ->values();
 
         $productsQuery = Product::query()
             ->with(['brand', 'category'])
             ->where('is_active', true)
-            ->when($query !== '', function (Builder $builder) use ($query) {
-                $builder->where(function (Builder $search) use ($query) {
-                    $search
-                        ->where('name', 'like', "%{$query}%")
-                        ->orWhere('sku', 'like', "%{$query}%")
-                        ->orWhere('short_description', 'like', "%{$query}%")
-                        ->orWhereHas('brand', fn (Builder $brand) => $brand->where('name', 'like', "%{$query}%"))
-                        ->orWhereHas('category', fn (Builder $category) => $category->where('name', 'like', "%{$query}%"));
+            ->when($searchTerms->isNotEmpty(), function (Builder $builder) use ($searchTerms) {
+                $builder->where(function (Builder $search) use ($searchTerms) {
+                    foreach ($searchTerms as $term) {
+                        $search->orWhere(function (Builder $termSearch) use ($term) {
+                            $termSearch
+                                ->where('name', 'like', "%{$term}%")
+                                ->orWhere('sku', 'like', "%{$term}%")
+                                ->orWhere('short_description', 'like', "%{$term}%")
+                                ->orWhereHas('brand', fn (Builder $brand) => $brand->where('name', 'like', "%{$term}%"))
+                                ->orWhereHas('category', fn (Builder $category) => $category->where('name', 'like', "%{$term}%"));
+                        });
+                    }
                 });
             })
             ->when($categorySlug, fn (Builder $builder) => $builder->whereHas('category', fn (Builder $category) => $category->where('slug', $categorySlug)))
-            ->when($brandSlug, fn (Builder $builder) => $builder->whereHas('brand', fn (Builder $brand) => $brand->where('slug', $brandSlug)));
+            ->when($brandSlug, fn (Builder $builder) => $builder->whereHas('brand', fn (Builder $brand) => $brand->where('slug', $brandSlug)))
+            ->when(
+                array_key_exists($homeSection, $homeSectionFilters),
+                fn (Builder $builder) => $builder->where($homeSectionFilters[$homeSection], true),
+            );
 
         match ($sort) {
             'menor-preco' => $productsQuery->orderBy('price_cents'),
@@ -208,6 +268,7 @@ class StorefrontController extends Controller
             'query' => $query,
             'selectedCategory' => $categorySlug,
             'selectedBrand' => $brandSlug,
+            'selectedHomeSection' => $homeSection,
             'selectedSort' => $sort,
             'categories' => Category::query()
                 ->where('is_active', true)

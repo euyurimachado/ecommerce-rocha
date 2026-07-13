@@ -8,6 +8,7 @@ use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Throwable;
@@ -39,7 +40,6 @@ class RochaSportsCatalogSeeder extends Seeder
 
         Product::query()
             ->where('sku', 'like', 'RS-%')
-            ->whereRaw('LENGTH(sku) = 11')
             ->whereNotIn('slug', $slugs)
             ->delete();
 
@@ -121,6 +121,7 @@ class RochaSportsCatalogSeeder extends Seeder
         }
 
         $this->seedHomeBanners();
+        $this->seedHomeProductSections();
     }
 
     private function normalizeProducts(array $products): array
@@ -332,6 +333,110 @@ class RochaSportsCatalogSeeder extends Seeder
                 'starts_at' => $banner->exists ? $banner->starts_at : null,
                 'ends_at' => $banner->exists ? $banner->ends_at : null,
             ])->save();
+        }
+    }
+
+    private function seedHomeProductSections(): void
+    {
+        if (! Schema::hasColumn('products', 'show_in_energy')) {
+            return;
+        }
+
+        $hasHomeCuration = Product::query()
+            ->where(function ($query) {
+                $query
+                    ->where('show_in_weight_loss', true)
+                    ->orWhere('show_in_energy', true)
+                    ->orWhere('show_in_mass_gain', true)
+                    ->orWhere('show_in_whey_festival', true)
+                    ->orWhere('show_in_creatine_house', true);
+            })
+            ->exists();
+
+        if ($hasHomeCuration) {
+            return;
+        }
+
+        $this->curateHomeSection(
+            'show_in_weight_loss',
+            'weight_loss_sort_order',
+            Product::query()
+                ->where('is_active', true)
+                ->where(function ($query) {
+                    $query
+                        ->where('name', 'like', '%CONTROL%')
+                        ->orWhere('name', 'like', '%CAFEINA%')
+                        ->orWhere('name', 'like', '%COFFEE%')
+                        ->orWhereHas('category', fn ($category) => $category->whereIn('slug', ['termogenico', 'pre-treino']));
+                })
+                ->orderBy('price_cents')
+                ->take(4)
+                ->pluck('id')
+                ->all(),
+        );
+
+        $this->curateHomeSection(
+            'show_in_energy',
+            'energy_sort_order',
+            Product::query()
+                ->where('is_active', true)
+                ->whereHas('category', fn ($category) => $category->whereIn('slug', ['energia', 'pre-treino']))
+                ->orderByDesc('stock_quantity')
+                ->take(8)
+                ->pluck('id')
+                ->all(),
+        );
+
+        $this->curateHomeSection(
+            'show_in_mass_gain',
+            'mass_gain_sort_order',
+            Product::query()
+                ->where('is_active', true)
+                ->where(function ($query) {
+                    $query
+                        ->whereHas('category', fn ($category) => $category->whereIn('slug', ['hipercalorico', 'whey-protein', 'creatina']))
+                        ->orWhere('name', 'like', '%MASS%');
+                })
+                ->orderByDesc('price_cents')
+                ->take(6)
+                ->pluck('id')
+                ->all(),
+        );
+
+        $this->curateHomeSection(
+            'show_in_whey_festival',
+            'whey_festival_sort_order',
+            Product::query()
+                ->where('is_active', true)
+                ->whereHas('category', fn ($category) => $category->where('slug', 'whey-protein'))
+                ->orderBy('price_cents')
+                ->take(10)
+                ->pluck('id')
+                ->all(),
+        );
+
+        $this->curateHomeSection(
+            'show_in_creatine_house',
+            'creatine_house_sort_order',
+            Product::query()
+                ->where('is_active', true)
+                ->whereHas('category', fn ($category) => $category->where('slug', 'creatina'))
+                ->orderByDesc('stock_quantity')
+                ->take(5)
+                ->pluck('id')
+                ->all(),
+        );
+    }
+
+    private function curateHomeSection(string $flagColumn, string $sortColumn, array $productIds): void
+    {
+        foreach (array_values($productIds) as $index => $productId) {
+            Product::query()
+                ->whereKey($productId)
+                ->update([
+                    $flagColumn => true,
+                    $sortColumn => ($index + 1) * 10,
+                ]);
         }
     }
 

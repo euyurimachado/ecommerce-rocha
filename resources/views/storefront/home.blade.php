@@ -113,7 +113,7 @@
                         <p class="text-xs font-bold uppercase text-rocha-blue">Objetivo</p>
                         <h2 class="mt-2 text-2xl font-bold">Para emagrecer</h2>
                         <p class="mt-3 text-sm leading-relaxed text-slate-200">Termogênicos, cafeína e fórmulas para foco em treinos mais intensos.</p>
-                        <a href="{{ route('search', ['q' => 'control cafeina termogenico']) }}" class="mt-5 inline-flex rounded-lg bg-white px-4 py-2 text-sm font-bold text-slate-950">Ver seleção</a>
+                        <a href="{{ route('search', ['secao' => 'emagrecer']) }}" class="mt-5 inline-flex rounded-lg bg-white px-4 py-2 text-sm font-bold text-slate-950">Ver seleção</a>
                     </div>
                     <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
                         @foreach ($weightLossProducts as $product)

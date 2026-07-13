@@ -4,15 +4,29 @@
 @section('meta_description', 'Busque suplementos, marcas e categorias na Rocha Sports com entrega rápida em Campos dos Goytacazes.')
 
 @section('content')
+    @php
+        $homeSectionLabels = [
+            'emagrecer' => 'Para emagrecer',
+            'energia' => 'Para ter energia',
+            'massa' => 'Para ganhar massa',
+            'whey' => 'Festival Whey Protein',
+            'creatina' => 'Casa da creatina',
+        ];
+        $selectedHomeSectionLabel = $homeSectionLabels[$selectedHomeSection] ?? null;
+    @endphp
+
     <section class="border-b border-slate-200 bg-white">
         <div class="mx-auto max-w-7xl px-4 py-8 lg:px-6">
             <p class="text-sm font-semibold text-rocha-blue">Busca Rocha Sports</p>
             <h1 class="mt-2 text-2xl font-bold leading-snug text-slate-950 md:text-3xl">
-                {{ $query ? 'Resultados para "'.$query.'"' : 'Buscar suplementos' }}
+                {{ $selectedHomeSectionLabel ? 'Seleção '.$selectedHomeSectionLabel : ($query ? 'Resultados para "'.$query.'"' : 'Buscar suplementos') }}
             </h1>
             <p class="mt-3 max-w-2xl text-slate-600">Encontre produtos por nome, marca, categoria ou objetivo e compre com entrega local ou retirada.</p>
 
             <form action="{{ route('search') }}" method="GET" class="mt-6 grid gap-3 md:grid-cols-[1fr_auto]">
+                @if ($selectedHomeSection)
+                    <input type="hidden" name="secao" value="{{ $selectedHomeSection }}">
+                @endif
                 <label class="sr-only" for="search-page-input">Buscar</label>
                 <input id="search-page-input" name="q" value="{{ $query }}" class="h-12 rounded-lg border border-slate-200 px-4 outline-none focus:border-rocha-blue" type="search" placeholder="Whey, creatina, Max Titanium...">
                 <button class="rounded-lg bg-rocha-blue px-6 py-3 font-bold text-white" type="submit">Buscar</button>
@@ -33,6 +47,9 @@
             <h2 class="font-bold text-slate-950">Filtros</h2>
             <form action="{{ route('search') }}" method="GET" class="mt-4 space-y-4">
                 <input type="hidden" name="q" value="{{ $query }}">
+                @if ($selectedHomeSection)
+                    <input type="hidden" name="secao" value="{{ $selectedHomeSection }}">
+                @endif
 
                 <label class="block">
                     <span class="text-sm font-bold text-slate-700">Categoria</span>
@@ -66,14 +83,14 @@
                 </label>
 
                 <button class="w-full rounded-lg bg-slate-950 px-4 py-3 text-sm font-bold text-white" type="submit">Aplicar filtros</button>
-                <a href="{{ route('search') }}" class="block text-center text-sm font-bold text-slate-600">Limpar</a>
+                <a href="{{ $selectedHomeSection ? route('search', ['secao' => $selectedHomeSection]) : route('search') }}" class="block text-center text-sm font-bold text-slate-600">Limpar</a>
             </form>
         </aside>
 
         <div>
             <div class="mb-5 flex flex-wrap items-center justify-between gap-4">
                 <p class="text-sm font-semibold text-slate-600">{{ $products->total() }} produtos encontrados</p>
-                @if ($query || $selectedCategory || $selectedBrand)
+                @if ($query || $selectedCategory || $selectedBrand || $selectedHomeSection)
                     <a href="{{ route('search') }}" class="text-sm font-bold text-rocha-blue">Nova busca</a>
                 @endif
             </div>
@@ -85,6 +102,9 @@
                 </summary>
                 <form action="{{ route('search') }}" method="GET" class="space-y-4 border-t border-slate-200 p-4">
                     <input type="hidden" name="q" value="{{ $query }}">
+                    @if ($selectedHomeSection)
+                        <input type="hidden" name="secao" value="{{ $selectedHomeSection }}">
+                    @endif
 
                     <label class="block">
                         <span class="text-sm font-bold text-slate-700">Categoria</span>

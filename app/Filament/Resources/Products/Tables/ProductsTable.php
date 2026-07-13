@@ -71,6 +71,26 @@ class ProductsTable
                 IconColumn::make('is_offer')
                     ->label('Oferta')
                     ->boolean(),
+                IconColumn::make('show_in_weight_loss')
+                    ->label('Home: Emagrecer')
+                    ->boolean()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                IconColumn::make('show_in_energy')
+                    ->label('Home: Energia')
+                    ->boolean()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                IconColumn::make('show_in_mass_gain')
+                    ->label('Home: Massa')
+                    ->boolean()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                IconColumn::make('show_in_whey_festival')
+                    ->label('Home: Whey')
+                    ->boolean()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                IconColumn::make('show_in_creatine_house')
+                    ->label('Home: Creatina')
+                    ->boolean()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 IconColumn::make('allows_pickup')
                     ->label('Retirada')
                     ->boolean(),

@@ -212,6 +212,42 @@ class ProductForm
                 Toggle::make('is_offer')
                     ->label('Oferta')
                     ->required(),
+                Section::make('Vitrine da home')
+                    ->description('Escolha manualmente em quais seções este produto aparece. Se uma seção não tiver produtos escolhidos, a home usa a seleção automática.')
+                    ->columns(2)
+                    ->schema([
+                        Toggle::make('show_in_weight_loss')
+                            ->label('Para emagrecer'),
+                        TextInput::make('weight_loss_sort_order')
+                            ->label('Ordem em Para emagrecer')
+                            ->numeric()
+                            ->minValue(0),
+                        Toggle::make('show_in_energy')
+                            ->label('Para ter energia'),
+                        TextInput::make('energy_sort_order')
+                            ->label('Ordem em Para ter energia')
+                            ->numeric()
+                            ->minValue(0),
+                        Toggle::make('show_in_mass_gain')
+                            ->label('Para ganhar massa'),
+                        TextInput::make('mass_gain_sort_order')
+                            ->label('Ordem em Para ganhar massa')
+                            ->numeric()
+                            ->minValue(0),
+                        Toggle::make('show_in_whey_festival')
+                            ->label('Festival Whey Protein'),
+                        TextInput::make('whey_festival_sort_order')
+                            ->label('Ordem no Festival Whey Protein')
+                            ->numeric()
+                            ->minValue(0),
+                        Toggle::make('show_in_creatine_house')
+                            ->label('Casa da creatina'),
+                        TextInput::make('creatine_house_sort_order')
+                            ->label('Ordem na Casa da creatina')
+                            ->numeric()
+                            ->minValue(0),
+                    ])
+                    ->columnSpanFull(),
                 Toggle::make('allows_pickup')
                     ->label('Permite retirada')
                     ->required(),
