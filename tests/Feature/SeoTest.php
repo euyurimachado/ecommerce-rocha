@@ -26,7 +26,6 @@ class SeoTest extends TestCase
             'name' => 'Creatina Monohidratada 300g',
             'slug' => 'creatina-monohidratada-300g',
             'sku' => 'SEO-001',
-            'stock_quantity' => 10,
             'price_cents' => 8990,
             'is_active' => true,
         ]);
@@ -36,7 +35,6 @@ class SeoTest extends TestCase
             'name' => 'Produto Inativo',
             'slug' => 'produto-inativo',
             'sku' => 'SEO-002',
-            'stock_quantity' => 10,
             'price_cents' => 8990,
             'is_active' => false,
         ]);

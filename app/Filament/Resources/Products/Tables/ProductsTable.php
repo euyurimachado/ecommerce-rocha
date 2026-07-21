@@ -34,21 +34,13 @@ class ProductsTable
                 TextColumn::make('weight')
                     ->label('Peso/volume')
                     ->searchable(),
-                TextColumn::make('stock_quantity')
-                    ->label('Estoque')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('reserved_quantity')
-                    ->label('Reservado')
-                    ->numeric()
-                    ->sortable(),
                 TextColumn::make('price_cents')
                     ->label('Preço')
-                    ->numeric()
+                    ->money('BRL', divideBy: 100)
                     ->sortable(),
                 TextColumn::make('compare_at_price_cents')
                     ->label('Preço anterior')
-                    ->numeric()
+                    ->money('BRL', divideBy: 100)
                     ->sortable(),
                 TextColumn::make('rating')
                     ->label('Avaliação')

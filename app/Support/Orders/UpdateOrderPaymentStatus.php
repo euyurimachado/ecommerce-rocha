@@ -13,7 +13,7 @@ class UpdateOrderPaymentStatus
             throw new InvalidArgumentException('Status de pagamento inválido.');
         }
 
-        $shouldMarkInventoryAsSold = $status === 'payment_approved'
+        $shouldRecordSale = $status === 'payment_approved'
             && $order->payment_method === 'mercado_pago'
             && ! $order->payment_approved_at;
 
@@ -24,26 +24,20 @@ class UpdateOrderPaymentStatus
                 : ($status === 'payment_pending' ? null : $order->payment_approved_at),
         ])->save();
 
-        if ($shouldMarkInventoryAsSold) {
-            $this->markInventoryAsSold($order);
+        if ($shouldRecordSale) {
+            $this->recordSale($order);
         }
 
         return $order->refresh();
     }
 
-    private function markInventoryAsSold(Order $order): void
+    private function recordSale(Order $order): void
     {
         $order->loadMissing('items.product');
 
         foreach ($order->items as $item) {
             if (! $item->product) {
                 continue;
-            }
-
-            $quantityToDecrement = min($item->quantity, $item->product->stock_quantity);
-
-            if ($quantityToDecrement > 0) {
-                $item->product->decrement('stock_quantity', $quantityToDecrement);
             }
 
             $item->product->increment('sales_count', $item->quantity);

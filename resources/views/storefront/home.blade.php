@@ -178,7 +178,7 @@
                     <div>
                         <p class="text-xs font-bold uppercase text-rocha-blue">Festival</p>
                         <h2 class="text-2xl font-bold text-slate-950">Whey protein</h2>
-                        <p class="mt-1 text-sm text-slate-600">Compare marcas, preços e sabores com estoque real.</p>
+                        <p class="mt-1 text-sm text-slate-600">Compare marcas, preços e sabores disponíveis.</p>
                     </div>
                     <a href="{{ route('search', ['categoria' => 'whey-protein']) }}" class="inline-flex items-center gap-1 text-sm font-bold text-rocha-blue">Ver festival <x-rocha-icon name="chevron-right" class="size-4" /></a>
                 </div>

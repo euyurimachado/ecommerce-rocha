@@ -37,7 +37,6 @@ class ProductResource extends JsonResource
             'rating' => (float) $this->rating,
             'reviews_count' => $this->reviews_count,
             'sales_count' => $this->sales_count,
-            'available_quantity' => $this->available_quantity,
             'badges' => [
                 'featured' => $this->is_featured,
                 'offer' => $this->is_offer,

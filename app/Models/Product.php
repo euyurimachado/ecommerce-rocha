@@ -29,8 +29,6 @@ class Product extends Model
         'allergen_info',
         'manufacturer_url',
         'image_source_url',
-        'stock_quantity',
-        'reserved_quantity',
         'price_cents',
         'compare_at_price_cents',
         'rating',
@@ -107,11 +105,6 @@ class Product extends Model
         return 'R$ '.number_format($this->compare_at_price_cents / 100, 2, ',', '.');
     }
 
-    public function getAvailableQuantityAttribute(): int
-    {
-        return max(0, $this->stock_quantity - $this->reserved_quantity);
-    }
-
     public function formattedPriceForSelections(array $variantSelections = []): string
     {
         return 'R$ '.number_format($this->priceCentsForSelections($variantSelections) / 100, 2, ',', '.');
@@ -152,65 +145,6 @@ class Product extends Model
             ->pluck('sku')
             ->map(fn ($sku): string => trim((string) $sku))
             ->first(fn (string $sku): bool => $sku !== '') ?? $this->sku;
-    }
-
-    public function availableQuantityForSelections(array $variantSelections = []): int
-    {
-        $variantQuantities = $this->selectedVariationOptions($variantSelections)
-            ->filter(fn (array $option): bool => $option['stock_quantity'] !== null)
-            ->map(fn (array $option): int => max(0, (int) $option['stock_quantity'] - (int) ($option['reserved_quantity'] ?? 0)));
-
-        if ($variantQuantities->isEmpty()) {
-            return $this->available_quantity;
-        }
-
-        return min($variantQuantities->all());
-    }
-
-    public function decrementStockForSelections(array $variantSelections, int $quantity): void
-    {
-        $matchedStockOptions = 0;
-        $variations = collect($this->variations ?? [])
-            ->map(function (array $variation) use ($variantSelections, $quantity, &$matchedStockOptions): array {
-                $name = trim((string) ($variation['name'] ?? ''));
-                $selectedValue = trim((string) ($variantSelections[$name] ?? ''));
-
-                if ($name === '' || $selectedValue === '') {
-                    return $variation;
-                }
-
-                $variation['options'] = collect($variation['options'] ?? $variation['values'] ?? [])
-                    ->map(function ($option) use ($selectedValue, $quantity, &$matchedStockOptions) {
-                        if (! is_array($option)) {
-                            $option = ['value' => $option];
-                        }
-
-                        $value = trim((string) ($option['value'] ?? $option['name'] ?? ''));
-
-                        if ($value !== $selectedValue || ! array_key_exists('stock_quantity', $option) || $option['stock_quantity'] === null) {
-                            return $option;
-                        }
-
-                        $option['stock_quantity'] = max(0, (int) $option['stock_quantity'] - $quantity);
-                        $matchedStockOptions++;
-
-                        return $option;
-                    })
-                    ->values()
-                    ->all();
-
-                return $variation;
-            })
-            ->values()
-            ->all();
-
-        if ($matchedStockOptions > 0) {
-            $this->forceFill(['variations' => $variations])->save();
-
-            return;
-        }
-
-        $this->decrement('stock_quantity', $quantity);
     }
 
     public function galleryImageUrls(): array
@@ -254,8 +188,6 @@ class Product extends Model
                             'sku' => trim((string) ($optionData['sku'] ?? '')) ?: null,
                             'price_cents' => $this->nullableInteger($optionData['price_cents'] ?? null),
                             'compare_at_price_cents' => $this->nullableInteger($optionData['compare_at_price_cents'] ?? null),
-                            'stock_quantity' => $this->nullableInteger($optionData['stock_quantity'] ?? null),
-                            'reserved_quantity' => $this->nullableInteger($optionData['reserved_quantity'] ?? 0) ?? 0,
                         ];
                     })
                     ->filter()

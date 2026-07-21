@@ -280,9 +280,6 @@ const initializeProductPage = () => {
     const variationButtons = document.querySelectorAll('[data-product-variation-option]');
     const productPrice = document.querySelector('[data-product-price]');
     const productComparePrice = document.querySelector('[data-product-compare-price]');
-    const productAvailability = document.querySelector('[data-product-availability]');
-    const productStock = document.querySelector('[data-product-stock]');
-    const addToCartButtons = document.querySelectorAll('[data-add-to-cart-button]');
     window.rochaProductVariantSelections = {};
 
     const selectedVariationButtons = () => Array.from(variationButtons).filter((option) => option.getAttribute('aria-pressed') === 'true');
@@ -291,8 +288,6 @@ const initializeProductPage = () => {
         const activeButtons = selectedVariationButtons();
         const priceSource = activeButtons.find((button) => button.dataset.variationHasPrice === 'true');
         const comparePriceSource = activeButtons.find((button) => button.dataset.variationHasComparePrice === 'true');
-        const stockSource = activeButtons.find((button) => button.dataset.variationControlsStock === 'true');
-        const available = Number.parseInt((stockSource?.dataset.variationAvailable ?? variationsContainer?.dataset.baseAvailable ?? '0'), 10);
 
         if (productPrice) {
             productPrice.textContent = priceSource?.dataset.variationPrice || variationsContainer?.dataset.basePrice || productPrice.textContent;
@@ -305,21 +300,6 @@ const initializeProductPage = () => {
             productComparePrice.classList.toggle('hidden', !comparePrice);
         }
 
-        if (productAvailability) {
-            const isAvailable = available > 0;
-
-            productAvailability.textContent = isAvailable ? 'Disponível para entrega local ou retirada' : 'Produto indisponível no momento';
-            productAvailability.classList.toggle('text-emerald-700', isAvailable);
-            productAvailability.classList.toggle('text-rose-700', !isAvailable);
-        }
-
-        if (productStock && !Number.isNaN(available)) {
-            productStock.textContent = `${available} un.`;
-        }
-
-        addToCartButtons.forEach((button) => {
-            button.disabled = !Number.isNaN(available) && available <= 0;
-        });
     };
 
     const selectVariation = (button) => {

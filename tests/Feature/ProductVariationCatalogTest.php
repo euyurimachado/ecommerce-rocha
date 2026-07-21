@@ -58,8 +58,6 @@ class ProductVariationCatalogTest extends TestCase
                     'image_path' => null,
                 ]],
             ]],
-            'stock_quantity' => 10,
-            'reserved_quantity' => 0,
             'price_cents' => 12990,
             'rating' => 0,
             'reviews_count' => 0,

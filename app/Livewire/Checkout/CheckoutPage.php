@@ -65,7 +65,7 @@ class CheckoutPage extends Component
                 $cart,
                 $validated,
                 clearCart: ! $isMercadoPago,
-                decrementStock: ! $isMercadoPago,
+                recordSale: ! $isMercadoPago,
             );
 
             if ($order->payment_method === 'mercado_pago') {

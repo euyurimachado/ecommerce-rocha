@@ -35,7 +35,7 @@ class ProductPageTest extends TestCase
                     'image_path' => 'products/gallery/whey-baunilha.jpg',
                 ]],
             ]],
-            'stock_quantity' => 10,
+            'description' => '<p>Primeiro parágrafo.</p><p><strong>Segundo parágrafo em negrito.</strong></p>',
             'price_cents' => 12990,
             'rating' => 4.8,
             'is_active' => true,
@@ -48,7 +48,10 @@ class ProductPageTest extends TestCase
         $this->get(route('products.show', $product))
             ->assertOk()
             ->assertSee('data-variation-value="Baunilha"', false)
-            ->assertSee('data-variation-image="'.asset('storage/products/gallery/whey-baunilha.jpg').'"', false);
+            ->assertSee('data-variation-image="'.asset('storage/products/gallery/whey-baunilha.jpg').'"', false)
+            ->assertSee('<strong>Segundo parágrafo em negrito.</strong>', false)
+            ->assertDontSee('PAGE-001')
+            ->assertDontSee('Estoque');
     }
 
     public function test_product_gallery_includes_image_uploaded_directly_to_variation_option(): void
@@ -74,7 +77,6 @@ class ProductPageTest extends TestCase
                     'uploaded_image_path' => 'products/gallery/whey-morango.jpg',
                 ]],
             ]],
-            'stock_quantity' => 10,
             'price_cents' => 14990,
             'rating' => 4.8,
             'is_active' => true,

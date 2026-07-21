@@ -82,7 +82,6 @@ class FavoritesTest extends TestCase
             'name' => 'Creatina Monohidratada 300g',
             'slug' => 'creatina-monohidratada-300g',
             'sku' => 'FAV-001',
-            'stock_quantity' => 10,
             'price_cents' => 8990,
             'rating' => 4.9,
             'is_active' => true,

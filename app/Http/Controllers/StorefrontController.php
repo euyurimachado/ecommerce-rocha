@@ -46,7 +46,7 @@ class StorefrontController extends Controller
                 ->with(['products' => fn ($query) => $query
                     ->where('is_active', true)
                     ->whereNotNull('image_path')
-                    ->orderByDesc('stock_quantity')])
+                    ->orderByDesc('sales_count')])
                 ->where('is_active', true)
                 ->where('is_featured', true)
                 ->orderBy('sort_order')
@@ -77,7 +77,7 @@ class StorefrontController extends Controller
                     ->with(['brand', 'category'])
                     ->where('is_active', true)
                     ->whereHas('category', fn (Builder $category) => $category->whereIn('slug', ['energia', 'pre-treino']))
-                    ->orderByDesc('stock_quantity')
+                    ->orderByDesc('sales_count')
                     ->take(8)
                     ->get(),
             ),
@@ -117,7 +117,7 @@ class StorefrontController extends Controller
                     ->with(['brand', 'category'])
                     ->where('is_active', true)
                     ->whereHas('category', fn (Builder $category) => $category->where('slug', 'creatina'))
-                    ->orderByDesc('stock_quantity')
+                    ->orderByDesc('sales_count')
                     ->take(5)
                     ->get(),
             ),

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Orders\Schemas;
 
+use App\Filament\Forms\CurrencyInput;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -74,24 +75,20 @@ class OrderForm
                         'payment_on_delivery_card' => 'Cartão na entrega',
                     ])
                     ->required(),
-                TextInput::make('subtotal_cents')
+                CurrencyInput::make('subtotal_cents')
                     ->label('Subtotal')
-                    ->required()
-                    ->numeric(),
-                TextInput::make('shipping_cents')
+                    ->required(),
+                CurrencyInput::make('shipping_cents')
                     ->label('Entrega')
                     ->required()
-                    ->numeric()
                     ->default(0),
-                TextInput::make('discount_cents')
+                CurrencyInput::make('discount_cents')
                     ->label('Desconto')
                     ->required()
-                    ->numeric()
                     ->default(0),
-                TextInput::make('total_cents')
+                CurrencyInput::make('total_cents')
                     ->label('Total')
-                    ->required()
-                    ->numeric(),
+                    ->required(),
                 Textarea::make('notes')
                     ->label('Observações')
                     ->columnSpanFull(),

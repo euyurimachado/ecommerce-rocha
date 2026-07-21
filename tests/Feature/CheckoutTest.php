@@ -48,14 +48,13 @@ class CheckoutTest extends TestCase
         $this->assertSame(18970, $order->total_cents);
         $this->assertCount(1, $order->items);
         $this->assertSame(2, $order->items->first()->quantity);
-        $this->assertSame(8, $product->refresh()->stock_quantity);
+        $this->assertSame(2, $product->refresh()->sales_count);
         $this->assertSame(0, app(CartManager::class)->count());
     }
 
-    public function test_checkout_uses_variant_price_sku_and_decrements_variant_stock(): void
+    public function test_checkout_uses_variant_price_and_sku_without_inventory_control(): void
     {
         $product = $this->createProduct([
-            'stock_quantity' => 10,
             'price_cents' => 8990,
             'variations' => [
                 ['name' => 'Sabor', 'options' => [
@@ -63,15 +62,11 @@ class CheckoutTest extends TestCase
                         'value' => 'Chocolate',
                         'sku' => 'WHEY-CHOC',
                         'price_cents' => 12990,
-                        'stock_quantity' => 3,
-                        'reserved_quantity' => 0,
                     ],
                     [
                         'value' => 'Baunilha',
                         'sku' => 'WHEY-BAU',
                         'price_cents' => 11990,
-                        'stock_quantity' => 4,
-                        'reserved_quantity' => 0,
                     ],
                 ]],
             ],
@@ -95,8 +90,7 @@ class CheckoutTest extends TestCase
         $this->assertSame(25980, $order->subtotal_cents);
         $this->assertSame('WHEY-CHOC', $order->items->first()->product_sku);
         $this->assertSame(12990, $order->items->first()->unit_price_cents);
-        $this->assertSame(10, $product->stock_quantity);
-        $this->assertSame(1, $product->variationOptions()[0]['options'][0]['stock_quantity']);
+        $this->assertSame(2, $product->sales_count);
     }
 
     public function test_checkout_redirects_to_mercado_pago_when_selected(): void
@@ -130,7 +124,7 @@ class CheckoutTest extends TestCase
         $this->assertSame('mercado_pago', $order->payment_method);
         $this->assertSame('pref-test-123', $order->mercado_pago_preference_id);
         $this->assertSame(0, app(CartManager::class)->count());
-        $this->assertSame(10, $product->refresh()->stock_quantity);
+        $this->assertSame(0, $product->refresh()->sales_count);
 
         Http::assertSent(fn ($request) => $request->url() === 'https://api.mercadopago.com/checkout/preferences'
             && $request['external_reference'] === $order->code
@@ -165,7 +159,7 @@ class CheckoutTest extends TestCase
 
         $this->assertSame('payment_on_delivery_card', $order->payment_method);
         $this->assertSame('Cartão na entrega', $order->payment_method_label);
-        $this->assertSame(9, $product->refresh()->stock_quantity);
+        $this->assertSame(1, $product->refresh()->sales_count);
         $this->assertSame(0, app(CartManager::class)->count());
     }
 
@@ -193,7 +187,7 @@ class CheckoutTest extends TestCase
             ->assertSet('checkoutError', 'Não foi possível finalizar o pedido. Revise os dados e tente novamente.');
 
         $this->assertSame(1, app(CartManager::class)->count());
-        $this->assertSame(10, $product->refresh()->stock_quantity);
+        $this->assertSame(0, $product->refresh()->sales_count);
         $this->assertDatabaseCount('orders', 0);
     }
 
@@ -359,7 +353,6 @@ class CheckoutTest extends TestCase
             'name' => 'Creatina Monohidratada 300g',
             'slug' => 'creatina-monohidratada-300g',
             'sku' => 'TEST-CHECKOUT-001',
-            'stock_quantity' => 10,
             'price_cents' => 8990,
             'rating' => 4.9,
             'is_active' => true,

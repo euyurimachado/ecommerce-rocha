@@ -73,8 +73,6 @@ class RochaSportsCatalogSeeder extends Seeder
                                 'sku' => $this->sku($data['brand'], $data['category'], $data['name'], $option['value']),
                                 'price_cents' => $option['price_cents'],
                                 'compare_at_price_cents' => $option['compare_at_price_cents'],
-                                'stock_quantity' => $option['stock_quantity'],
-                                'reserved_quantity' => 0,
                                 'image_path' => $optionImagePath ?: $mainImagePath,
                             ];
                         })
@@ -102,8 +100,6 @@ class RochaSportsCatalogSeeder extends Seeder
                     'allergen_info' => $content['allergen_info'],
                     'manufacturer_url' => $manufacturerUrl,
                     'image_source_url' => null,
-                    'stock_quantity' => (int) $data['stock_quantity'],
-                    'reserved_quantity' => 0,
                     'price_cents' => (int) $data['price_cents'],
                     'compare_at_price_cents' => $data['compare_at_price_cents'],
                     'rating' => 0,
@@ -136,7 +132,6 @@ class RochaSportsCatalogSeeder extends Seeder
                 ...$product,
                 'name' => $name,
                 'options' => [],
-                'stock_quantity' => 0,
             ];
 
             foreach ($product['options'] as $option) {
@@ -146,10 +141,8 @@ class RochaSportsCatalogSeeder extends Seeder
                 $groups[$key]['options'][$optionKey] ??= [
                     ...$option,
                     'value' => $value,
-                    'stock_quantity' => 0,
                 ];
 
-                $groups[$key]['options'][$optionKey]['stock_quantity'] += (int) $option['stock_quantity'];
                 $groups[$key]['options'][$optionKey]['price_cents'] = min(
                     (int) $groups[$key]['options'][$optionKey]['price_cents'],
                     (int) $option['price_cents'],
@@ -166,7 +159,6 @@ class RochaSportsCatalogSeeder extends Seeder
                     ...$product,
                     'price_cents' => $baseOption['price_cents'],
                     'compare_at_price_cents' => $baseOption['compare_at_price_cents'],
-                    'stock_quantity' => $options->sum('stock_quantity'),
                     'options' => $options->all(),
                 ];
             })
@@ -381,7 +373,7 @@ class RochaSportsCatalogSeeder extends Seeder
             Product::query()
                 ->where('is_active', true)
                 ->whereHas('category', fn ($category) => $category->whereIn('slug', ['energia', 'pre-treino']))
-                ->orderByDesc('stock_quantity')
+                ->orderByDesc('sales_count')
                 ->take(8)
                 ->pluck('id')
                 ->all(),
@@ -421,7 +413,7 @@ class RochaSportsCatalogSeeder extends Seeder
             Product::query()
                 ->where('is_active', true)
                 ->whereHas('category', fn ($category) => $category->where('slug', 'creatina'))
-                ->orderByDesc('stock_quantity')
+                ->orderByDesc('sales_count')
                 ->take(5)
                 ->pluck('id')
                 ->all(),
@@ -940,14 +932,14 @@ class RochaSportsCatalogSeeder extends Seeder
     private function benefitsFor(string $family): array
     {
         return match ($family) {
-            'creatine' => ['Força e potência', 'Uso diário simples', 'Alta aderência à rotina', 'Estoque controlado'],
-            'protein' => ['Complemento proteico', 'Recuperação muscular', 'Preparo rápido', 'Sabores com estoque próprio'],
+            'creatine' => ['Força e potência', 'Uso diário simples', 'Alta aderência à rotina', 'Retirada disponível'],
+            'protein' => ['Complemento proteico', 'Recuperação muscular', 'Preparo rápido', 'Variedade de sabores'],
             'preworkout' => ['Energia antes do treino', 'Foco e disposição', 'Rotina de alta intensidade', 'Variações controladas'],
             'energy' => ['Reposição prática', 'Uso em treino ou prova', 'Formato fácil de carregar', 'Sabores disponíveis'],
-            'wellness' => ['Suporte diário', 'Compostos específicos', 'Praticidade na rotina', 'Cadastro por estoque real'],
+            'wellness' => ['Suporte diário', 'Compostos específicos', 'Praticidade na rotina', 'Entrega local'],
             'collagen' => ['Suplementação de colágeno', 'Uso diário', 'Fácil preparo', 'Sabores disponíveis'],
             'mass' => ['Maior aporte calórico', 'Preparo em shake', 'Apoio à dieta de ganho', 'Sabores disponíveis'],
-            default => ['Praticidade', 'Produto cadastrado por estoque', 'Retirada na loja', 'Entrega local'],
+            default => ['Praticidade', 'Compra rápida', 'Retirada na loja', 'Entrega local'],
         };
     }
 

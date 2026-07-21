@@ -91,24 +91,19 @@ class CartTest extends TestCase
         ], $items->pluck('variant_summary')->all());
     }
 
-    public function test_variant_option_price_and_stock_are_used_in_cart(): void
+    public function test_variant_option_price_is_used_without_limiting_quantity(): void
     {
         $product = $this->createProduct([
             'price_cents' => 8990,
-            'stock_quantity' => 10,
             'variations' => [
                 ['name' => 'Sabor', 'options' => [
                     [
                         'value' => 'Chocolate',
                         'price_cents' => 9990,
-                        'stock_quantity' => 2,
-                        'reserved_quantity' => 0,
                     ],
                     [
                         'value' => 'Baunilha',
                         'price_cents' => 10990,
-                        'stock_quantity' => 5,
-                        'reserved_quantity' => 1,
                     ],
                 ]],
             ],
@@ -118,10 +113,10 @@ class CartTest extends TestCase
 
         $item = app(CartManager::class)->items()->first();
 
-        $this->assertSame(2, $item['quantity']);
+        $this->assertSame(5, $item['quantity']);
         $this->assertSame(9990, $item['unit_price_cents']);
-        $this->assertSame(19980, $item['line_total_cents']);
-        $this->assertSame(19980, app(CartManager::class)->subtotalCents());
+        $this->assertSame(49950, $item['line_total_cents']);
+        $this->assertSame(49950, app(CartManager::class)->subtotalCents());
     }
 
     public function test_coupon_can_be_applied_to_cart(): void
@@ -175,7 +170,6 @@ class CartTest extends TestCase
             'name' => 'Creatina Monohidratada 300g',
             'slug' => 'creatina-monohidratada-300g',
             'sku' => 'TEST-001',
-            'stock_quantity' => 10,
             'price_cents' => 8990,
             'rating' => 4.9,
             'is_active' => true,

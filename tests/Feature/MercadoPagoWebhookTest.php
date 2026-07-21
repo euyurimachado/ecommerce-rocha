@@ -67,7 +67,7 @@ class MercadoPagoWebhookTest extends TestCase
         $this->assertSame('approved', $order->mercado_pago_status);
         $this->assertSame('accredited', $order->mercado_pago_status_detail);
         $this->assertNotNull($order->payment_approved_at);
-        $this->assertSame(9, $product->refresh()->stock_quantity);
+        $product->refresh();
         $this->assertSame(1, $product->sales_count);
     }
 
@@ -86,7 +86,6 @@ class MercadoPagoWebhookTest extends TestCase
             'name' => 'Creatina Monohidratada 300g',
             'slug' => 'creatina-monohidratada-300g',
             'sku' => 'TEST-MP-001',
-            'stock_quantity' => 10,
             'price_cents' => 8990,
             'rating' => 4.9,
             'is_active' => true,

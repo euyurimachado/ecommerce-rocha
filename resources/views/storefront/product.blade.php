@@ -14,8 +14,7 @@
             "offers": {
                 "@@type": "Offer",
                 "priceCurrency": "BRL",
-                "price": "{{ number_format($product->price_cents / 100, 2, '.', '') }}",
-                "availability": "https://schema.org/{{ $product->available_quantity > 0 ? 'InStock' : 'OutOfStock' }}"
+                "price": "{{ number_format($product->price_cents / 100, 2, '.', '') }}"
             }
         }
     </script>
@@ -57,7 +56,6 @@
             ->all();
         $displayPriceCents = $product->priceCentsForSelections($defaultVariantSelections);
         $displayCompareAtPriceCents = $product->compareAtPriceCentsForSelections($defaultVariantSelections);
-        $displayAvailableQuantity = $product->availableQuantityForSelections($defaultVariantSelections);
         $hasDiscount = $displayCompareAtPriceCents && $displayCompareAtPriceCents > $displayPriceCents;
         $discountPercentage = $hasDiscount ? round((1 - ($displayPriceCents / $displayCompareAtPriceCents)) * 100) : null;
     @endphp
@@ -135,8 +133,8 @@
                             {{ $hasDiscount ? $product->formattedCompareAtPriceForSelections($defaultVariantSelections) : '' }}
                         </p>
                         <p class="text-2xl font-bold text-slate-950 md:text-3xl" data-product-price>{{ $product->formattedPriceForSelections($defaultVariantSelections) }}</p>
-                        <p class="mt-2 text-sm font-semibold {{ $displayAvailableQuantity > 0 ? 'text-emerald-700' : 'text-rose-700' }}" data-product-availability>
-                            {{ $displayAvailableQuantity > 0 ? 'Disponível para entrega local ou retirada' : 'Produto indisponível no momento' }}
+                        <p class="mt-2 text-sm font-semibold text-emerald-700">
+                            Disponível para entrega local ou retirada
                         </p>
                     </div>
 
@@ -146,7 +144,6 @@
                             data-product-variations
                             data-base-price="{{ $product->formatted_price }}"
                             data-base-compare-price="{{ $product->formatted_compare_at_price }}"
-                            data-base-available="{{ $product->available_quantity }}"
                         >
                             @foreach ($variationGroups as $variation)
                                 <div>
@@ -161,10 +158,8 @@
                                                 data-variation-value="{{ $option['value'] }}"
                                                 data-variation-price="{{ $product->formattedPriceForSelections([$variation['name'] => $option['value']]) }}"
                                                 data-variation-compare-price="{{ $product->formattedCompareAtPriceForSelections([$variation['name'] => $option['value']]) }}"
-                                                data-variation-available="{{ $product->availableQuantityForSelections([$variation['name'] => $option['value']]) }}"
                                                 data-variation-has-price="{{ $option['price_cents'] !== null ? 'true' : 'false' }}"
                                                 data-variation-has-compare-price="{{ $option['compare_at_price_cents'] !== null ? 'true' : 'false' }}"
-                                                data-variation-controls-stock="{{ $option['stock_quantity'] !== null ? 'true' : 'false' }}"
                                                 @if ($option['image_url'])
                                                     data-variation-image="{{ $option['image_url'] }}"
                                                 @endif
@@ -201,7 +196,19 @@
         <div class="grid gap-6 md:grid-cols-[minmax(0,1fr)_24rem]">
             <article class="rounded-lg border border-slate-200 bg-white p-5">
                 <h2 class="text-lg font-bold text-slate-950 md:text-xl">Descrição</h2>
-                <p class="mt-3 leading-relaxed text-slate-600">{{ $product->description ?: $product->short_description }}</p>
+                @php
+                    $description = $product->description ?: $product->short_description;
+                    $descriptionHasHtml = $description && $description !== strip_tags($description);
+                @endphp
+                <div class="mt-3 text-slate-600 [&_a]:font-semibold [&_a]:text-rocha-blue [&_blockquote]:border-l-4 [&_blockquote]:border-rocha-blue/30 [&_blockquote]:pl-4 [&_h2]:mt-6 [&_h2]:text-xl [&_h2]:font-bold [&_h3]:mt-5 [&_h3]:text-lg [&_h3]:font-bold [&_img]:my-5 [&_img]:h-auto [&_img]:max-w-full [&_img]:rounded-lg [&_li]:ml-5 [&_ol]:list-decimal [&_p]:my-3 [&_p]:leading-relaxed [&_strong]:font-bold [&_ul]:list-disc">
+                    @if ($descriptionHasHtml)
+                        {!! \Filament\Forms\Components\RichEditor\RichContentRenderer::make($description)
+                            ->fileAttachmentsDisk('public')
+                            ->fileAttachmentsVisibility('public') !!}
+                    @else
+                        <p class="whitespace-pre-line">{{ $description }}</p>
+                    @endif
+                </div>
 
                 @if ($product->benefits)
                     <h3 class="mt-7 font-bold text-slate-950">Visão rápida</h3>
@@ -228,16 +235,6 @@
                     <div class="flex items-center justify-between gap-3 border-b border-slate-100 pb-3">
                         <dt class="text-slate-500">Categoria</dt>
                         <dd class="font-bold text-slate-900">{{ $product->category->name }}</dd>
-                    </div>
-                    @if ($product->sku)
-                        <div class="flex items-center justify-between gap-3 border-b border-slate-100 pb-3">
-                            <dt class="text-slate-500">SKU</dt>
-                            <dd class="font-bold text-slate-900">{{ $product->sku }}</dd>
-                        </div>
-                    @endif
-                    <div class="flex items-center justify-between gap-3">
-                        <dt class="text-slate-500">Estoque</dt>
-                        <dd class="font-bold text-slate-900" data-product-stock>{{ $displayAvailableQuantity }} un.</dd>
                     </div>
                 </dl>
 

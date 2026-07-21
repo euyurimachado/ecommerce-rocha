@@ -16,7 +16,7 @@ class CreateOrderFromCart
         CartManager $cart,
         array $data,
         bool $clearCart = true,
-        bool $decrementStock = true,
+        bool $recordSale = true,
     ): Order {
         $items = $cart->items();
 
@@ -24,7 +24,7 @@ class CreateOrderFromCart
             throw new RuntimeException('Não é possível finalizar um pedido com carrinho vazio.');
         }
 
-        return DB::transaction(function () use ($cart, $data, $items, $clearCart, $decrementStock) {
+        return DB::transaction(function () use ($cart, $data, $items, $clearCart, $recordSale) {
             $coupon = $cart->coupon();
             $shippingCents = $this->shipping->calculate($data['fulfillment_method'], $cart->subtotalCents());
 
@@ -55,12 +55,6 @@ class CreateOrderFromCart
             foreach ($items as $item) {
                 $product = $item['product'];
                 $quantity = $item['quantity'];
-                $variantSelections = $item['variant_selections'] ?? [];
-
-                if ($product->availableQuantityForSelections($variantSelections) < $quantity) {
-                    throw new RuntimeException("Estoque insuficiente para {$product->name}.");
-                }
-
                 $order->items()->create([
                     'product_id' => $product->id,
                     'product_name' => $product->name,
@@ -73,8 +67,7 @@ class CreateOrderFromCart
                     'line_total_cents' => $item['line_total_cents'],
                 ]);
 
-                if ($decrementStock) {
-                    $product->decrementStockForSelections($variantSelections, $quantity);
+                if ($recordSale) {
                     $product->increment('sales_count', $quantity);
                 }
             }

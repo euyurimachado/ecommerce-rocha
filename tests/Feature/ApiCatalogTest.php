@@ -81,7 +81,8 @@ class ApiCatalogTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.name', 'Whey Protein 900g')
             ->assertJsonPath('data.category.name', 'Whey Protein')
-            ->assertJsonPath('data.brand.name', 'Max Titanium');
+            ->assertJsonPath('data.brand.name', 'Max Titanium')
+            ->assertJsonMissingPath('data.available_quantity');
 
         $this->getJson('/api/v1/products/'.$inactiveProduct->slug)
             ->assertNotFound();
@@ -124,7 +125,6 @@ class ApiCatalogTest extends TestCase
             'benefits' => ['Produto original', 'Entrega rápida'],
             'usage_instructions' => 'Consulte o rótulo.',
             'ingredients' => 'Confira a tabela nutricional.',
-            'stock_quantity' => 10,
             'price_cents' => 8990,
             'rating' => 4.8,
             'sales_count' => 10,

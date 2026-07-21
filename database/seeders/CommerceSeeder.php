@@ -83,8 +83,6 @@ class CommerceSeeder extends Seeder
                     'benefits' => ['Produto original', 'Entrega local rápida', 'Retirada disponível na loja', 'Atendimento especializado'],
                     'usage_instructions' => 'Consulte a recomendação do fabricante no rótulo do produto.',
                     'ingredients' => 'Confira a tabela nutricional e ingredientes no rótulo do produto.',
-                    'stock_quantity' => 24 + ($index * 3),
-                    'reserved_quantity' => 0,
                     'price_cents' => $data['price_cents'],
                     'compare_at_price_cents' => $data['compare_at_price_cents'] ?? null,
                     'rating' => $data['rating'],

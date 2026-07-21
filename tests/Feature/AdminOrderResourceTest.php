@@ -64,7 +64,7 @@ class AdminOrderResourceTest extends TestCase
             ->assertSee('Assinatura / confirmação de recebimento');
     }
 
-    public function test_manual_mercado_pago_approval_marks_inventory_as_sold_once(): void
+    public function test_manual_mercado_pago_approval_records_sale_once(): void
     {
         $product = $this->createProduct();
         $order = $this->createOrder([
@@ -89,7 +89,7 @@ class AdminOrderResourceTest extends TestCase
 
         $this->assertSame('payment_approved', $order->refresh()->status);
         $this->assertNotNull($order->payment_approved_at);
-        $this->assertSame(8, $product->refresh()->stock_quantity);
+        $product->refresh();
         $this->assertSame(2, $product->sales_count);
     }
 
@@ -132,7 +132,6 @@ class AdminOrderResourceTest extends TestCase
             'name' => 'Creatina Monohidratada 300g',
             'slug' => 'creatina-monohidratada-300g',
             'sku' => 'TEST-ADMIN-001',
-            'stock_quantity' => 10,
             'price_cents' => 8990,
             'rating' => 4.9,
             'is_active' => true,

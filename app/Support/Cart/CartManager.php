@@ -20,11 +20,10 @@ class CartManager
         $variantSelections = $this->normalizeVariantSelections($product, $variantSelections);
         $itemKey = $this->itemKey($product->id, $variantSelections);
         $currentQuantity = $items[$itemKey]['quantity'] ?? 0;
-        $availableQuantity = $product->availableQuantityForSelections($variantSelections);
 
         $items[$itemKey] = [
             'product_id' => $product->id,
-            'quantity' => min($availableQuantity, $currentQuantity + max(1, $quantity)),
+            'quantity' => $currentQuantity + max(1, $quantity),
             'variant_selections' => $variantSelections,
         ];
 
@@ -53,7 +52,7 @@ class CartManager
 
         $items[$itemKey] = [
             'product_id' => $product->id,
-            'quantity' => min($product->availableQuantityForSelections($variantSelections), $quantity),
+            'quantity' => $quantity,
             'variant_selections' => $variantSelections,
         ];
 
@@ -97,7 +96,7 @@ class CartManager
                 }
 
                 $variantSelections = $item['variant_selections'] ?? [];
-                $quantity = min((int) $item['quantity'], $product->availableQuantityForSelections($variantSelections));
+                $quantity = max(1, (int) $item['quantity']);
                 $unitPriceCents = $product->priceCentsForSelections($variantSelections);
 
                 return [

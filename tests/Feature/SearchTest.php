@@ -99,7 +99,6 @@ class SearchTest extends TestCase
             'slug' => str($name)->slug()->toString(),
             'sku' => 'TEST-'.str()->random(8),
             'short_description' => 'Produto para busca.',
-            'stock_quantity' => 10,
             'price_cents' => 8990,
             'rating' => 4.8,
             'sales_count' => 10,

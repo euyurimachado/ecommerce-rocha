@@ -2,12 +2,14 @@
 
 namespace App\Filament\Resources\Products\Schemas;
 
+use App\Filament\Forms\CurrencyInput;
 use App\Models\Product;
 use App\Models\ProductVariation;
 use App\Models\ProductVariationOption;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\KeyValue;
 use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -117,21 +119,11 @@ class ProductForm
                                 TextInput::make('sku')
                                     ->label('SKU da opção')
                                     ->maxLength(255),
-                                TextInput::make('price_cents')
+                                CurrencyInput::make('price_cents')
                                     ->label('Preço da opção')
-                                    ->helperText('Deixe vazio para usar o preço principal do produto.')
-                                    ->numeric(),
-                                TextInput::make('compare_at_price_cents')
-                                    ->label('Preço anterior da opção')
-                                    ->numeric(),
-                                TextInput::make('stock_quantity')
-                                    ->label('Estoque da opção')
-                                    ->helperText('Deixe vazio para usar o estoque principal do produto.')
-                                    ->numeric(),
-                                TextInput::make('reserved_quantity')
-                                    ->label('Estoque reservado da opção')
-                                    ->numeric()
-                                    ->default(0),
+                                    ->helperText('Use vírgula para os centavos. Deixe vazio para usar o preço principal.'),
+                                CurrencyInput::make('compare_at_price_cents')
+                                    ->label('Preço anterior da opção'),
                             ])
                             ->columns(2)
                             ->addActionLabel('Nova opção')
@@ -145,8 +137,11 @@ class ProductForm
                 Textarea::make('short_description')
                     ->label('Descrição curta')
                     ->columnSpanFull(),
-                Textarea::make('description')
+                RichEditor::make('description')
                     ->label('Descrição completa')
+                    ->fileAttachmentsDisk('public')
+                    ->fileAttachmentsDirectory('products/descriptions')
+                    ->fileAttachmentsVisibility('public')
                     ->columnSpanFull(),
                 Textarea::make('benefits')
                     ->label('Benefícios')
@@ -171,23 +166,12 @@ class ProductForm
                     ->label('URL do fabricante'),
                 TextInput::make('image_source_url')
                     ->label('Fonte da imagem'),
-                TextInput::make('stock_quantity')
-                    ->label('Estoque')
-                    ->required()
-                    ->numeric()
-                    ->default(0),
-                TextInput::make('reserved_quantity')
-                    ->label('Estoque reservado')
-                    ->required()
-                    ->numeric()
-                    ->default(0),
-                TextInput::make('price_cents')
+                CurrencyInput::make('price_cents')
                     ->label('Preço')
-                    ->required()
-                    ->numeric(),
-                TextInput::make('compare_at_price_cents')
-                    ->label('Preço anterior')
-                    ->numeric(),
+                    ->helperText('Use vírgula para os centavos, por exemplo 129,90.')
+                    ->required(),
+                CurrencyInput::make('compare_at_price_cents')
+                    ->label('Preço anterior'),
                 TextInput::make('rating')
                     ->label('Avaliação')
                     ->required()
