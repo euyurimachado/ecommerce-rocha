@@ -65,9 +65,14 @@
     .brand-logo-track {
         display: flex;
         width: max-content;
-        min-width: 200%;
-        gap: 1rem;
         animation: brand-logo-marquee 42s linear infinite;
+    }
+
+    .brand-logo-sequence {
+        display: flex;
+        flex: 0 0 auto;
+        gap: 1rem;
+        padding-right: 1rem;
     }
 
     .brand-logo-marquee:hover .brand-logo-track {
@@ -101,6 +106,11 @@
         max-width: 100%;
         max-height: 3.25rem;
         object-fit: contain;
+    }
+
+    .brand-logo-item[data-brand-slug='darkness'] {
+        border-color: rgb(15 23 42);
+        background: rgb(15 23 42);
     }
 
     .brand-logo-item span {

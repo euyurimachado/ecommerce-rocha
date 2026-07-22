@@ -243,14 +243,24 @@
 
         <div class="brand-logo-marquee mt-5" aria-label="Marcas parceiras Rocha Sports">
             <div class="brand-logo-track">
-                @foreach ($brands->concat($brands) as $brand)
-                    <a href="{{ route('search', ['marca' => $brand->slug]) }}" class="brand-logo-item" aria-label="Ver produtos {{ $brand->name }}">
-                        @if ($brand->logo_path)
-                            <img src="{{ asset('storage/'.$brand->logo_path) }}" alt="{{ $brand->name }}" loading="lazy">
-                        @else
-                            <span>{{ $brand->name }}</span>
-                        @endif
-                    </a>
+                @foreach ([false, true] as $isDuplicate)
+                    <div class="brand-logo-sequence" @if ($isDuplicate) aria-hidden="true" @endif>
+                        @foreach ($brands as $brand)
+                            <a
+                                href="{{ route('search', ['marca' => $brand->slug]) }}"
+                                class="brand-logo-item"
+                                data-brand-slug="{{ \Illuminate\Support\Str::slug($brand->slug ?: $brand->name) }}"
+                                aria-label="Ver produtos {{ $brand->name }}"
+                                @if ($isDuplicate) tabindex="-1" @endif
+                            >
+                                @if ($brand->logo_url)
+                                    <img src="{{ $brand->logo_url }}" alt="{{ $brand->name }}" loading="lazy">
+                                @else
+                                    <span>{{ $brand->name }}</span>
+                                @endif
+                            </a>
+                        @endforeach
+                    </div>
                 @endforeach
             </div>
         </div>

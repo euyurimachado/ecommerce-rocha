@@ -15,6 +15,12 @@ class CurrencyInputTest extends TestCase
         $this->assertSame($input, CurrencyInput::format($cents));
     }
 
+    public function test_it_does_not_multiply_an_already_dehydrated_value_again(): void
+    {
+        $this->assertSame(12990, CurrencyInput::parse(12990));
+        $this->assertSame('129,90', CurrencyInput::format('129,90'));
+    }
+
     public static function currencyValues(): array
     {
         return [

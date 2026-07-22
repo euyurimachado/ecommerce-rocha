@@ -11,6 +11,7 @@ use Filament\Forms\Components\KeyValue;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -50,7 +51,7 @@ class ProductForm
                             ->disk('public')
                             ->directory('products')
                             ->visibility('public')
-                            ->live(),
+                            ->fetchFileInformation(false),
                         FileUpload::make('gallery_images')
                             ->label('Galeria de imagens')
                             ->image()
@@ -59,7 +60,7 @@ class ProductForm
                             ->disk('public')
                             ->directory('products/gallery')
                             ->visibility('public')
-                            ->live(),
+                            ->fetchFileInformation(false),
                     ])
                     ->columnSpanFull(),
                 TextInput::make('weight')
@@ -115,7 +116,8 @@ class ProductForm
                                     ->image()
                                     ->disk('public')
                                     ->directory('products/gallery')
-                                    ->visibility('public'),
+                                    ->visibility('public')
+                                    ->fetchFileInformation(false),
                                 TextInput::make('sku')
                                     ->label('SKU da opção')
                                     ->maxLength(255),
@@ -143,7 +145,7 @@ class ProductForm
                     ->fileAttachmentsDirectory('products/descriptions')
                     ->fileAttachmentsVisibility('public')
                     ->columnSpanFull(),
-                Textarea::make('benefits')
+                TagsInput::make('benefits')
                     ->label('Benefícios')
                     ->columnSpanFull(),
                 Textarea::make('usage_instructions')

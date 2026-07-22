@@ -66,7 +66,7 @@ class StorefrontController extends Controller
                 ->get(),
             'brands' => Brand::query()
                 ->where('is_active', true)
-                ->where('is_featured', true)
+                ->whereHas('products', fn (Builder $query) => $query->where('is_active', true))
                 ->orderBy('name')
                 ->get(),
             'energyProducts' => $this->homeSectionProducts(
