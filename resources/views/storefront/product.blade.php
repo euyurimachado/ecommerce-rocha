@@ -204,7 +204,8 @@
                     @if ($descriptionHasHtml)
                         {!! \Filament\Forms\Components\RichEditor\RichContentRenderer::make($description)
                             ->fileAttachmentsDisk('public')
-                            ->fileAttachmentsVisibility('public') !!}
+                            ->fileAttachmentsVisibility('public')
+                            ->toHtml() !!}
                     @else
                         <p class="whitespace-pre-line">{{ $description }}</p>
                     @endif
