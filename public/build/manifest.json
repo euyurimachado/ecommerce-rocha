@@ -1,0 +1,219 @@
+{
+  "node_modules/@fontsource/ubuntu/files/ubuntu-cyrillic-400-normal.woff": {
+    "file": "assets/ubuntu-cyrillic-400-normal-CD6XmiVF.woff",
+    "src": "node_modules/@fontsource/ubuntu/files/ubuntu-cyrillic-400-normal.woff"
+  },
+  "node_modules/@fontsource/ubuntu/files/ubuntu-cyrillic-400-normal.woff2": {
+    "file": "assets/ubuntu-cyrillic-400-normal-D9OZd8lm.woff2",
+    "src": "node_modules/@fontsource/ubuntu/files/ubuntu-cyrillic-400-normal.woff2"
+  },
+  "node_modules/@fontsource/ubuntu/files/ubuntu-cyrillic-500-normal.woff": {
+    "file": "assets/ubuntu-cyrillic-500-normal-CwjDQ7H5.woff",
+    "src": "node_modules/@fontsource/ubuntu/files/ubuntu-cyrillic-500-normal.woff"
+  },
+  "node_modules/@fontsource/ubuntu/files/ubuntu-cyrillic-500-normal.woff2": {
+    "file": "assets/ubuntu-cyrillic-500-normal-BU9-HBoA.woff2",
+    "src": "node_modules/@fontsource/ubuntu/files/ubuntu-cyrillic-500-normal.woff2"
+  },
+  "node_modules/@fontsource/ubuntu/files/ubuntu-cyrillic-700-normal.woff": {
+    "file": "assets/ubuntu-cyrillic-700-normal-DN03sdX6.woff",
+    "src": "node_modules/@fontsource/ubuntu/files/ubuntu-cyrillic-700-normal.woff"
+  },
+  "node_modules/@fontsource/ubuntu/files/ubuntu-cyrillic-700-normal.woff2": {
+    "file": "assets/ubuntu-cyrillic-700-normal-CF4plK0P.woff2",
+    "src": "node_modules/@fontsource/ubuntu/files/ubuntu-cyrillic-700-normal.woff2"
+  },
+  "node_modules/@fontsource/ubuntu/files/ubuntu-cyrillic-ext-400-normal.woff": {
+    "file": "assets/ubuntu-cyrillic-ext-400-normal-BQUrPAlD.woff",
+    "src": "node_modules/@fontsource/ubuntu/files/ubuntu-cyrillic-ext-400-normal.woff"
+  },
+  "node_modules/@fontsource/ubuntu/files/ubuntu-cyrillic-ext-400-normal.woff2": {
+    "file": "assets/ubuntu-cyrillic-ext-400-normal-B-Nhg57H.woff2",
+    "src": "node_modules/@fontsource/ubuntu/files/ubuntu-cyrillic-ext-400-normal.woff2"
+  },
+  "node_modules/@fontsource/ubuntu/files/ubuntu-cyrillic-ext-500-normal.woff": {
+    "file": "assets/ubuntu-cyrillic-ext-500-normal-D_nARPSq.woff",
+    "src": "node_modules/@fontsource/ubuntu/files/ubuntu-cyrillic-ext-500-normal.woff"
+  },
+  "node_modules/@fontsource/ubuntu/files/ubuntu-cyrillic-ext-500-normal.woff2": {
+    "file": "assets/ubuntu-cyrillic-ext-500-normal-AcePgoUe.woff2",
+    "src": "node_modules/@fontsource/ubuntu/files/ubuntu-cyrillic-ext-500-normal.woff2"
+  },
+  "node_modules/@fontsource/ubuntu/files/ubuntu-cyrillic-ext-700-normal.woff": {
+    "file": "assets/ubuntu-cyrillic-ext-700-normal-BZbN9t83.woff",
+    "src": "node_modules/@fontsource/ubuntu/files/ubuntu-cyrillic-ext-700-normal.woff"
+  },
+  "node_modules/@fontsource/ubuntu/files/ubuntu-cyrillic-ext-700-normal.woff2": {
+    "file": "assets/ubuntu-cyrillic-ext-700-normal-VUzwJTK6.woff2",
+    "src": "node_modules/@fontsource/ubuntu/files/ubuntu-cyrillic-ext-700-normal.woff2"
+  },
+  "node_modules/@fontsource/ubuntu/files/ubuntu-greek-400-normal.woff": {
+    "file": "assets/ubuntu-greek-400-normal-UX4bU-Ff.woff",
+    "src": "node_modules/@fontsource/ubuntu/files/ubuntu-greek-400-normal.woff"
+  },
+  "node_modules/@fontsource/ubuntu/files/ubuntu-greek-400-normal.woff2": {
+    "file": "assets/ubuntu-greek-400-normal-GaJa0t-K.woff2",
+    "src": "node_modules/@fontsource/ubuntu/files/ubuntu-greek-400-normal.woff2"
+  },
+  "node_modules/@fontsource/ubuntu/files/ubuntu-greek-500-normal.woff": {
+    "file": "assets/ubuntu-greek-500-normal-D9iATQq0.woff",
+    "src": "node_modules/@fontsource/ubuntu/files/ubuntu-greek-500-normal.woff"
+  },
+  "node_modules/@fontsource/ubuntu/files/ubuntu-greek-500-normal.woff2": {
+    "file": "assets/ubuntu-greek-500-normal-B3ImYAyH.woff2",
+    "src": "node_modules/@fontsource/ubuntu/files/ubuntu-greek-500-normal.woff2"
+  },
+  "node_modules/@fontsource/ubuntu/files/ubuntu-greek-700-normal.woff": {
+    "file": "assets/ubuntu-greek-700-normal-DM68am3C.woff",
+    "src": "node_modules/@fontsource/ubuntu/files/ubuntu-greek-700-normal.woff"
+  },
+  "node_modules/@fontsource/ubuntu/files/ubuntu-greek-700-normal.woff2": {
+    "file": "assets/ubuntu-greek-700-normal-Jbnau0eS.woff2",
+    "src": "node_modules/@fontsource/ubuntu/files/ubuntu-greek-700-normal.woff2"
+  },
+  "node_modules/@fontsource/ubuntu/files/ubuntu-greek-ext-400-normal.woff": {
+    "file": "assets/ubuntu-greek-ext-400-normal-VZgpvyyF.woff",
+    "src": "node_modules/@fontsource/ubuntu/files/ubuntu-greek-ext-400-normal.woff"
+  },
+  "node_modules/@fontsource/ubuntu/files/ubuntu-greek-ext-400-normal.woff2": {
+    "file": "assets/ubuntu-greek-ext-400-normal-CeBDcuzJ.woff2",
+    "src": "node_modules/@fontsource/ubuntu/files/ubuntu-greek-ext-400-normal.woff2"
+  },
+  "node_modules/@fontsource/ubuntu/files/ubuntu-greek-ext-500-normal.woff": {
+    "file": "assets/ubuntu-greek-ext-500-normal-C7ALJ6Zy.woff",
+    "src": "node_modules/@fontsource/ubuntu/files/ubuntu-greek-ext-500-normal.woff"
+  },
+  "node_modules/@fontsource/ubuntu/files/ubuntu-greek-ext-500-normal.woff2": {
+    "file": "assets/ubuntu-greek-ext-500-normal-B00wCqpo.woff2",
+    "src": "node_modules/@fontsource/ubuntu/files/ubuntu-greek-ext-500-normal.woff2"
+  },
+  "node_modules/@fontsource/ubuntu/files/ubuntu-greek-ext-700-normal.woff": {
+    "file": "assets/ubuntu-greek-ext-700-normal-5K5_eCDc.woff",
+    "src": "node_modules/@fontsource/ubuntu/files/ubuntu-greek-ext-700-normal.woff"
+  },
+  "node_modules/@fontsource/ubuntu/files/ubuntu-greek-ext-700-normal.woff2": {
+    "file": "assets/ubuntu-greek-ext-700-normal-BKlOPkfe.woff2",
+    "src": "node_modules/@fontsource/ubuntu/files/ubuntu-greek-ext-700-normal.woff2"
+  },
+  "node_modules/@fontsource/ubuntu/files/ubuntu-latin-400-normal.woff": {
+    "file": "assets/ubuntu-latin-400-normal-ChuJk2Dr.woff",
+    "src": "node_modules/@fontsource/ubuntu/files/ubuntu-latin-400-normal.woff"
+  },
+  "node_modules/@fontsource/ubuntu/files/ubuntu-latin-400-normal.woff2": {
+    "file": "assets/ubuntu-latin-400-normal-CQJ26Fy6.woff2",
+    "src": "node_modules/@fontsource/ubuntu/files/ubuntu-latin-400-normal.woff2"
+  },
+  "node_modules/@fontsource/ubuntu/files/ubuntu-latin-500-normal.woff": {
+    "file": "assets/ubuntu-latin-500-normal-BMp9VhBY.woff",
+    "src": "node_modules/@fontsource/ubuntu/files/ubuntu-latin-500-normal.woff"
+  },
+  "node_modules/@fontsource/ubuntu/files/ubuntu-latin-500-normal.woff2": {
+    "file": "assets/ubuntu-latin-500-normal-CnjGCQfM.woff2",
+    "src": "node_modules/@fontsource/ubuntu/files/ubuntu-latin-500-normal.woff2"
+  },
+  "node_modules/@fontsource/ubuntu/files/ubuntu-latin-700-normal.woff": {
+    "file": "assets/ubuntu-latin-700-normal-DAmh8SsM.woff",
+    "src": "node_modules/@fontsource/ubuntu/files/ubuntu-latin-700-normal.woff"
+  },
+  "node_modules/@fontsource/ubuntu/files/ubuntu-latin-700-normal.woff2": {
+    "file": "assets/ubuntu-latin-700-normal-DlYwEzNn.woff2",
+    "src": "node_modules/@fontsource/ubuntu/files/ubuntu-latin-700-normal.woff2"
+  },
+  "node_modules/@fontsource/ubuntu/files/ubuntu-latin-ext-400-normal.woff": {
+    "file": "assets/ubuntu-latin-ext-400-normal-kv0aZEtN.woff",
+    "src": "node_modules/@fontsource/ubuntu/files/ubuntu-latin-ext-400-normal.woff"
+  },
+  "node_modules/@fontsource/ubuntu/files/ubuntu-latin-ext-400-normal.woff2": {
+    "file": "assets/ubuntu-latin-ext-400-normal-Bb6UNjxu.woff2",
+    "src": "node_modules/@fontsource/ubuntu/files/ubuntu-latin-ext-400-normal.woff2"
+  },
+  "node_modules/@fontsource/ubuntu/files/ubuntu-latin-ext-500-normal.woff": {
+    "file": "assets/ubuntu-latin-ext-500-normal-Cd8iAjtc.woff",
+    "src": "node_modules/@fontsource/ubuntu/files/ubuntu-latin-ext-500-normal.woff"
+  },
+  "node_modules/@fontsource/ubuntu/files/ubuntu-latin-ext-500-normal.woff2": {
+    "file": "assets/ubuntu-latin-ext-500-normal-DzrGfuVI.woff2",
+    "src": "node_modules/@fontsource/ubuntu/files/ubuntu-latin-ext-500-normal.woff2"
+  },
+  "node_modules/@fontsource/ubuntu/files/ubuntu-latin-ext-700-normal.woff": {
+    "file": "assets/ubuntu-latin-ext-700-normal-YrKfr4VU.woff",
+    "src": "node_modules/@fontsource/ubuntu/files/ubuntu-latin-ext-700-normal.woff"
+  },
+  "node_modules/@fontsource/ubuntu/files/ubuntu-latin-ext-700-normal.woff2": {
+    "file": "assets/ubuntu-latin-ext-700-normal-D3iP7lMw.woff2",
+    "src": "node_modules/@fontsource/ubuntu/files/ubuntu-latin-ext-700-normal.woff2"
+  },
+  "node_modules/@fortawesome/fontawesome-free/webfonts/fa-brands-400.woff2": {
+    "file": "assets/fa-brands-400-BP5tdqmh.woff2",
+    "src": "node_modules/@fortawesome/fontawesome-free/webfonts/fa-brands-400.woff2"
+  },
+  "node_modules/@fortawesome/fontawesome-free/webfonts/fa-regular-400.woff2": {
+    "file": "assets/fa-regular-400-nyy7hhHF.woff2",
+    "src": "node_modules/@fortawesome/fontawesome-free/webfonts/fa-regular-400.woff2"
+  },
+  "node_modules/@fortawesome/fontawesome-free/webfonts/fa-solid-900.woff2": {
+    "file": "assets/fa-solid-900-DRAAbZTg.woff2",
+    "src": "node_modules/@fortawesome/fontawesome-free/webfonts/fa-solid-900.woff2"
+  },
+  "node_modules/@fortawesome/fontawesome-free/webfonts/fa-v4compatibility.woff2": {
+    "file": "assets/fa-v4compatibility-DD84SGiu.woff2",
+    "src": "node_modules/@fortawesome/fontawesome-free/webfonts/fa-v4compatibility.woff2"
+  },
+  "resources/css/app.css": {
+    "file": "assets/app-Bb-sn92_.css",
+    "name": "app",
+    "names": [
+      "app.css"
+    ],
+    "src": "resources/css/app.css",
+    "isEntry": true,
+    "assets": [
+      "assets/ubuntu-cyrillic-ext-400-normal-B-Nhg57H.woff2",
+      "assets/ubuntu-cyrillic-ext-400-normal-BQUrPAlD.woff",
+      "assets/ubuntu-cyrillic-400-normal-D9OZd8lm.woff2",
+      "assets/ubuntu-cyrillic-400-normal-CD6XmiVF.woff",
+      "assets/ubuntu-greek-ext-400-normal-CeBDcuzJ.woff2",
+      "assets/ubuntu-greek-ext-400-normal-VZgpvyyF.woff",
+      "assets/ubuntu-greek-400-normal-GaJa0t-K.woff2",
+      "assets/ubuntu-greek-400-normal-UX4bU-Ff.woff",
+      "assets/ubuntu-latin-ext-400-normal-Bb6UNjxu.woff2",
+      "assets/ubuntu-latin-ext-400-normal-kv0aZEtN.woff",
+      "assets/ubuntu-latin-400-normal-CQJ26Fy6.woff2",
+      "assets/ubuntu-latin-400-normal-ChuJk2Dr.woff",
+      "assets/ubuntu-cyrillic-ext-500-normal-AcePgoUe.woff2",
+      "assets/ubuntu-cyrillic-ext-500-normal-D_nARPSq.woff",
+      "assets/ubuntu-cyrillic-500-normal-BU9-HBoA.woff2",
+      "assets/ubuntu-cyrillic-500-normal-CwjDQ7H5.woff",
+      "assets/ubuntu-greek-ext-500-normal-B00wCqpo.woff2",
+      "assets/ubuntu-greek-ext-500-normal-C7ALJ6Zy.woff",
+      "assets/ubuntu-greek-500-normal-B3ImYAyH.woff2",
+      "assets/ubuntu-greek-500-normal-D9iATQq0.woff",
+      "assets/ubuntu-latin-ext-500-normal-DzrGfuVI.woff2",
+      "assets/ubuntu-latin-ext-500-normal-Cd8iAjtc.woff",
+      "assets/ubuntu-latin-500-normal-CnjGCQfM.woff2",
+      "assets/ubuntu-latin-500-normal-BMp9VhBY.woff",
+      "assets/ubuntu-cyrillic-ext-700-normal-VUzwJTK6.woff2",
+      "assets/ubuntu-cyrillic-ext-700-normal-BZbN9t83.woff",
+      "assets/ubuntu-cyrillic-700-normal-CF4plK0P.woff2",
+      "assets/ubuntu-cyrillic-700-normal-DN03sdX6.woff",
+      "assets/ubuntu-greek-ext-700-normal-BKlOPkfe.woff2",
+      "assets/ubuntu-greek-ext-700-normal-5K5_eCDc.woff",
+      "assets/ubuntu-greek-700-normal-Jbnau0eS.woff2",
+      "assets/ubuntu-greek-700-normal-DM68am3C.woff",
+      "assets/ubuntu-latin-ext-700-normal-D3iP7lMw.woff2",
+      "assets/ubuntu-latin-ext-700-normal-YrKfr4VU.woff",
+      "assets/ubuntu-latin-700-normal-DlYwEzNn.woff2",
+      "assets/ubuntu-latin-700-normal-DAmh8SsM.woff",
+      "assets/fa-brands-400-BP5tdqmh.woff2",
+      "assets/fa-regular-400-nyy7hhHF.woff2",
+      "assets/fa-solid-900-DRAAbZTg.woff2",
+      "assets/fa-v4compatibility-DD84SGiu.woff2"
+    ]
+  },
+  "resources/js/app.js": {
+    "file": "assets/app-CnpH-oZW.js",
+    "name": "app",
+    "src": "resources/js/app.js",
+    "isEntry": true
+  }
+}
