@@ -50,6 +50,10 @@ class Brand extends Model
 
     public function getLogoUrlAttribute(): ?string
     {
+        if ($this->hasCustomLogo()) {
+            return $this->storageLogoUrl();
+        }
+
         $key = Str::slug($this->slug ?: $this->name);
         $packagedLogo = self::PACKAGED_LOGOS[$key]
             ?? self::PACKAGED_LOGOS[Str::slug($this->name)]
@@ -67,6 +71,20 @@ class Brand extends Model
             return $this->logo_path;
         }
 
-        return asset('storage/'.Str::after($this->logo_path, 'storage/'));
+        return $this->storageLogoUrl();
+    }
+
+    private function hasCustomLogo(): bool
+    {
+        return filled($this->logo_path)
+            && Str::startsWith(
+                ltrim(Str::after($this->logo_path, 'storage/'), '/'),
+                'brands/custom/',
+            );
+    }
+
+    private function storageLogoUrl(): string
+    {
+        return asset('storage/'.ltrim(Str::after($this->logo_path, 'storage/'), '/'));
     }
 }
