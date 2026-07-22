@@ -280,6 +280,7 @@ const initializeProductPage = () => {
     const variationButtons = document.querySelectorAll('[data-product-variation-option]');
     const productPrice = document.querySelector('[data-product-price]');
     const productComparePrice = document.querySelector('[data-product-compare-price]');
+    const productStock = document.querySelector('[data-product-stock]');
     window.rochaProductVariantSelections = {};
 
     const selectedVariationButtons = () => Array.from(variationButtons).filter((option) => option.getAttribute('aria-pressed') === 'true');
@@ -299,6 +300,26 @@ const initializeProductPage = () => {
             productComparePrice.textContent = comparePrice;
             productComparePrice.classList.toggle('hidden', !comparePrice);
         }
+
+        const variationStocks = activeButtons
+            .map((button) => button.dataset.variationStock)
+            .filter((stock) => stock !== undefined && stock !== '')
+            .map(Number);
+        const availableStock = variationStocks.length > 0
+            ? Math.min(...variationStocks)
+            : Number(variationsContainer?.dataset.baseStock || 0);
+
+        if (productStock) {
+            productStock.textContent = availableStock > 0
+                ? `${availableStock} unidade(s) em estoque`
+                : 'Produto sem estoque';
+            productStock.classList.toggle('text-emerald-700', availableStock > 0);
+            productStock.classList.toggle('text-rose-700', availableStock <= 0);
+        }
+
+        document.querySelectorAll('[data-add-to-cart-button]').forEach((button) => {
+            button.disabled = availableStock <= 0;
+        });
 
     };
 

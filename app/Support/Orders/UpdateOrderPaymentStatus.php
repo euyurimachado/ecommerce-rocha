@@ -3,6 +3,8 @@
 namespace App\Support\Orders;
 
 use App\Models\Order;
+use App\Models\Product;
+use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
 class UpdateOrderPaymentStatus
@@ -13,34 +15,44 @@ class UpdateOrderPaymentStatus
             throw new InvalidArgumentException('Status de pagamento inválido.');
         }
 
-        $shouldRecordSale = $status === 'payment_approved'
-            && $order->payment_method === 'mercado_pago'
-            && ! $order->payment_approved_at;
+        return DB::transaction(function () use ($order, $status): Order {
+            $order = Order::query()->lockForUpdate()->findOrFail($order->id);
+            $shouldRecordSale = $status === 'payment_approved'
+                && $order->payment_method === 'mercado_pago'
+                && ! $order->payment_approved_at;
 
-        $order->forceFill([
-            'status' => $status,
-            'payment_approved_at' => $status === 'payment_approved'
-                ? ($order->payment_approved_at ?? now())
-                : ($status === 'payment_pending' ? null : $order->payment_approved_at),
-        ])->save();
+            $order->forceFill([
+                'status' => $status,
+                'payment_approved_at' => $status === 'payment_approved'
+                    ? ($order->payment_approved_at ?? now())
+                    : ($status === 'payment_pending' ? null : $order->payment_approved_at),
+            ])->save();
 
-        if ($shouldRecordSale) {
-            $this->recordSale($order);
-        }
+            if ($shouldRecordSale) {
+                $this->recordSale($order);
+            }
 
-        return $order->refresh();
+            return $order->refresh();
+        });
     }
 
     private function recordSale(Order $order): void
     {
-        $order->loadMissing('items.product');
+        $order->loadMissing('items');
 
         foreach ($order->items as $item) {
-            if (! $item->product) {
+            if (! $item->product_id) {
                 continue;
             }
 
-            $item->product->increment('sales_count', $item->quantity);
+            $product = Product::query()->lockForUpdate()->find($item->product_id);
+
+            if (! $product) {
+                continue;
+            }
+
+            $product->decrementStockForSelections($item->variant_selections ?? [], $item->quantity);
+            $product->increment('sales_count', $item->quantity);
         }
     }
 }

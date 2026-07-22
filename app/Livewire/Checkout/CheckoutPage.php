@@ -9,6 +9,7 @@ use App\Support\Payments\MercadoPago\MercadoPagoClient;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Validation\Rule;
+use InvalidArgumentException;
 use Livewire\Component;
 use Throwable;
 
@@ -94,6 +95,10 @@ class CheckoutPage extends Component
                         : $preference['init_point']
                 );
             }
+        } catch (InvalidArgumentException $exception) {
+            $this->checkoutError = $exception->getMessage();
+
+            return null;
         } catch (Throwable $exception) {
             report($exception);
 

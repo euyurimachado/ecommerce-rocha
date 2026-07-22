@@ -4,6 +4,7 @@ namespace App\Livewire\Cart;
 
 use App\Models\Product;
 use App\Support\Cart\CartManager;
+use InvalidArgumentException;
 use Livewire\Component;
 
 class AddToCartButton extends Component
@@ -16,9 +17,19 @@ class AddToCartButton extends Component
 
     public bool $redirectToCheckout = false;
 
+    public ?string $stockError = null;
+
     public function add(CartManager $cart, array $variantSelections = [])
     {
-        $cart->add($this->product->id, variantSelections: $variantSelections);
+        $this->stockError = null;
+
+        try {
+            $cart->add($this->product->id, variantSelections: $variantSelections);
+        } catch (InvalidArgumentException $exception) {
+            $this->stockError = $exception->getMessage();
+
+            return null;
+        }
 
         $this->dispatch('cart-updated');
 

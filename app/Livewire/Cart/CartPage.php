@@ -12,6 +12,8 @@ class CartPage extends Component
 
     public ?string $couponError = null;
 
+    public ?string $stockError = null;
+
     public function mount(CartManager $cart): void
     {
         $this->couponCode = $cart->coupon()?->code ?? '';
@@ -19,9 +21,17 @@ class CartPage extends Component
 
     public function increment(CartManager $cart, string $itemKey): void
     {
+        $this->stockError = null;
         $current = $cart->items()->firstWhere('key', $itemKey);
 
-        $cart->update($itemKey, ($current['quantity'] ?? 0) + 1);
+        try {
+            $cart->update($itemKey, ($current['quantity'] ?? 0) + 1);
+        } catch (InvalidArgumentException $exception) {
+            $this->stockError = $exception->getMessage();
+
+            return;
+        }
+
         $this->dispatch('cart-updated');
     }
 

@@ -14,7 +14,8 @@
             "offers": {
                 "@@type": "Offer",
                 "priceCurrency": "BRL",
-                "price": "{{ number_format($product->price_cents / 100, 2, '.', '') }}"
+                "price": "{{ number_format($product->price_cents / 100, 2, '.', '') }}",
+                "availability": "https://schema.org/{{ $product->availableQuantityForSelections() > 0 ? 'InStock' : 'OutOfStock' }}"
             }
         }
     </script>
@@ -56,6 +57,7 @@
             ->all();
         $displayPriceCents = $product->priceCentsForSelections($defaultVariantSelections);
         $displayCompareAtPriceCents = $product->compareAtPriceCentsForSelections($defaultVariantSelections);
+        $defaultAvailableQuantity = $product->availableQuantityForSelections($defaultVariantSelections);
         $hasDiscount = $displayCompareAtPriceCents && $displayCompareAtPriceCents > $displayPriceCents;
         $discountPercentage = $hasDiscount ? round((1 - ($displayPriceCents / $displayCompareAtPriceCents)) * 100) : null;
     @endphp
@@ -133,8 +135,8 @@
                             {{ $hasDiscount ? $product->formattedCompareAtPriceForSelections($defaultVariantSelections) : '' }}
                         </p>
                         <p class="text-2xl font-bold text-slate-950 md:text-3xl" data-product-price>{{ $product->formattedPriceForSelections($defaultVariantSelections) }}</p>
-                        <p class="mt-2 text-sm font-semibold text-emerald-700">
-                            Disponível para entrega local ou retirada
+                        <p class="mt-2 text-sm font-semibold {{ $defaultAvailableQuantity > 0 ? 'text-emerald-700' : 'text-rose-700' }}" data-product-stock>
+                            {{ $defaultAvailableQuantity > 0 ? $defaultAvailableQuantity.' unidade(s) em estoque' : 'Produto sem estoque' }}
                         </p>
                     </div>
 
@@ -144,6 +146,7 @@
                             data-product-variations
                             data-base-price="{{ $product->formatted_price }}"
                             data-base-compare-price="{{ $product->formatted_compare_at_price }}"
+                            data-base-stock="{{ $product->stock_quantity }}"
                         >
                             @foreach ($variationGroups as $variation)
                                 <div>
@@ -160,6 +163,7 @@
                                                 data-variation-compare-price="{{ $product->formattedCompareAtPriceForSelections([$variation['name'] => $option['value']]) }}"
                                                 data-variation-has-price="{{ $option['price_cents'] !== null ? 'true' : 'false' }}"
                                                 data-variation-has-compare-price="{{ $option['compare_at_price_cents'] !== null ? 'true' : 'false' }}"
+                                                data-variation-stock="{{ $option['stock_quantity'] ?? '' }}"
                                                 @if ($option['image_url'])
                                                     data-variation-image="{{ $option['image_url'] }}"
                                                 @endif

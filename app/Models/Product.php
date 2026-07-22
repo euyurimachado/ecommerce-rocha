@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Schema;
+use InvalidArgumentException;
 
 class Product extends Model
 {
@@ -29,6 +30,7 @@ class Product extends Model
         'allergen_info',
         'manufacturer_url',
         'image_source_url',
+        'stock_quantity',
         'price_cents',
         'compare_at_price_cents',
         'rating',
@@ -60,6 +62,7 @@ class Product extends Model
             'gallery_images' => 'array',
             'nutrition_facts' => 'array',
             'variations' => 'array',
+            'stock_quantity' => 'integer',
             'rating' => 'decimal:1',
             'is_active' => 'boolean',
             'is_featured' => 'boolean',
@@ -139,6 +142,82 @@ class Product extends Model
             ->first() ?? $this->compare_at_price_cents;
     }
 
+    public function availableQuantityForSelections(array $variantSelections = []): int
+    {
+        $variationQuantities = $this->selectedVariationOptions($variantSelections)
+            ->map(fn (array $option): ?int => $this->nullableInteger($option['stock_quantity'] ?? null))
+            ->filter(fn (?int $quantity): bool => $quantity !== null);
+
+        if ($variationQuantities->isEmpty()) {
+            return max(0, (int) $this->stock_quantity);
+        }
+
+        return max(0, (int) $variationQuantities->min());
+    }
+
+    public function ensureStockAvailable(array $variantSelections, int $quantity): void
+    {
+        $available = $this->availableQuantityForSelections($variantSelections);
+
+        if ($quantity <= $available) {
+            return;
+        }
+
+        throw new InvalidArgumentException(
+            $available > 0
+                ? "Somente {$available} unidade(s) de {$this->name} estão disponíveis."
+                : "{$this->name} está sem estoque para a opção selecionada.",
+        );
+    }
+
+    public function decrementStockForSelections(array $variantSelections, int $quantity): void
+    {
+        $this->ensureStockAvailable($variantSelections, $quantity);
+
+        $matchedOptions = 0;
+        $variations = collect($this->variations ?? [])
+            ->map(function (array $variation) use ($variantSelections, $quantity, &$matchedOptions): array {
+                $name = trim((string) ($variation['name'] ?? ''));
+                $selectedValue = trim((string) ($variantSelections[$name] ?? ''));
+
+                if ($name === '' || $selectedValue === '') {
+                    return $variation;
+                }
+
+                $variation['options'] = collect($variation['options'] ?? [])
+                    ->map(function ($option) use ($selectedValue, $quantity, &$matchedOptions) {
+                        if (! is_array($option)) {
+                            return $option;
+                        }
+
+                        $value = trim((string) ($option['value'] ?? $option['name'] ?? ''));
+
+                        if ($value !== $selectedValue || ! array_key_exists('stock_quantity', $option) || $option['stock_quantity'] === null) {
+                            return $option;
+                        }
+
+                        $option['stock_quantity'] = max(0, (int) $option['stock_quantity'] - $quantity);
+                        $matchedOptions++;
+
+                        return $option;
+                    })
+                    ->values()
+                    ->all();
+
+                return $variation;
+            })
+            ->values()
+            ->all();
+
+        if ($matchedOptions > 0) {
+            $this->forceFill(['variations' => $variations])->save();
+
+            return;
+        }
+
+        $this->decrement('stock_quantity', $quantity);
+    }
+
     public function skuForSelections(array $variantSelections = []): string
     {
         return $this->selectedVariationOptions($variantSelections)
@@ -188,6 +267,7 @@ class Product extends Model
                             'sku' => trim((string) ($optionData['sku'] ?? '')) ?: null,
                             'price_cents' => $this->nullableInteger($optionData['price_cents'] ?? null),
                             'compare_at_price_cents' => $this->nullableInteger($optionData['compare_at_price_cents'] ?? null),
+                            'stock_quantity' => $this->nullableInteger($optionData['stock_quantity'] ?? null),
                         ];
                     })
                     ->filter()

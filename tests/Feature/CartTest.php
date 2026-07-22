@@ -91,7 +91,7 @@ class CartTest extends TestCase
         ], $items->pluck('variant_summary')->all());
     }
 
-    public function test_variant_option_price_is_used_without_limiting_quantity(): void
+    public function test_variant_option_price_and_stock_are_used(): void
     {
         $product = $this->createProduct([
             'price_cents' => 8990,
@@ -100,6 +100,7 @@ class CartTest extends TestCase
                     [
                         'value' => 'Chocolate',
                         'price_cents' => 9990,
+                        'stock_quantity' => 5,
                     ],
                     [
                         'value' => 'Baunilha',
@@ -117,6 +118,19 @@ class CartTest extends TestCase
         $this->assertSame(9990, $item['unit_price_cents']);
         $this->assertSame(49950, $item['line_total_cents']);
         $this->assertSame(49950, app(CartManager::class)->subtotalCents());
+    }
+
+    public function test_cart_does_not_allow_quantity_above_available_stock(): void
+    {
+        $product = $this->createProduct(['stock_quantity' => 2]);
+
+        Livewire::test(AddToCartButton::class, ['product' => $product])
+            ->call('add')
+            ->call('add')
+            ->call('add')
+            ->assertSet('stockError', 'Somente 2 unidade(s) de Creatina Monohidratada 300g estão disponíveis.');
+
+        $this->assertSame(2, app(CartManager::class)->count());
     }
 
     public function test_coupon_can_be_applied_to_cart(): void
@@ -171,6 +185,7 @@ class CartTest extends TestCase
             'slug' => 'creatina-monohidratada-300g',
             'sku' => 'TEST-001',
             'price_cents' => 8990,
+            'stock_quantity' => 10,
             'rating' => 4.9,
             'is_active' => true,
             'is_featured' => true,

@@ -13,12 +13,20 @@ class OrderItem extends Model
         'product_name',
         'product_sku',
         'variant_summary',
+        'variant_selections',
         'brand_name',
         'category_name',
         'quantity',
         'unit_price_cents',
         'line_total_cents',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'variant_selections' => 'array',
+        ];
+    }
 
     public function order(): BelongsTo
     {

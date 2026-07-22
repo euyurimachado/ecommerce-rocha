@@ -42,6 +42,10 @@ class ProductsTable
                     ->label('Preço anterior')
                     ->money('BRL', divideBy: 100)
                     ->sortable(),
+                TextColumn::make('stock_quantity')
+                    ->label('Estoque')
+                    ->numeric()
+                    ->sortable(),
                 TextColumn::make('rating')
                     ->label('Avaliação')
                     ->numeric()

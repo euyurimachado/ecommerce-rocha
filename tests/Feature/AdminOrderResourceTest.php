@@ -91,6 +91,7 @@ class AdminOrderResourceTest extends TestCase
         $this->assertNotNull($order->payment_approved_at);
         $product->refresh();
         $this->assertSame(2, $product->sales_count);
+        $this->assertSame(8, $product->stock_quantity);
     }
 
     private function createOrder(array $overrides = []): Order
@@ -133,6 +134,7 @@ class AdminOrderResourceTest extends TestCase
             'slug' => 'creatina-monohidratada-300g',
             'sku' => 'TEST-ADMIN-001',
             'price_cents' => 8990,
+            'stock_quantity' => 10,
             'rating' => 4.9,
             'is_active' => true,
             'is_featured' => true,

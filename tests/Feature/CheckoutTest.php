@@ -49,6 +49,7 @@ class CheckoutTest extends TestCase
         $this->assertCount(1, $order->items);
         $this->assertSame(2, $order->items->first()->quantity);
         $this->assertSame(2, $product->refresh()->sales_count);
+        $this->assertSame(8, $product->stock_quantity);
         $this->assertSame(0, app(CartManager::class)->count());
     }
 
@@ -62,6 +63,7 @@ class CheckoutTest extends TestCase
                         'value' => 'Chocolate',
                         'sku' => 'WHEY-CHOC',
                         'price_cents' => 12990,
+                        'stock_quantity' => 3,
                     ],
                     [
                         'value' => 'Baunilha',
@@ -91,6 +93,8 @@ class CheckoutTest extends TestCase
         $this->assertSame('WHEY-CHOC', $order->items->first()->product_sku);
         $this->assertSame(12990, $order->items->first()->unit_price_cents);
         $this->assertSame(2, $product->sales_count);
+        $this->assertSame(1, data_get($product->variations, '0.options.0.stock_quantity'));
+        $this->assertSame(10, $product->stock_quantity);
     }
 
     public function test_checkout_redirects_to_mercado_pago_when_selected(): void
@@ -354,6 +358,7 @@ class CheckoutTest extends TestCase
             'slug' => 'creatina-monohidratada-300g',
             'sku' => 'TEST-CHECKOUT-001',
             'price_cents' => 8990,
+            'stock_quantity' => 10,
             'rating' => 4.9,
             'is_active' => true,
             'is_featured' => true,

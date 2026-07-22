@@ -20,10 +20,13 @@ class CartManager
         $variantSelections = $this->normalizeVariantSelections($product, $variantSelections);
         $itemKey = $this->itemKey($product->id, $variantSelections);
         $currentQuantity = $items[$itemKey]['quantity'] ?? 0;
+        $newQuantity = $currentQuantity + max(1, $quantity);
+
+        $product->ensureStockAvailable($variantSelections, $newQuantity);
 
         $items[$itemKey] = [
             'product_id' => $product->id,
-            'quantity' => $currentQuantity + max(1, $quantity),
+            'quantity' => $newQuantity,
             'variant_selections' => $variantSelections,
         ];
 
@@ -49,6 +52,8 @@ class CartManager
 
         $product = $this->findPurchasableProduct((int) $item['product_id']);
         $variantSelections = $item['variant_selections'] ?? [];
+
+        $product->ensureStockAvailable($variantSelections, $quantity);
 
         $items[$itemKey] = [
             'product_id' => $product->id,
@@ -98,11 +103,14 @@ class CartManager
                 $variantSelections = $item['variant_selections'] ?? [];
                 $quantity = max(1, (int) $item['quantity']);
                 $unitPriceCents = $product->priceCentsForSelections($variantSelections);
+                $availableQuantity = $product->availableQuantityForSelections($variantSelections);
 
                 return [
                     'key' => (string) $itemKey,
                     'product' => $product,
                     'quantity' => $quantity,
+                    'available_quantity' => $availableQuantity,
+                    'is_available' => $quantity <= $availableQuantity,
                     'unit_price_cents' => $unitPriceCents,
                     'product_sku' => $product->skuForSelections($variantSelections),
                     'variant_selections' => $variantSelections,

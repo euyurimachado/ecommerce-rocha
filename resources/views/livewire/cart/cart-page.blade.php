@@ -1,4 +1,10 @@
 <div>
+    @if ($stockError)
+        <div class="mt-6 rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm font-semibold text-rose-800">
+            {{ $stockError }}
+        </div>
+    @endif
+
     @if ($items->isEmpty())
         <div class="mt-6 rounded-lg border border-slate-200 bg-white p-6 text-slate-600">
             <p class="font-semibold text-slate-950">Seu carrinho ainda está vazio.</p>
@@ -21,6 +27,11 @@
                                 <p class="mt-1 text-sm font-semibold text-slate-600">{{ $item['variant_summary'] }}</p>
                             @else
                                 <p class="mt-1 text-sm text-slate-500">{{ $product->weight }}</p>
+                            @endif
+                            @if (! $item['is_available'])
+                                <p class="mt-2 text-sm font-semibold text-rose-700">
+                                    Estoque atual: {{ $item['available_quantity'] }} unidade(s). Reduza a quantidade para continuar.
+                                </p>
                             @endif
                             <button wire:click="remove('{{ $item['key'] }}')" class="mt-3 text-sm font-bold text-rose-700" type="button">Remover</button>
                         </div>

@@ -3,6 +3,7 @@
 namespace App\Support\Checkout;
 
 use App\Models\Order;
+use App\Models\Product;
 use App\Support\Cart\CartManager;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -55,11 +56,17 @@ class CreateOrderFromCart
             foreach ($items as $item) {
                 $product = $item['product'];
                 $quantity = $item['quantity'];
+                $variantSelections = $item['variant_selections'] ?? [];
+                $inventoryProduct = Product::query()->lockForUpdate()->findOrFail($product->id);
+
+                $inventoryProduct->ensureStockAvailable($variantSelections, $quantity);
+
                 $order->items()->create([
                     'product_id' => $product->id,
                     'product_name' => $product->name,
                     'product_sku' => $item['product_sku'],
                     'variant_summary' => $item['variant_summary'],
+                    'variant_selections' => $variantSelections ?: null,
                     'brand_name' => $product->brand?->name,
                     'category_name' => $product->category?->name,
                     'quantity' => $quantity,
@@ -68,7 +75,8 @@ class CreateOrderFromCart
                 ]);
 
                 if ($recordSale) {
-                    $product->increment('sales_count', $quantity);
+                    $inventoryProduct->decrementStockForSelections($variantSelections, $quantity);
+                    $inventoryProduct->increment('sales_count', $quantity);
                 }
             }
 

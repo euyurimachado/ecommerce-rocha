@@ -69,6 +69,7 @@ class MercadoPagoWebhookTest extends TestCase
         $this->assertNotNull($order->payment_approved_at);
         $product->refresh();
         $this->assertSame(1, $product->sales_count);
+        $this->assertSame(9, $product->stock_quantity);
     }
 
     private function createProduct(): Product
@@ -87,6 +88,7 @@ class MercadoPagoWebhookTest extends TestCase
             'slug' => 'creatina-monohidratada-300g',
             'sku' => 'TEST-MP-001',
             'price_cents' => 8990,
+            'stock_quantity' => 10,
             'rating' => 4.9,
             'is_active' => true,
             'is_featured' => true,

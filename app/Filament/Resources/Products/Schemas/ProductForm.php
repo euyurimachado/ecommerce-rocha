@@ -126,6 +126,11 @@ class ProductForm
                                     ->helperText('Use vírgula para os centavos. Deixe vazio para usar o preço principal.'),
                                 CurrencyInput::make('compare_at_price_cents')
                                     ->label('Preço anterior da opção'),
+                                TextInput::make('stock_quantity')
+                                    ->label('Quantidade em estoque')
+                                    ->helperText('Deixe vazio para usar a quantidade geral do produto.')
+                                    ->numeric()
+                                    ->minValue(0),
                             ])
                             ->columns(2)
                             ->addActionLabel('Nova opção')
@@ -168,6 +173,13 @@ class ProductForm
                     ->label('URL do fabricante'),
                 TextInput::make('image_source_url')
                     ->label('Fonte da imagem'),
+                TextInput::make('stock_quantity')
+                    ->label('Quantidade em estoque')
+                    ->helperText('Usada pelo produto e pelas variações que não possuem quantidade própria.')
+                    ->required()
+                    ->numeric()
+                    ->minValue(0)
+                    ->default(0),
                 CurrencyInput::make('price_cents')
                     ->label('Preço')
                     ->helperText('Use vírgula para os centavos, por exemplo 129,90.')
