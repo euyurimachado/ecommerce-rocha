@@ -118,14 +118,16 @@
                     <a href="{{ route('categories.show', $category) }}" class="mt-5 inline-flex rounded-lg bg-rocha-blue px-5 py-3 font-bold text-white">Limpar filtros</a>
                 </div>
             @else
-                <div class="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
+                <div class="grid grid-cols-3 gap-4 xl:grid-cols-4" data-infinite-product-grid>
                     @foreach ($products as $product)
-                        @include('storefront.partials.product-card', ['product' => $product])
+                        @include('storefront.partials.product-card', ['product' => $product, 'compactGrid' => true])
                     @endforeach
                 </div>
 
-                <div class="mt-8">
-                    {{ $products->links() }}
+                <div class="mt-8 flex min-h-10 items-center justify-center text-sm text-slate-500" data-infinite-scroll data-next-url="{{ $products->nextPageUrl() }}" role="status" aria-live="polite">
+                    @if ($products->hasMorePages())
+                        <span data-infinite-loading>Carregando mais produtos...</span>
+                    @endif
                 </div>
             @endif
         </div>

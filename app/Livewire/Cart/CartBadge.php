@@ -8,6 +8,8 @@ use Livewire\Component;
 
 class CartBadge extends Component
 {
+    public string $variant = 'default';
+
     #[On('cart-updated')]
     public function refresh(): void
     {

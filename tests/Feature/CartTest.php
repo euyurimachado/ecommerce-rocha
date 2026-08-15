@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Livewire\Cart\AddToCartButton;
 use App\Livewire\Cart\CartPage;
+use App\Livewire\Cart\ProductPurchaseBar;
 use App\Models\Category;
 use App\Models\Coupon;
 use App\Models\Product;
@@ -43,6 +44,61 @@ class CartTest extends TestCase
             ->assertRedirect(route('checkout'));
 
         $this->assertSame(1, app(CartManager::class)->count());
+    }
+
+    public function test_purchase_bar_quantity_is_clamped_and_sent_to_cart(): void
+    {
+        $product = $this->createProduct(['stock_quantity' => 3]);
+
+        Livewire::test(ProductPurchaseBar::class, ['product' => $product])
+            ->assertSet('quantity', 1)
+            ->call('decrement')
+            ->assertSet('quantity', 1)
+            ->call('increment')
+            ->call('increment')
+            ->call('increment')
+            ->assertSet('quantity', 3)
+            ->call('add')
+            ->assertSet('added', true)
+            ->assertDispatched('cart-updated');
+
+        $this->assertSame(3, app(CartManager::class)->count());
+    }
+
+    public function test_purchase_bar_uses_variant_stock_and_selections(): void
+    {
+        $product = $this->createProduct([
+            'variations' => [[
+                'name' => 'Sabor',
+                'options' => [[
+                    'value' => 'Chocolate',
+                    'stock_quantity' => 2,
+                    'price_cents' => 9990,
+                ]],
+            ]],
+        ]);
+
+        Livewire::test(ProductPurchaseBar::class, ['product' => $product])
+            ->set('quantity', 5)
+            ->call('selectVariants', ['Sabor' => 'Chocolate'])
+            ->call('add')
+            ->assertSet('quantity', 2)
+            ->assertDispatched('cart-updated');
+
+        $item = app(CartManager::class)->items()->first();
+        $this->assertSame(2, $item['quantity']);
+        $this->assertSame(['Sabor' => 'Chocolate'], $item['variant_selections']);
+    }
+
+    public function test_out_of_stock_product_is_not_added(): void
+    {
+        $product = $this->createProduct(['stock_quantity' => 0]);
+
+        Livewire::test(ProductPurchaseBar::class, ['product' => $product])
+            ->call('add')
+            ->assertNotDispatched('cart-updated');
+
+        $this->assertSame(0, app(CartManager::class)->count());
     }
 
     public function test_cart_page_renders_items_and_summary(): void

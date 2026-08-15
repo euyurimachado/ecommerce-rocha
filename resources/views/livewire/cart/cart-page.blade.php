@@ -75,7 +75,7 @@
                 <form wire:submit="applyCoupon" class="mt-5">
                     <label class="text-sm font-bold text-slate-700" for="cart-coupon">Cupom de desconto</label>
                     <div class="mt-2 flex gap-2">
-                        <input id="cart-coupon" wire:model="couponCode" class="h-11 min-w-0 flex-1 rounded-lg border border-slate-200 px-3 text-sm uppercase outline-none focus:border-rocha-blue" type="text" placeholder="ROCHA10">
+                        <input id="cart-coupon" wire:model="couponCode" class="h-11 min-w-0 flex-1 rounded-lg border border-slate-200 px-3 text-sm outline-none focus:border-rocha-blue" type="text" placeholder="Rocha10">
                         <button class="rounded-lg border border-slate-200 px-4 text-sm font-bold text-slate-700 transition hover:border-rocha-blue/30 hover:bg-rocha-blue/5 hover:text-rocha-blue" type="submit">Aplicar</button>
                     </div>
                     @if ($coupon)

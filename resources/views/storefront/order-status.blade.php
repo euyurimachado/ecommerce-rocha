@@ -20,15 +20,15 @@
 
             <div class="mt-6 grid gap-3 sm:grid-cols-3">
                 <div class="rounded-lg bg-slate-50 p-4">
-                    <p class="text-xs font-bold uppercase text-slate-500">Total</p>
+                    <p class="text-xs font-bold text-slate-500">Total</p>
                     <p class="mt-1 font-bold">{{ $order->formatted_total }}</p>
                 </div>
                 <div class="rounded-lg bg-slate-50 p-4">
-                    <p class="text-xs font-bold uppercase text-slate-500">Recebimento</p>
+                    <p class="text-xs font-bold text-slate-500">Recebimento</p>
                     <p class="mt-1 font-bold">{{ $order->fulfillment_method_label }}</p>
                 </div>
                 <div class="rounded-lg bg-slate-50 p-4">
-                    <p class="text-xs font-bold uppercase text-slate-500">Pagamento</p>
+                    <p class="text-xs font-bold text-slate-500">Pagamento</p>
                     <p class="mt-1 font-bold">{{ $order->payment_method_label }}</p>
                 </div>
             </div>

@@ -281,7 +281,6 @@ class StorefrontController extends Controller
             'products' => $productsQuery
                 ->paginate(12)
                 ->withQueryString(),
-            'popularSearches' => ['whey protein', 'creatina', 'pré-treino', 'vitaminas', 'combos'],
         ]);
     }
 

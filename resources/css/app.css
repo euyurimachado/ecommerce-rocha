@@ -28,6 +28,14 @@
 }
 
 @layer components {
+    .scrollbar-hidden {
+        scrollbar-width: none;
+    }
+
+    .scrollbar-hidden::-webkit-scrollbar {
+        display: none;
+    }
+
     .rocha-fa-icon {
         display: inline-flex;
         align-items: center;

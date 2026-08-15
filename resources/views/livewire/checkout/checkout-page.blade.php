@@ -87,7 +87,7 @@
                             </label>
                             <label class="block md:col-span-1">
                                 <span class="text-sm font-bold text-slate-700">UF</span>
-                                <input wire:model="state" class="mt-2 h-11 w-full rounded-lg border border-slate-200 px-3 uppercase outline-none focus:border-rocha-blue" type="text" maxlength="2">
+                                <input wire:model="state" class="mt-2 h-11 w-full rounded-lg border border-slate-200 px-3 outline-none focus:border-rocha-blue" type="text" maxlength="2">
                                 @error('state') <span class="mt-1 block text-sm text-rose-700">{{ $message }}</span> @enderror
                             </label>
                             <label class="block md:col-span-6">

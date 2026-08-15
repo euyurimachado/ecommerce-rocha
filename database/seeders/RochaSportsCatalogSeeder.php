@@ -310,8 +310,9 @@ class RochaSportsCatalogSeeder extends Seeder
                 ? $banner->image_path
                 : null;
 
-            if (str_starts_with((string) $imagePath, 'banners/imported/home-offer-')) {
-                $imagePath = null;
+            if (! $imagePath && $bannerData['placement'] === 'home_hero') {
+                $importedPath = 'banners/imported/home-offer-'.$bannerData['sort_order'].'.webp';
+                $imagePath = Storage::disk('public')->exists($importedPath) ? $importedPath : null;
             }
 
             $banner->fill([

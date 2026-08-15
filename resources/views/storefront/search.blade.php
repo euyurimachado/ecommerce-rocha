@@ -1,6 +1,6 @@
 @extends('layouts.storefront')
 
-@section('title', ($query ? 'Busca por '.$query : 'Buscar suplementos').' | Rocha Sports')
+@section('title', ($query ? 'Resultados para '.$query : 'Todos os produtos').' | Rocha Sports')
 @section('meta_description', 'Busque suplementos, marcas e categorias na Rocha Sports com entrega rápida em Campos dos Goytacazes.')
 
 @section('content')
@@ -17,28 +17,11 @@
 
     <section class="border-b border-slate-200 bg-white">
         <div class="mx-auto max-w-7xl px-4 py-8 lg:px-6">
-            <p class="text-sm font-semibold text-rocha-blue">Busca Rocha Sports</p>
+            <p class="text-sm font-semibold text-rocha-blue">Produtos Rocha Sports</p>
             <h1 class="mt-2 text-2xl font-bold leading-snug text-slate-950 md:text-3xl">
-                {{ $selectedHomeSectionLabel ? 'Seleção '.$selectedHomeSectionLabel : ($query ? 'Resultados para "'.$query.'"' : 'Buscar suplementos') }}
+                {{ $selectedHomeSectionLabel ? 'Seleção '.$selectedHomeSectionLabel : ($query ? 'Resultados para "'.$query.'"' : 'Todos os produtos') }}
             </h1>
-            <p class="mt-3 max-w-2xl text-slate-600">Encontre produtos por nome, marca, categoria ou objetivo e compre com entrega local ou retirada.</p>
-
-            <form action="{{ route('search') }}" method="GET" class="mt-6 grid gap-3 md:grid-cols-[1fr_auto]">
-                @if ($selectedHomeSection)
-                    <input type="hidden" name="secao" value="{{ $selectedHomeSection }}">
-                @endif
-                <label class="sr-only" for="search-page-input">Buscar</label>
-                <input id="search-page-input" name="q" value="{{ $query }}" class="h-12 rounded-lg border border-slate-200 px-4 outline-none focus:border-rocha-blue" type="search" placeholder="Whey, creatina, Max Titanium...">
-                <button class="rounded-lg bg-rocha-blue px-6 py-3 font-bold text-white" type="submit">Buscar</button>
-            </form>
-
-            <div class="mt-4 flex flex-wrap gap-2">
-                @foreach ($popularSearches as $popularSearch)
-                    <a href="{{ route('search', ['q' => $popularSearch]) }}" class="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-700">
-                        {{ $popularSearch }}
-                    </a>
-                @endforeach
-            </div>
+            <p class="mt-3 max-w-2xl text-slate-600">Explore o catálogo por categoria, marca, ofertas e objetivos.</p>
         </div>
     </section>
 
@@ -91,7 +74,7 @@
             <div class="mb-5 flex flex-wrap items-center justify-between gap-4">
                 <p class="text-sm font-semibold text-slate-600">{{ $products->total() }} produtos encontrados</p>
                 @if ($query || $selectedCategory || $selectedBrand || $selectedHomeSection)
-                    <a href="{{ route('search') }}" class="text-sm font-bold text-rocha-blue">Nova busca</a>
+                    <a href="{{ route('search') }}" class="text-sm font-bold text-rocha-blue">Limpar filtros</a>
                 @endif
             </div>
 
@@ -148,14 +131,16 @@
                     <a href="{{ route('home') }}" class="mt-5 inline-flex rounded-lg bg-rocha-blue px-5 py-3 font-bold text-white">Voltar para a loja</a>
                 </div>
             @else
-                <div class="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
+                <div class="grid grid-cols-3 gap-4 xl:grid-cols-4" data-infinite-product-grid>
                     @foreach ($products as $product)
-                        @include('storefront.partials.product-card', ['product' => $product])
+                        @include('storefront.partials.product-card', ['product' => $product, 'compactGrid' => true])
                     @endforeach
                 </div>
 
-                <div class="mt-8">
-                    {{ $products->links() }}
+                <div class="mt-8 flex min-h-10 items-center justify-center text-sm text-slate-500" data-infinite-scroll data-next-url="{{ $products->nextPageUrl() }}" role="status" aria-live="polite">
+                    @if ($products->hasMorePages())
+                        <span data-infinite-loading>Carregando mais produtos...</span>
+                    @endif
                 </div>
             @endif
         </div>

@@ -18,9 +18,9 @@
             <span class="rounded-lg bg-slate-100 px-3 py-2 text-sm font-bold text-slate-700">{{ $products->count() }} {{ $products->count() === 1 ? 'item' : 'itens' }}</span>
         </div>
 
-        <div class="mt-6 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+        <div class="mt-6 grid grid-cols-3 gap-4 lg:grid-cols-4">
             @foreach ($products as $product)
-                @include('storefront.partials.product-card', ['product' => $product])
+                @include('storefront.partials.product-card', ['product' => $product, 'compactGrid' => true])
             @endforeach
         </div>
     @endif

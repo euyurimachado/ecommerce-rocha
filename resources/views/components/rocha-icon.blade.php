@@ -7,6 +7,8 @@
         'arrow-left' => 'fa-solid fa-arrow-left',
         'badge-check' => 'fa-solid fa-circle-check',
         'chevron-right' => 'fa-solid fa-chevron-right',
+        'chevron-left' => 'fa-solid fa-chevron-left',
+        'chevron-down' => 'fa-solid fa-chevron-down',
         'credit-card' => 'fa-regular fa-credit-card',
         'cookie' => 'fa-solid fa-cookie-bite',
         'bolt' => 'fa-solid fa-bolt',

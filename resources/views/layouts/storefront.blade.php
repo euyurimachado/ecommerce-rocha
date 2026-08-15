@@ -23,9 +23,10 @@
     @livewireStyles
     @yield('schema')
 </head>
-<body class="bg-slate-50 text-slate-950 antialiased">
-    <div class="min-h-screen pb-24 lg:pb-0">
-        <header class="sticky top-0 z-40 border-b border-slate-200 bg-white/95 shadow-sm backdrop-blur">
+@php($storefrontVariant = trim($__env->yieldContent('storefront_variant', 'default')))
+<body class="{{ $storefrontVariant === 'product' ? 'bg-white' : 'bg-slate-50' }} text-slate-950 antialiased">
+    <div class="min-h-screen {{ $storefrontVariant === 'home' ? 'pb-24' : ($storefrontVariant === 'product' ? 'pb-24 md:pb-0' : 'pb-24') }} md:pb-0">
+        <header class="sticky top-0 z-40 hidden border-b border-slate-200 bg-white/95 shadow-sm backdrop-blur md:block">
             <div class="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3 lg:px-6">
                 <a href="{{ route('home') }}" class="flex min-w-fit items-center" aria-label="Rocha Sports">
                     <img class="h-11 w-auto max-w-[9.5rem] object-contain md:h-12 md:max-w-[12rem]" src="{{ asset('images/logo-rocha-sports.webp') }}" alt="Rocha Sports" width="280" height="80">
@@ -54,19 +55,22 @@
             </div>
 
             <div class="mx-auto px-4 pb-3 md:hidden">
-                <form action="{{ route('search') }}" method="GET" class="flex h-11 items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4 focus-within:border-rocha-blue focus-within:bg-white focus-within:ring-4 focus-within:ring-rocha-blue/10">
-                    <x-rocha-icon name="search" class="size-5 text-rocha-blue" />
-                    <input name="q" value="{{ request('q') }}" class="w-full bg-transparent text-sm outline-none" type="search" placeholder="Buscar suplementos, marcas e lojas">
-                </form>
-                <p class="mt-2 flex items-center gap-1.5 text-xs font-medium text-slate-600"><x-rocha-icon name="map-pin" class="size-3.5 text-rocha-blue" /> Entrega em Campos dos Goytacazes, RJ</p>
+                <p class="flex items-center gap-1.5 text-xs font-medium text-slate-600"><x-rocha-icon name="map-pin" class="size-3.5 text-rocha-blue" /> Entrega em Campos dos Goytacazes, RJ</p>
             </div>
+        </header>
+
+        <header class="flex h-[70px] items-center justify-between bg-white px-4 md:hidden">
+            <a href="{{ route('home') }}" aria-label="Rocha Sports">
+                <img class="h-10 w-auto max-w-[150px] object-contain" src="{{ asset('images/logo-rocha-sports.webp') }}" alt="Rocha Sports" width="280" height="80">
+            </a>
+            <livewire:cart.cart-badge variant="minimal" />
         </header>
 
         <main>
             @yield('content')
         </main>
 
-        <footer class="border-t border-slate-200 bg-white">
+        <footer class="{{ $storefrontVariant === 'product' ? 'hidden md:block' : '' }} border-t border-slate-200 bg-white">
             <div class="mx-auto grid max-w-7xl gap-8 px-4 py-10 text-sm text-slate-600 md:grid-cols-4 lg:px-6">
                 <div>
                     <img class="h-12 w-auto object-contain" src="{{ asset('images/logo-rocha-sports.webp') }}" alt="Rocha Sports" width="280" height="80">
@@ -97,17 +101,22 @@
         </footer>
     </div>
 
-    <livewire:cart.sticky-cart />
+    @if ($storefrontVariant !== 'product')
+        <livewire:cart.sticky-cart />
+    @endif
     @include('partials.cookie-consent')
 
-    <nav class="fixed inset-x-0 bottom-0 z-50 border-t border-slate-200 bg-white px-2 py-2 md:hidden">
-        <div class="mx-auto grid max-w-md grid-cols-4 text-center text-[11px] font-medium leading-tight text-slate-600">
-            <a class="flex flex-col items-center gap-1 rounded-lg px-1.5 py-2 text-rocha-blue" href="{{ route('home') }}"><x-rocha-icon name="home" class="size-5" />Início</a>
-            <a class="flex flex-col items-center gap-1 rounded-lg px-1.5 py-2" href="{{ route('search', ['ordenar' => 'ofertas']) }}"><x-rocha-icon name="tag" class="size-5" />Ofertas</a>
-            <a class="flex flex-col items-center gap-1 rounded-lg px-1.5 py-2" href="{{ route('orders.index') }}"><x-rocha-icon name="package" class="size-5" />Pedidos</a>
-            <a class="flex flex-col items-center gap-1 rounded-lg px-1.5 py-2" href="{{ route('favorites.index') }}"><x-rocha-icon name="heart" class="size-5" />Favoritos</a>
-        </div>
-    </nav>
+    @if ($storefrontVariant !== 'product')
+        <nav class="fixed inset-x-0 bottom-0 z-50 border-t border-slate-200 bg-white px-2 pt-2 pb-[max(8px,env(safe-area-inset-bottom))] md:hidden" aria-label="Navegação principal">
+            <div class="mx-auto grid h-16 max-w-md grid-cols-5 text-center text-[11px] font-medium leading-tight text-slate-600">
+                <a class="flex flex-col items-center justify-center gap-1 px-1 {{ request()->routeIs('home') ? 'font-bold text-rocha-blue' : '' }}" href="{{ route('home') }}"><x-rocha-icon name="home" class="size-5" />Início</a>
+                <a class="flex flex-col items-center justify-center gap-1 px-1 {{ request()->routeIs('search') && request('ordenar') !== 'ofertas' ? 'font-bold text-rocha-blue' : '' }}" href="{{ route('search') }}"><x-rocha-icon name="search" class="size-5" />Busca</a>
+                <a class="flex flex-col items-center justify-center gap-1 px-1 {{ request()->routeIs('search') && request('ordenar') === 'ofertas' ? 'font-bold text-rocha-blue' : '' }}" href="{{ route('search', ['ordenar' => 'ofertas']) }}"><x-rocha-icon name="tag" class="size-5" />Ofertas</a>
+                <a class="flex flex-col items-center justify-center gap-1 px-1 {{ request()->routeIs('orders.*') ? 'font-bold text-rocha-blue' : '' }}" href="{{ route('orders.index') }}"><x-rocha-icon name="package" class="size-5" />Pedidos</a>
+                <a class="flex flex-col items-center justify-center gap-1 px-1 {{ request()->routeIs('favorites.*') ? 'font-bold text-rocha-blue' : '' }}" href="{{ route('favorites.index') }}"><x-rocha-icon name="heart" class="size-5" />Favoritos</a>
+            </div>
+        </nav>
+    @endif
 
     @livewireScripts
 </body>
