@@ -5,8 +5,10 @@ namespace Tests\Feature;
 use App\Models\Category;
 use App\Models\Order;
 use App\Models\Product;
+use App\Notifications\OrderStatusNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
 class MercadoPagoWebhookTest extends TestCase
@@ -15,6 +17,7 @@ class MercadoPagoWebhookTest extends TestCase
 
     public function test_webhook_syncs_approved_payment_status(): void
     {
+        Notification::fake();
         config(['services.mercado_pago.access_token' => 'TEST-ACCESS-TOKEN']);
 
         $product = $this->createProduct();
@@ -26,7 +29,8 @@ class MercadoPagoWebhookTest extends TestCase
             'customer_email' => 'cliente@example.com',
             'customer_phone' => '22999990000',
             'fulfillment_method' => 'pickup',
-            'payment_method' => 'mercado_pago',
+            'payment_method' => 'pix',
+            'payment_provider' => 'mercado_pago',
             'subtotal_cents' => 8990,
             'shipping_cents' => 0,
             'discount_cents' => 0,
@@ -62,7 +66,8 @@ class MercadoPagoWebhookTest extends TestCase
 
         $order->refresh();
 
-        $this->assertSame('payment_approved', $order->status);
+        $this->assertSame('preparing', $order->status);
+        $this->assertSame('approved', $order->payment_status);
         $this->assertSame('123456', $order->mercado_pago_payment_id);
         $this->assertSame('approved', $order->mercado_pago_status);
         $this->assertSame('accredited', $order->mercado_pago_status_detail);
@@ -70,6 +75,16 @@ class MercadoPagoWebhookTest extends TestCase
         $product->refresh();
         $this->assertSame(1, $product->sales_count);
         $this->assertSame(9, $product->stock_quantity);
+        Notification::assertSentTo($order, OrderStatusNotification::class, fn ($notification) => $notification->event === 'preparing');
+
+        $this->postJson('/api/pagamentos/mercado-pago/webhook?type=payment&data.id=123456', [
+            'type' => 'payment',
+            'data' => ['id' => '123456'],
+        ])->assertOk();
+
+        $this->assertSame(1, $product->refresh()->sales_count);
+        $this->assertSame(9, $product->stock_quantity);
+        Notification::assertSentToTimes($order, OrderStatusNotification::class, 2);
     }
 
     private function createProduct(): Product

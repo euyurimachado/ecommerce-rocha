@@ -4,9 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Notifications\Notifiable;
 
 class Order extends Model
 {
+    use Notifiable;
+
     protected $fillable = [
         'code',
         'status',
@@ -22,10 +25,16 @@ class Order extends Model
         'city',
         'state',
         'payment_method',
+        'payment_provider',
+        'payment_status',
+        'payment_idempotency_key',
         'mercado_pago_preference_id',
         'mercado_pago_payment_id',
         'mercado_pago_status',
         'mercado_pago_status_detail',
+        'pix_qr_code',
+        'pix_qr_code_base64',
+        'pix_expires_at',
         'mercado_pago_init_point',
         'mercado_pago_sandbox_init_point',
         'coupon_code',
@@ -43,12 +52,18 @@ class Order extends Model
         return [
             'privacy_accepted_at' => 'datetime',
             'payment_approved_at' => 'datetime',
+            'pix_expires_at' => 'datetime',
         ];
     }
 
     public function items(): HasMany
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    public function routeNotificationForMail(): string
+    {
+        return $this->customer_email;
     }
 
     public function getFormattedTotalAttribute(): string
@@ -73,7 +88,7 @@ class Order extends Model
             'ready_for_pickup' => 'Pronto para retirada',
             'delivered' => 'Entregue',
             'cancelled' => 'Cancelado',
-            default => 'Pedido recebido',
+            default => 'Pedido realizado',
         };
     }
 
@@ -85,12 +100,21 @@ class Order extends Model
     public function getPaymentMethodLabelAttribute(): string
     {
         return match ($this->payment_method) {
-            'mercado_pago' => 'Mercado Pago',
-            'credit_card' => 'Cartão de crédito',
-            'boleto' => 'Boleto',
-            'payment_on_delivery_pix' => 'PIX na entrega',
-            'payment_on_delivery_card' => 'Cartão na entrega',
-            default => 'Pix',
+            'card' => 'Cartão',
+            'pix' => 'PIX',
+            default => 'Mercado Pago',
+        };
+    }
+
+    public function getPaymentMessageAttribute(): string
+    {
+        return match ($this->payment_status) {
+            'approved' => 'Pagamento aprovado! Já recebemos seu pedido e vamos iniciar a preparação para entrega.',
+            'rejected', 'cancelled' => 'Pagamento não aprovado. Confira os dados e tente novamente com segurança.',
+            'pending', 'in_process' => $this->payment_method === 'pix'
+                ? 'Seu pedido foi criado e está aguardando a confirmação do pagamento via PIX. Assim que o pagamento for confirmado, iniciaremos a preparação.'
+                : 'Seu pagamento está sendo processado. Avisaremos assim que houver uma atualização.',
+            default => 'Seu pedido foi realizado e o estado do pagamento será atualizado por aqui.',
         };
     }
 }

@@ -65,15 +65,19 @@
                                 @endif
                                 @error('postal_code') <span class="mt-1 block text-sm text-rose-700">{{ $message }}</span> @enderror
                             </label>
-                            <label class="block md:col-span-3">
+                            <label class="block md:col-span-6">
                                 <span class="text-sm font-bold text-slate-700">Rua</span>
                                 <input wire:model="street" class="mt-2 h-11 w-full rounded-lg border border-slate-200 px-3 outline-none focus:border-rocha-blue" type="text" autocomplete="address-line1">
                                 @error('street') <span class="mt-1 block text-sm text-rose-700">{{ $message }}</span> @enderror
                             </label>
-                            <label class="block md:col-span-1">
+                            <label class="block md:col-span-2">
                                 <span class="text-sm font-bold text-slate-700">Número</span>
                                 <input wire:model="number" class="mt-2 h-11 w-full rounded-lg border border-slate-200 px-3 outline-none focus:border-rocha-blue" type="text">
                                 @error('number') <span class="mt-1 block text-sm text-rose-700">{{ $message }}</span> @enderror
+                            </label>
+                            <label class="block md:col-span-4">
+                                <span class="text-sm font-bold text-slate-700">Complemento</span>
+                                <input wire:model="complement" class="mt-2 h-11 w-full rounded-lg border border-slate-200 px-3 outline-none focus:border-rocha-blue" type="text" autocomplete="address-line2">
                             </label>
                             <label class="block md:col-span-3">
                                 <span class="text-sm font-bold text-slate-700">Bairro</span>
@@ -90,10 +94,6 @@
                                 <input wire:model="state" class="mt-2 h-11 w-full rounded-lg border border-slate-200 px-3 outline-none focus:border-rocha-blue" type="text" maxlength="2">
                                 @error('state') <span class="mt-1 block text-sm text-rose-700">{{ $message }}</span> @enderror
                             </label>
-                            <label class="block md:col-span-6">
-                                <span class="text-sm font-bold text-slate-700">Complemento</span>
-                                <input wire:model="complement" class="mt-2 h-11 w-full rounded-lg border border-slate-200 px-3 outline-none focus:border-rocha-blue" type="text">
-                            </label>
                         </div>
                     @else
                         <div class="mt-5 rounded-lg bg-slate-50 p-4 text-sm text-slate-600">
@@ -108,24 +108,10 @@
                         <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-rocha-blue/30 bg-rocha-blue/5 p-4">
                             <input wire:model="payment_method" class="mt-1" type="radio" value="mercado_pago">
                             <span>
-                                <span class="block font-bold text-slate-950">Mercado Pago</span>
-                                <span class="mt-1 block text-sm text-slate-600">Pix, cartão, boleto e saldo Mercado Pago em ambiente seguro.</span>
+                                <span class="block font-bold text-slate-950">Pagar com Mercado Pago</span>
+                                <span class="mt-1 block text-sm text-slate-600">Você será direcionado ao ambiente seguro do Mercado Pago para pagar via PIX ou cartão.</span>
                             </span>
                         </label>
-                        <div class="rounded-lg border border-slate-200 p-4">
-                            <p class="font-bold text-slate-950">Pagamento na entrega</p>
-                            <p class="mt-1 text-sm text-slate-600">Escolha como deseja pagar ao receber o pedido.</p>
-                            <div class="mt-4 grid gap-3 sm:grid-cols-2">
-                                <label class="flex cursor-pointer items-center gap-3 rounded-lg border border-slate-200 px-4 py-3">
-                                    <input wire:model="payment_method" type="radio" value="payment_on_delivery_pix">
-                                    <span class="font-semibold text-slate-800">PIX na entrega</span>
-                                </label>
-                                <label class="flex cursor-pointer items-center gap-3 rounded-lg border border-slate-200 px-4 py-3">
-                                    <input wire:model="payment_method" type="radio" value="payment_on_delivery_card">
-                                    <span class="font-semibold text-slate-800">Cartão na entrega</span>
-                                </label>
-                            </div>
-                        </div>
                     </div>
                     @error('payment_method') <span class="mt-2 block text-sm text-rose-700">{{ $message }}</span> @enderror
 

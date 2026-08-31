@@ -36,12 +36,13 @@ class StorefrontRedesignTest extends TestCase
             ->assertDontSee('home-inactive.webp', false);
     }
 
-    public function test_storefront_keeps_desktop_search_field_and_shared_mobile_header(): void
+    public function test_search_stays_on_search_page_and_mobile_header_is_shared(): void
     {
         $this->get(route('search'))
             ->assertOk()
             ->assertSee('type="search"', false)
-            ->assertSee('placeholder="Buscar suplementos, marcas e lojas"', false)
+            ->assertSee('placeholder="O que você está procurando?"', false)
+            ->assertDontSee('id="site-search"', false)
             ->assertSee('h-[70px] items-center justify-between bg-white px-4 md:hidden', false)
             ->assertSee('fa-cart-shopping size-7', false);
     }

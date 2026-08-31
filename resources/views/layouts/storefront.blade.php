@@ -32,14 +32,6 @@
                     <img class="h-11 w-auto max-w-[9.5rem] object-contain md:h-12 md:max-w-[12rem]" src="{{ asset('images/logo-rocha-sports.webp') }}" alt="Rocha Sports" width="280" height="80">
                 </a>
 
-                <form action="{{ route('search') }}" method="GET" class="hidden flex-1 md:block">
-                    <label class="sr-only" for="site-search">Buscar</label>
-                    <div class="flex h-12 items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4 shadow-inner transition focus-within:border-rocha-blue focus-within:bg-white focus-within:ring-4 focus-within:ring-rocha-blue/10">
-                        <x-rocha-icon name="search" class="size-5 text-rocha-blue" />
-                        <input id="site-search" name="q" value="{{ request('q') }}" class="w-full bg-transparent text-sm outline-none" type="search" placeholder="Buscar suplementos, marcas e lojas">
-                    </div>
-                </form>
-
                 <div class="hidden items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 lg:flex">
                     <x-rocha-icon name="map-pin" class="size-4 text-rocha-blue" />
                     <span>Entrega em Campos dos Goytacazes, RJ</span>

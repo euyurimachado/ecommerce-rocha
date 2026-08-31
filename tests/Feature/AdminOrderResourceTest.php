@@ -69,7 +69,8 @@ class AdminOrderResourceTest extends TestCase
         $product = $this->createProduct();
         $order = $this->createOrder([
             'status' => 'payment_pending',
-            'payment_method' => 'mercado_pago',
+            'payment_method' => 'pix',
+            'payment_provider' => 'mercado_pago',
         ]);
 
         $order->items()->create([
@@ -87,7 +88,8 @@ class AdminOrderResourceTest extends TestCase
         $updater($order, 'payment_approved');
         $updater($order->refresh(), 'payment_approved');
 
-        $this->assertSame('payment_approved', $order->refresh()->status);
+        $this->assertSame('preparing', $order->refresh()->status);
+        $this->assertSame('approved', $order->payment_status);
         $this->assertNotNull($order->payment_approved_at);
         $product->refresh();
         $this->assertSame(2, $product->sales_count);

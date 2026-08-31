@@ -2,12 +2,14 @@
 
 namespace App\Livewire\Checkout;
 
+use App\Models\Order;
 use App\Support\Cart\CartManager;
 use App\Support\Checkout\CreateOrderFromCart;
 use App\Support\Checkout\ShippingCalculator;
 use App\Support\Payments\MercadoPago\MercadoPagoClient;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use InvalidArgumentException;
 use Livewire\Component;
@@ -39,6 +41,8 @@ class CheckoutPage extends Component
 
     public string $payment_method = 'mercado_pago';
 
+    public string $payment_attempt_id = '';
+
     public string $notes = '';
 
     public bool $privacy_accepted = false;
@@ -46,6 +50,11 @@ class CheckoutPage extends Component
     public ?string $checkoutError = null;
 
     public ?string $addressLookupError = null;
+
+    public function mount(): void
+    {
+        $this->payment_attempt_id = (string) Str::uuid();
+    }
 
     public function placeOrder(CartManager $cart, CreateOrderFromCart $createOrder, MercadoPagoClient $mercadoPago)
     {
@@ -60,41 +69,34 @@ class CheckoutPage extends Component
         }
 
         try {
-            $isMercadoPago = $validated['payment_method'] === 'mercado_pago';
+            $validated += [
+                'payment_provider' => 'mercado_pago',
+                'payment_status' => 'pending',
+                'payment_idempotency_key' => $this->payment_attempt_id,
+            ];
 
-            $order = $createOrder(
-                $cart,
-                $validated,
-                clearCart: ! $isMercadoPago,
-                recordSale: ! $isMercadoPago,
+            $order = Order::query()
+                ->where('payment_idempotency_key', $this->payment_attempt_id)
+                ->first() ?? $createOrder($cart, $validated, clearCart: false, recordSale: false);
+
+            $order->forceFill(['status' => 'payment_pending'])->save();
+
+            $preference = $mercadoPago->createPreference($order);
+            $order->forceFill([
+                'mercado_pago_preference_id' => $preference['id'] ?? null,
+                'mercado_pago_init_point' => $preference['init_point'] ?? null,
+                'mercado_pago_sandbox_init_point' => $preference['sandbox_init_point'] ?? null,
+            ])->save();
+
+            $cart->coupon()?->increment('used_count');
+            $cart->clear();
+            $this->dispatch('cart-updated');
+
+            return redirect()->away(
+                $mercadoPago->shouldUseSandboxInitPoint()
+                    ? ($preference['sandbox_init_point'] ?? $preference['init_point'])
+                    : $preference['init_point']
             );
-
-            if ($order->payment_method === 'mercado_pago') {
-                try {
-                    $preference = $mercadoPago->createPreference($order);
-                } catch (Throwable $exception) {
-                    $order->delete();
-
-                    throw $exception;
-                }
-
-                $order->forceFill([
-                    'status' => 'payment_pending',
-                    'mercado_pago_preference_id' => $preference['id'] ?? null,
-                    'mercado_pago_init_point' => $preference['init_point'] ?? null,
-                    'mercado_pago_sandbox_init_point' => $preference['sandbox_init_point'] ?? null,
-                ])->save();
-
-                $cart->coupon()?->increment('used_count');
-                $cart->clear();
-                $this->dispatch('cart-updated');
-
-                return redirect()->away(
-                    $mercadoPago->shouldUseSandboxInitPoint()
-                        ? ($preference['sandbox_init_point'] ?? $preference['init_point'])
-                        : $preference['init_point']
-                );
-            }
         } catch (InvalidArgumentException $exception) {
             $this->checkoutError = $exception->getMessage();
 
@@ -107,9 +109,7 @@ class CheckoutPage extends Component
             return null;
         }
 
-        $this->dispatch('cart-updated');
-
-        return $this->redirectRoute('orders.status', ['order' => $order->code], navigate: true);
+        return null;
     }
 
     public function lookupPostalCode(): void
@@ -188,11 +188,6 @@ class CheckoutPage extends Component
             'state' => [Rule::requiredIf($this->fulfillment_method === 'delivery'), 'nullable', 'string', 'size:2'],
             'payment_method' => ['required', Rule::in([
                 'mercado_pago',
-                'pix',
-                'credit_card',
-                'boleto',
-                'payment_on_delivery_pix',
-                'payment_on_delivery_card',
             ])],
             'notes' => ['nullable', 'string', 'max:500'],
             'privacy_accepted' => ['accepted'],

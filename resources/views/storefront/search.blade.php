@@ -22,6 +22,16 @@
                 {{ $selectedHomeSectionLabel ? 'Seleção '.$selectedHomeSectionLabel : ($query ? 'Resultados para "'.$query.'"' : 'Todos os produtos') }}
             </h1>
             <p class="mt-3 max-w-2xl text-slate-600">Explore o catálogo por categoria, marca, ofertas e objetivos.</p>
+            <form action="{{ route('search') }}" method="GET" role="search" class="mt-6 flex max-w-2xl gap-2">
+                <label class="sr-only" for="catalog-search">Buscar produtos</label>
+                <div class="relative min-w-0 flex-1">
+                    <x-rocha-icon name="search" class="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-slate-500" />
+                    <input id="catalog-search" name="q" value="{{ $query }}" type="search" enterkeyhint="search" autocomplete="off" placeholder="O que você está procurando?" class="h-12 w-full rounded-lg border border-slate-300 bg-white pl-12 pr-4 text-base outline-none focus:border-rocha-blue focus:ring-2 focus:ring-rocha-blue/20">
+                </div>
+                <button type="submit" aria-label="Pesquisar" class="grid size-12 shrink-0 place-items-center rounded-lg bg-rocha-blue text-white transition hover:bg-rocha-blue-dark">
+                    <x-rocha-icon name="search" class="size-5" />
+                </button>
+            </form>
         </div>
     </section>
 

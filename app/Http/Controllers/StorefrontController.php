@@ -215,7 +215,7 @@ class StorefrontController extends Controller
 
     public function search(Request $request): View
     {
-        $query = trim((string) $request->query('q', ''));
+        $query = preg_replace('/\s+/u', ' ', trim((string) $request->query('q', ''))) ?? '';
         $categorySlug = $request->query('categoria');
         $brandSlug = $request->query('marca');
         $homeSection = (string) $request->query('secao', '');
@@ -227,28 +227,22 @@ class StorefrontController extends Controller
             'whey' => 'show_in_whey_festival',
             'creatina' => 'show_in_creatine_house',
         ];
-        $searchTerms = collect(preg_split('/\s+/', $query) ?: [])
+        $searchTerms = collect(preg_split('/\s+/u', mb_strtolower($query)) ?: [])
             ->map(fn (string $term): string => trim($term))
             ->filter(fn (string $term): bool => mb_strlen($term) >= 2)
             ->values();
 
+        $primarySearch = Product::query()
+            ->where('is_active', true)
+            ->when($searchTerms->isNotEmpty(), fn (Builder $builder) => $this->applyPrimarySearch($builder, $searchTerms->all()));
+        $useDescriptionFallback = $searchTerms->isNotEmpty() && ! $primarySearch->exists();
+
         $productsQuery = Product::query()
             ->with(['brand', 'category'])
             ->where('is_active', true)
-            ->when($searchTerms->isNotEmpty(), function (Builder $builder) use ($searchTerms) {
-                $builder->where(function (Builder $search) use ($searchTerms) {
-                    foreach ($searchTerms as $term) {
-                        $search->orWhere(function (Builder $termSearch) use ($term) {
-                            $termSearch
-                                ->where('name', 'like', "%{$term}%")
-                                ->orWhere('sku', 'like', "%{$term}%")
-                                ->orWhere('short_description', 'like', "%{$term}%")
-                                ->orWhereHas('brand', fn (Builder $brand) => $brand->where('name', 'like', "%{$term}%"))
-                                ->orWhereHas('category', fn (Builder $category) => $category->where('name', 'like', "%{$term}%"));
-                        });
-                    }
-                });
-            })
+            ->when($searchTerms->isNotEmpty(), fn (Builder $builder) => $useDescriptionFallback
+                ? $this->applyDescriptionFallback($builder, $searchTerms->all())
+                : $this->applyPrimarySearch($builder, $searchTerms->all()))
             ->when($categorySlug, fn (Builder $builder) => $builder->whereHas('category', fn (Builder $category) => $category->where('slug', $categorySlug)))
             ->when($brandSlug, fn (Builder $builder) => $builder->whereHas('brand', fn (Builder $brand) => $brand->where('slug', $brandSlug)))
             ->when(
@@ -261,7 +255,9 @@ class StorefrontController extends Controller
             'maior-preco' => $productsQuery->orderByDesc('price_cents'),
             'mais-vendidos' => $productsQuery->orderByDesc('sales_count'),
             'ofertas' => $productsQuery->orderByDesc('is_offer')->orderByDesc('sales_count'),
-            default => $productsQuery->orderByDesc('is_featured')->orderByDesc('sales_count'),
+            default => $searchTerms->isNotEmpty() && ! $useDescriptionFallback
+                ? $this->applyRelevanceOrder($productsQuery, $query, $searchTerms->all())
+                : $productsQuery->orderByDesc('is_featured')->orderByDesc('sales_count'),
         };
 
         return view('storefront.search', [
@@ -282,6 +278,50 @@ class StorefrontController extends Controller
                 ->paginate(12)
                 ->withQueryString(),
         ]);
+    }
+
+    private function applyPrimarySearch(Builder $builder, array $terms): Builder
+    {
+        foreach ($terms as $term) {
+            $like = '%'.$term.'%';
+            $builder->where(fn (Builder $search) => $search
+                ->whereRaw('LOWER(name) LIKE ?', [$like])
+                ->orWhereRaw('LOWER(slug) LIKE ?', [$like])
+                ->orWhereRaw('LOWER(sku) LIKE ?', [$like])
+                ->orWhereHas('brand', fn (Builder $brand) => $brand
+                    ->whereRaw('LOWER(name) LIKE ?', [$like])
+                    ->orWhereRaw('LOWER(slug) LIKE ?', [$like]))
+                ->orWhereHas('category', fn (Builder $category) => $category
+                    ->whereRaw('LOWER(name) LIKE ?', [$like])
+                    ->orWhereRaw('LOWER(slug) LIKE ?', [$like])));
+        }
+
+        return $builder;
+    }
+
+    private function applyDescriptionFallback(Builder $builder, array $terms): Builder
+    {
+        foreach ($terms as $term) {
+            $like = '%'.$term.'%';
+            $builder->where(fn (Builder $search) => $search
+                ->whereRaw('LOWER(short_description) LIKE ?', [$like])
+                ->orWhereRaw('LOWER(description) LIKE ?', [$like]));
+        }
+
+        return $builder;
+    }
+
+    private function applyRelevanceOrder(Builder $builder, string $query, array $terms): Builder
+    {
+        $normalized = mb_strtolower($query);
+
+        return $builder
+            ->orderByRaw(
+                'CASE WHEN LOWER(name) = ? THEN 0 WHEN LOWER(name) LIKE ? THEN 1 WHEN LOWER(name) LIKE ? THEN 2 ELSE 3 END',
+                [$normalized, $normalized.'%', '%'.implode('%', $terms).'%'],
+            )
+            ->orderByDesc('is_featured')
+            ->orderByDesc('sales_count');
     }
 
     public function orders(Request $request): View

@@ -35,6 +35,11 @@ class MercadoPagoClient
                 'order_code' => $order->code,
                 'order_id' => $order->id,
             ],
+            'payment_methods' => [
+                'excluded_payment_types' => collect(['ticket', 'atm', 'prepaid_card', 'digital_currency'])
+                    ->map(fn (string $type): array => ['id' => $type])
+                    ->all(),
+            ],
         ];
 
         if ($this->canUsePublicCallbacks()) {
@@ -47,7 +52,9 @@ class MercadoPagoClient
             $payload['auto_return'] = 'approved';
         }
 
-        $response = $this->request()->post('/checkout/preferences', $payload);
+        $response = $this->request()
+            ->withHeader('X-Idempotency-Key', $order->payment_idempotency_key)
+            ->post('/checkout/preferences', $payload);
 
         if ($response->failed()) {
             throw new RuntimeException('Mercado Pago preference error: '.$response->body());

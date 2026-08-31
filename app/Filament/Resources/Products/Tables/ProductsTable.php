@@ -2,9 +2,14 @@
 
 namespace App\Filament\Resources\Products\Tables;
 
+use App\Filament\Resources\Products\ProductResource;
+use App\Models\Product;
+use App\Support\Products\DuplicateProduct;
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Notifications\Notification;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -113,6 +118,17 @@ class ProductsTable
             ])
             ->recordActions([
                 EditAction::make(),
+                Action::make('duplicate')
+                    ->label('Duplicar produto')
+                    ->icon('heroicon-o-square-2-stack')
+                    ->requiresConfirmation()
+                    ->action(function (Product $record) {
+                        $copy = app(DuplicateProduct::class)($record);
+
+                        Notification::make()->success()->title('Produto duplicado com sucesso')->send();
+
+                        return redirect(ProductResource::getUrl('edit', ['record' => $copy]));
+                    }),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

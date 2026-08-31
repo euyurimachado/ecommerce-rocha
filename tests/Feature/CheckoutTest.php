@@ -9,6 +9,7 @@ use App\Models\Order;
 use App\Models\Product;
 use App\Support\Cart\CartManager;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -16,6 +17,26 @@ use Tests\TestCase;
 class CheckoutTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        config(['services.mercado_pago.access_token' => 'TEST-ACCESS-TOKEN']);
+        Http::fake([
+            'api.mercadopago.com/checkout/preferences' => function (Request $request) {
+                if (config('testing.fail_payment')) {
+                    return Http::response(['message' => 'payment unavailable'], 400);
+                }
+
+                return Http::response([
+                    'id' => 'pref-test-123',
+                    'init_point' => 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=pref-test-123',
+                    'sandbox_init_point' => 'https://sandbox.mercadopago.com.br/checkout/v1/redirect?pref_id=pref-test-123',
+                ], 201);
+            },
+        ]);
+    }
 
     public function test_checkout_creates_order_from_cart(): void
     {
@@ -33,24 +54,31 @@ class CheckoutTest extends TestCase
             ->set('neighborhood', 'Centro')
             ->set('city', 'Campos dos Goytacazes')
             ->set('state', 'RJ')
-            ->set('payment_method', 'pix')
+            ->set('payment_method', 'mercado_pago')
             ->set('privacy_accepted', true)
             ->call('placeOrder')
-            ->assertHasNoErrors();
+            ->assertRedirect('https://sandbox.mercadopago.com.br/checkout/v1/redirect?pref_id=pref-test-123');
 
         $order = Order::query()->with('items')->first();
 
         $this->assertNotNull($order);
         $this->assertStringContainsString($order->code, route('orders.status', ['order' => $order->code]));
-        $this->assertSame('received', $order->status);
+        $this->assertSame('payment_pending', $order->status);
+        $this->assertSame('pending', $order->payment_status);
+        $this->assertSame('pref-test-123', $order->mercado_pago_preference_id);
         $this->assertSame(17980, $order->subtotal_cents);
         $this->assertSame(990, $order->shipping_cents);
         $this->assertSame(18970, $order->total_cents);
         $this->assertCount(1, $order->items);
         $this->assertSame(2, $order->items->first()->quantity);
-        $this->assertSame(2, $product->refresh()->sales_count);
-        $this->assertSame(8, $product->stock_quantity);
+        $this->assertSame(0, $product->refresh()->sales_count);
+        $this->assertSame(10, $product->stock_quantity);
         $this->assertSame(0, app(CartManager::class)->count());
+
+        $this->get(route('orders.status', ['order' => $order->code]))
+            ->assertOk()
+            ->assertSee('Pedido realizado')
+            ->assertSee('Pagar com Mercado Pago');
     }
 
     public function test_checkout_uses_variant_price_and_sku_without_inventory_control(): void
@@ -81,7 +109,7 @@ class CheckoutTest extends TestCase
             ->set('customer_email', 'yuri@example.com')
             ->set('customer_phone', '22999990000')
             ->set('fulfillment_method', 'pickup')
-            ->set('payment_method', 'pix')
+            ->set('payment_method', 'mercado_pago')
             ->set('privacy_accepted', true)
             ->call('placeOrder')
             ->assertHasNoErrors();
@@ -92,22 +120,14 @@ class CheckoutTest extends TestCase
         $this->assertSame(25980, $order->subtotal_cents);
         $this->assertSame('WHEY-CHOC', $order->items->first()->product_sku);
         $this->assertSame(12990, $order->items->first()->unit_price_cents);
-        $this->assertSame(2, $product->sales_count);
-        $this->assertSame(1, data_get($product->variations, '0.options.0.stock_quantity'));
+        $this->assertSame(0, $product->sales_count);
+        $this->assertSame(3, data_get($product->variations, '0.options.0.stock_quantity'));
         $this->assertSame(10, $product->stock_quantity);
     }
 
-    public function test_checkout_redirects_to_mercado_pago_when_selected(): void
+    public function test_checkout_creates_restricted_external_mercado_pago_preference(): void
     {
         config(['services.mercado_pago.access_token' => 'TEST-ACCESS-TOKEN']);
-
-        Http::fake([
-            'api.mercadopago.com/checkout/preferences' => Http::response([
-                'id' => 'pref-test-123',
-                'init_point' => 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=pref-test-123',
-                'sandbox_init_point' => 'https://sandbox.mercadopago.com.br/checkout/v1/redirect?pref_id=pref-test-123',
-            ], 201),
-        ]);
 
         $product = $this->createProduct();
         app(CartManager::class)->add($product->id);
@@ -120,7 +140,7 @@ class CheckoutTest extends TestCase
             ->set('payment_method', 'mercado_pago')
             ->set('privacy_accepted', true)
             ->call('placeOrder')
-            ->assertRedirect('https://sandbox.mercadopago.com.br/checkout/v1/redirect?pref_id=pref-test-123');
+            ->assertRedirect();
 
         $order = Order::query()->first();
 
@@ -131,14 +151,12 @@ class CheckoutTest extends TestCase
         $this->assertSame(0, $product->refresh()->sales_count);
 
         Http::assertSent(fn ($request) => $request->url() === 'https://api.mercadopago.com/checkout/preferences'
-            && $request['external_reference'] === $order->code
-            && $request['items'][0]['unit_price'] === 89.9
-            && ! isset($request['notification_url'])
-            && ! isset($request['back_urls'])
-            && ! isset($request['auto_return']));
+            && collect($request['payment_methods']['excluded_payment_types'])->pluck('id')->contains('ticket')
+            && ! isset($request['payment_methods']['excluded_payment_methods'])
+            && filled($request->header('X-Idempotency-Key')[0] ?? null));
     }
 
-    public function test_checkout_creates_payment_on_delivery_order(): void
+    public function test_checkout_rejects_payment_on_delivery(): void
     {
         $product = $this->createProduct();
         app(CartManager::class)->add($product->id);
@@ -157,25 +175,16 @@ class CheckoutTest extends TestCase
             ->set('payment_method', 'payment_on_delivery_card')
             ->set('privacy_accepted', true)
             ->call('placeOrder')
-            ->assertHasNoErrors();
+            ->assertHasErrors(['payment_method']);
 
-        $order = Order::query()->first();
-
-        $this->assertSame('payment_on_delivery_card', $order->payment_method);
-        $this->assertSame('Cartão na entrega', $order->payment_method_label);
-        $this->assertSame(1, $product->refresh()->sales_count);
-        $this->assertSame(0, app(CartManager::class)->count());
+        $this->assertDatabaseCount('orders', 0);
     }
 
-    public function test_checkout_keeps_cart_when_mercado_pago_preference_fails(): void
+    public function test_checkout_keeps_cart_and_order_key_when_mercado_pago_payment_fails(): void
     {
         config(['services.mercado_pago.access_token' => 'TEST-ACCESS-TOKEN']);
 
-        Http::fake([
-            'api.mercadopago.com/checkout/preferences' => Http::response([
-                'message' => 'auto_return invalid. back_url.success must be defined',
-            ], 400),
-        ]);
+        config(['testing.fail_payment' => true]);
 
         $product = $this->createProduct();
         app(CartManager::class)->add($product->id);
@@ -192,7 +201,8 @@ class CheckoutTest extends TestCase
 
         $this->assertSame(1, app(CartManager::class)->count());
         $this->assertSame(0, $product->refresh()->sales_count);
-        $this->assertDatabaseCount('orders', 0);
+        $this->assertDatabaseCount('orders', 1);
+        $this->assertNotNull(Order::first()->payment_idempotency_key);
     }
 
     public function test_checkout_requires_address_for_delivery(): void
@@ -205,7 +215,7 @@ class CheckoutTest extends TestCase
             ->set('customer_email', 'yuri@example.com')
             ->set('customer_phone', '22999990000')
             ->set('fulfillment_method', 'delivery')
-            ->set('payment_method', 'pix')
+            ->set('payment_method', 'mercado_pago')
             ->set('privacy_accepted', true)
             ->call('placeOrder')
             ->assertHasErrors(['postal_code', 'street', 'number', 'neighborhood']);
@@ -244,7 +254,7 @@ class CheckoutTest extends TestCase
             ->set('customer_email', 'email-invalido')
             ->set('customer_phone', '(22) 999')
             ->set('fulfillment_method', 'pickup')
-            ->set('payment_method', 'pix')
+            ->set('payment_method', 'mercado_pago')
             ->set('privacy_accepted', true)
             ->call('placeOrder')
             ->assertHasErrors(['customer_email', 'customer_phone']);
@@ -276,7 +286,7 @@ class CheckoutTest extends TestCase
             ->set('neighborhood', 'Centro')
             ->set('city', 'Campos dos Goytacazes')
             ->set('state', 'RJ')
-            ->set('payment_method', 'pix')
+            ->set('payment_method', 'mercado_pago')
             ->set('privacy_accepted', true)
             ->call('placeOrder')
             ->assertHasNoErrors();
@@ -301,7 +311,7 @@ class CheckoutTest extends TestCase
             ->set('customer_email', 'yuri@example.com')
             ->set('customer_phone', '22999990000')
             ->set('fulfillment_method', 'pickup')
-            ->set('payment_method', 'pix')
+            ->set('payment_method', 'mercado_pago')
             ->set('privacy_accepted', true)
             ->call('placeOrder')
             ->assertHasNoErrors();
@@ -331,7 +341,7 @@ class CheckoutTest extends TestCase
             ->set('neighborhood', 'Centro')
             ->set('city', 'Campos dos Goytacazes')
             ->set('state', 'RJ')
-            ->set('payment_method', 'pix')
+            ->set('payment_method', 'mercado_pago')
             ->set('privacy_accepted', true)
             ->call('placeOrder')
             ->assertHasNoErrors();

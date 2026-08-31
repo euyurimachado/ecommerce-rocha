@@ -18,11 +18,17 @@ class UpdateOrderPaymentStatus
         return DB::transaction(function () use ($order, $status): Order {
             $order = Order::query()->lockForUpdate()->findOrFail($order->id);
             $shouldRecordSale = $status === 'payment_approved'
-                && $order->payment_method === 'mercado_pago'
+                && $order->payment_provider === 'mercado_pago'
                 && ! $order->payment_approved_at;
 
             $order->forceFill([
-                'status' => $status,
+                'status' => $status === 'payment_approved' ? 'preparing' : $status,
+                'payment_status' => match ($status) {
+                    'payment_approved' => 'approved',
+                    'payment_rejected' => 'rejected',
+                    'payment_refunded' => 'refunded',
+                    default => 'pending',
+                },
                 'payment_approved_at' => $status === 'payment_approved'
                     ? ($order->payment_approved_at ?? now())
                     : ($status === 'payment_pending' ? null : $order->payment_approved_at),

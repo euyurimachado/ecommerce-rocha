@@ -71,6 +71,40 @@ class SearchTest extends TestCase
             ->assertSee('0 produtos encontrados');
     }
 
+    public function test_primary_matches_exclude_products_found_only_in_description(): void
+    {
+        $this->createProduct('Creatina Monohidratada 300g', 'Creatina', 'Integralmedica');
+        $gel = $this->createProduct('Gel Energético', 'Energia', 'Outra Marca');
+        $gel->update(['description' => 'Contém creatina em pequena quantidade.']);
+
+        $response = $this->get(route('search', ['q' => 'creatina']));
+
+        $response->assertSee('Creatina Monohidratada 300g')->assertDontSee('Gel Energético');
+    }
+
+    public function test_search_requires_every_term_across_primary_fields(): void
+    {
+        $this->createProduct('Creatina Monohidratada 300g', 'Creatina', 'Integralmedica');
+        $this->createProduct('Creatina 300g', 'Creatina', 'Outra Marca');
+
+        $this->get(route('search', ['q' => '  CREATINA   integralmedica 300g ']))
+            ->assertOk()
+            ->assertSee('Creatina Monohidratada 300g')
+            ->assertDontSee('produto/creatina-300g', false);
+    }
+
+    public function test_search_page_has_responsive_search_form_and_paginates(): void
+    {
+        foreach (range(1, 13) as $index) {
+            $this->createProduct("Creatina {$index}", 'Creatina', 'Integralmedica');
+        }
+
+        $this->get(route('search', ['q' => 'creatina']))
+            ->assertOk()
+            ->assertSee('O que você está procurando?')
+            ->assertSee('page=2', false);
+    }
+
     private function createProduct(string $name, string $categoryName, string $brandName, bool $active = true): Product
     {
         $category = Category::firstOrCreate(

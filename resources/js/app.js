@@ -675,18 +675,34 @@ const initializeCheckoutFields = () => {
     });
 };
 
+const initializePixCopy = () => {
+    document.querySelectorAll('[data-copy-pix]').forEach((button) => {
+        if (button.dataset.copyReady === 'true') return;
+        button.dataset.copyReady = 'true';
+        button.addEventListener('click', async () => {
+            const code = document.querySelector('#pix-code')?.value;
+            if (!code) return;
+            await navigator.clipboard.writeText(code);
+            button.textContent = 'Código copiado!';
+            window.setTimeout(() => { button.textContent = 'Copiar código PIX'; }, 1800);
+        });
+    });
+};
+
 document.addEventListener('DOMContentLoaded', initializeCookieConsent);
 document.addEventListener('DOMContentLoaded', initializeSentenceCase);
 document.addEventListener('DOMContentLoaded', initializeInfiniteProductScroll);
 document.addEventListener('DOMContentLoaded', initializeHomeHeroSlider);
 document.addEventListener('DOMContentLoaded', initializeProductPage);
 document.addEventListener('DOMContentLoaded', initializeCheckoutFields);
+document.addEventListener('DOMContentLoaded', initializePixCopy);
 document.addEventListener('livewire:navigated', initializeCookieConsent);
 document.addEventListener('livewire:navigated', initializeSentenceCase);
 document.addEventListener('livewire:navigated', initializeInfiniteProductScroll);
 document.addEventListener('livewire:navigated', initializeHomeHeroSlider);
 document.addEventListener('livewire:navigated', initializeProductPage);
 document.addEventListener('livewire:navigated', initializeCheckoutFields);
+document.addEventListener('livewire:navigated', initializePixCopy);
 
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {

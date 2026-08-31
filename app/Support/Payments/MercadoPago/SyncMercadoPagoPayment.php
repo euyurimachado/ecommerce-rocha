@@ -36,18 +36,28 @@ class SyncMercadoPagoPayment
         $orderStatus = $this->orderStatus($status);
 
         $order->forceFill([
+            'payment_method' => match (data_get($payment, 'payment_type_id')) {
+                'bank_transfer' => 'pix',
+                'credit_card', 'debit_card' => 'card',
+                default => $order->payment_method,
+            },
             'mercado_pago_payment_id' => (string) data_get($payment, 'id'),
             'mercado_pago_status' => $status,
             'mercado_pago_status_detail' => data_get($payment, 'status_detail'),
+            'payment_status' => $status,
+            'pix_qr_code' => data_get($payment, 'point_of_interaction.transaction_data.qr_code'),
+            'pix_qr_code_base64' => data_get($payment, 'point_of_interaction.transaction_data.qr_code_base64'),
+            'pix_expires_at' => data_get($payment, 'date_of_expiration'),
         ])->save();
 
         ($this->paymentStatus)($order, $orderStatus);
 
-        if ($status === 'approved') {
-            $order->forceFill([
-                'payment_approved_at' => Carbon::parse(data_get($payment, 'date_approved', now())),
-            ])->save();
-        }
+        $order->forceFill(array_filter([
+            'payment_status' => $status,
+            'payment_approved_at' => $status === 'approved'
+                ? Carbon::parse(data_get($payment, 'date_approved', now()))
+                : null,
+        ], fn ($value) => $value !== null))->save();
     }
 
     private function orderStatus(string $mercadoPagoStatus): string

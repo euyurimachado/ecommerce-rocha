@@ -20,7 +20,7 @@ class OrderForm
                     ->required(),
                 Select::make('status')
                     ->options([
-                        'received' => 'Pedido recebido',
+                        'received' => 'Pedido realizado',
                         'payment_pending' => 'Aguardando pagamento',
                         'payment_approved' => 'Pagamento aprovado',
                         'payment_rejected' => 'Pagamento recusado',
@@ -68,11 +68,8 @@ class OrderForm
                     ->label('Pagamento')
                     ->options([
                         'mercado_pago' => 'Mercado Pago',
-                        'pix' => 'Pix',
-                        'credit_card' => 'Cartão de crédito',
-                        'boleto' => 'Boleto',
-                        'payment_on_delivery_pix' => 'PIX na entrega',
-                        'payment_on_delivery_card' => 'Cartão na entrega',
+                        'pix' => 'PIX',
+                        'card' => 'Cartão',
                     ])
                     ->required(),
                 CurrencyInput::make('subtotal_cents')
