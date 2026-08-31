@@ -17,8 +17,13 @@
                 @foreach ($items as $item)
                     @php($product = $item['product'])
                     <article class="grid gap-4 rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:grid-cols-[5rem_1fr_auto]">
-                        <div class="grid aspect-square place-items-center rounded-lg bg-slate-100 text-center">
-                            <span class="text-xs font-bold text-rocha-blue">{{ $product->category->icon ?? 'RS' }}</span>
+                        <div class="grid aspect-square place-items-center overflow-hidden rounded-lg bg-slate-100">
+                            <img
+                                class="h-full w-full object-contain"
+                                src="{{ $product->imageUrlForSelections($item['variant_selections']) }}"
+                                alt="{{ $product->name }}"
+                                loading="lazy"
+                            >
                         </div>
                         <div>
                             <p class="text-sm font-bold text-rocha-blue">{{ $product->brand?->name }}</p>

@@ -239,6 +239,17 @@ class Product extends Model
             ->all();
     }
 
+    public function imageUrlForSelections(array $variantSelections = []): string
+    {
+        return $this->selectedVariationOptions($variantSelections)
+            ->pluck('image_url')
+            ->filter()
+            ->first()
+            ?? ($this->image_path
+                ? asset('storage/'.$this->image_path)
+                : asset('images/products/placeholder.svg'));
+    }
+
     public function variationOptions(): array
     {
         return collect($this->variations ?? [])

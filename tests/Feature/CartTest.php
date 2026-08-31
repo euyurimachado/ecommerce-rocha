@@ -103,14 +103,35 @@ class CartTest extends TestCase
 
     public function test_cart_page_renders_items_and_summary(): void
     {
-        $product = $this->createProduct();
+        $product = $this->createProduct(['image_path' => 'products/creatina.webp']);
 
         app(CartManager::class)->add($product->id, 2);
 
         $this->get(route('cart'))
             ->assertOk()
             ->assertSee('Creatina Monohidratada 300g')
+            ->assertSee(asset('storage/products/creatina.webp'), false)
             ->assertSee('R$ 179,80');
+    }
+
+    public function test_cart_uses_the_selected_variation_image(): void
+    {
+        $product = $this->createProduct([
+            'image_path' => 'products/creatina.webp',
+            'variations' => [[
+                'name' => 'Sabor',
+                'options' => [[
+                    'value' => 'Chocolate',
+                    'image_path' => 'products/gallery/chocolate.jpg',
+                ]],
+            ]],
+        ]);
+
+        app(CartManager::class)->add($product->id, variantSelections: ['Sabor' => 'Chocolate']);
+
+        $this->get(route('cart'))
+            ->assertOk()
+            ->assertSee(asset('storage/products/gallery/chocolate.jpg'), false);
     }
 
     public function test_same_product_with_different_variations_becomes_separate_cart_items(): void
