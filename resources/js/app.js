@@ -689,6 +689,135 @@ const initializePixCopy = () => {
     });
 };
 
+const SEARCH_HISTORY_KEY = 'rocha_recent_searches';
+const SEARCH_HISTORY_LIMIT = 8;
+
+const readSearchHistory = () => {
+    try {
+        const history = JSON.parse(window.localStorage.getItem(SEARCH_HISTORY_KEY) ?? '[]');
+
+        return Array.isArray(history) ? history.filter((term) => typeof term === 'string' && term.trim()).slice(0, SEARCH_HISTORY_LIMIT) : [];
+    } catch {
+        return [];
+    }
+};
+
+const saveSearchTerm = (value) => {
+    const term = value.trim().replace(/\s+/g, ' ');
+
+    if (!term) {
+        return;
+    }
+
+    const history = readSearchHistory().filter((item) => item.toLocaleLowerCase('pt-BR') !== term.toLocaleLowerCase('pt-BR'));
+    window.localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify([term, ...history].slice(0, SEARCH_HISTORY_LIMIT)));
+};
+
+const initializeSearchExperience = () => {
+    document.querySelectorAll('[data-search-experience]').forEach((root) => {
+        if (root.dataset.searchReady === 'true') {
+            return;
+        }
+
+        root.dataset.searchReady = 'true';
+        const form = root.querySelector('[data-search-form]');
+        const input = root.querySelector('[data-search-input]');
+        const cancel = root.querySelector('[data-search-cancel]');
+        const discovery = root.querySelector('[data-search-discovery]');
+        const activePanel = root.querySelector('[data-search-active-panel]');
+        const recentSection = root.querySelector('[data-recent-searches]');
+        const historyList = root.querySelector('[data-search-history-list]');
+
+        if (!form || !input || !cancel) {
+            return;
+        }
+
+        const removeHistoryTerm = (term) => {
+            const history = readSearchHistory().filter((item) => item !== term);
+            window.localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(history));
+            renderHistory();
+        };
+
+        const renderHistory = () => {
+            if (!recentSection || !historyList) {
+                return;
+            }
+
+            const history = readSearchHistory();
+            historyList.replaceChildren();
+            recentSection.classList.toggle('hidden', history.length === 0);
+
+            history.forEach((term) => {
+                const item = document.createElement('li');
+                item.className = 'flex min-h-12 items-center gap-3';
+
+                const icon = document.createElement('i');
+                icon.className = 'fa-solid fa-clock-rotate-left text-slate-400';
+                icon.setAttribute('aria-hidden', 'true');
+
+                const link = document.createElement('a');
+                link.className = 'min-w-0 flex-1 truncate py-3 text-sm font-medium text-slate-800';
+                link.textContent = term;
+                link.href = `${form.action}?${new URLSearchParams({ q: term })}`;
+                link.addEventListener('click', () => saveSearchTerm(term));
+
+                const remove = document.createElement('button');
+                remove.type = 'button';
+                remove.className = 'grid size-10 shrink-0 place-items-center text-slate-400 hover:text-rocha-blue';
+                remove.setAttribute('aria-label', `Remover busca “${term}”`);
+                remove.innerHTML = '<i class="fa-solid fa-xmark" aria-hidden="true"></i>';
+                remove.addEventListener('click', () => removeHistoryTerm(term));
+
+                item.append(icon, link, remove);
+                historyList.append(item);
+            });
+        };
+
+        const activate = () => {
+            if (root.dataset.hasResults === 'true') {
+                cancel.classList.remove('hidden');
+
+                return;
+            }
+
+            discovery?.classList.add('hidden');
+            activePanel?.classList.remove('hidden');
+            cancel.classList.remove('hidden');
+            renderHistory();
+        };
+
+        input.addEventListener('focus', activate);
+        form.addEventListener('submit', () => saveSearchTerm(input.value));
+        cancel.addEventListener('click', () => {
+            input.value = '';
+
+            if (root.dataset.hasResults === 'true') {
+                window.location.assign(form.action);
+
+                return;
+            }
+
+            input.blur();
+            discovery?.classList.remove('hidden');
+            activePanel?.classList.add('hidden');
+            cancel.classList.add('hidden');
+        });
+
+        root.querySelectorAll('[data-search-term]').forEach((link) => {
+            link.addEventListener('click', () => saveSearchTerm(link.dataset.searchTerm ?? ''));
+        });
+
+        root.querySelector('[data-search-clear-history]')?.addEventListener('click', () => {
+            window.localStorage.removeItem(SEARCH_HISTORY_KEY);
+            renderHistory();
+        });
+
+        if (root.dataset.hasResults === 'true') {
+            cancel.classList.remove('hidden');
+        }
+    });
+};
+
 document.addEventListener('DOMContentLoaded', initializeCookieConsent);
 document.addEventListener('DOMContentLoaded', initializeSentenceCase);
 document.addEventListener('DOMContentLoaded', initializeInfiniteProductScroll);
@@ -696,6 +825,7 @@ document.addEventListener('DOMContentLoaded', initializeHomeHeroSlider);
 document.addEventListener('DOMContentLoaded', initializeProductPage);
 document.addEventListener('DOMContentLoaded', initializeCheckoutFields);
 document.addEventListener('DOMContentLoaded', initializePixCopy);
+document.addEventListener('DOMContentLoaded', initializeSearchExperience);
 document.addEventListener('livewire:navigated', initializeCookieConsent);
 document.addEventListener('livewire:navigated', initializeSentenceCase);
 document.addEventListener('livewire:navigated', initializeInfiniteProductScroll);
@@ -703,6 +833,7 @@ document.addEventListener('livewire:navigated', initializeHomeHeroSlider);
 document.addEventListener('livewire:navigated', initializeProductPage);
 document.addEventListener('livewire:navigated', initializeCheckoutFields);
 document.addEventListener('livewire:navigated', initializePixCopy);
+document.addEventListener('livewire:navigated', initializeSearchExperience);
 
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {

@@ -10,9 +10,12 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Notifications\Notification;
+use Filament\Tables\Columns\Column;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 
 class ProductsTable
@@ -20,7 +23,7 @@ class ProductsTable
     public static function configure(Table $table): Table
     {
         return $table
-            ->columns([
+            ->columns(self::toggleableColumns([
                 TextColumn::make('category.name')
                     ->label('Categoria')
                     ->searchable(),
@@ -112,10 +115,40 @@ class ProductsTable
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-            ])
+            ]))
             ->filters([
-                //
+                TernaryFilter::make('is_active')
+                    ->label('Status')
+                    ->placeholder('Todos')
+                    ->trueLabel('Ativos')
+                    ->falseLabel('Inativos'),
+                SelectFilter::make('category_id')
+                    ->label('Categoria')
+                    ->relationship('category', 'name')
+                    ->searchable()
+                    ->preload(),
+                SelectFilter::make('brand_id')
+                    ->label('Marca')
+                    ->relationship('brand', 'name')
+                    ->searchable()
+                    ->preload(),
+                TernaryFilter::make('is_offer')
+                    ->label('Oferta')
+                    ->placeholder('Todos')
+                    ->trueLabel('Em oferta')
+                    ->falseLabel('Sem oferta'),
+                TernaryFilter::make('is_featured')
+                    ->label('Destaque')
+                    ->placeholder('Todos')
+                    ->trueLabel('Em destaque')
+                    ->falseLabel('Sem destaque'),
             ])
+            ->filtersTriggerAction(fn (Action $action): Action => $action
+                ->label('Filtrar produtos')
+                ->button())
+            ->toggleColumnsTriggerAction(fn (Action $action): Action => $action
+                ->label('Configurar colunas')
+                ->button())
             ->recordActions([
                 EditAction::make(),
                 Action::make('duplicate')
@@ -127,7 +160,7 @@ class ProductsTable
 
                         Notification::make()->success()->title('Produto duplicado com sucesso')->send();
 
-                        return redirect(ProductResource::getUrl('edit', ['record' => $copy]));
+                        return redirect(ProductResource::getUrl('edit', ['record' => $copy, 'auto_seo' => 1]));
                     }),
             ])
             ->toolbarActions([
@@ -135,5 +168,30 @@ class ProductsTable
                     DeleteBulkAction::make(),
                 ]),
             ]);
+    }
+
+    /**
+     * @param  array<Column>  $columns
+     * @return array<Column>
+     */
+    private static function toggleableColumns(array $columns): array
+    {
+        $hiddenByDefault = [
+            'show_in_weight_loss',
+            'show_in_energy',
+            'show_in_mass_gain',
+            'show_in_whey_festival',
+            'show_in_creatine_house',
+            'created_at',
+            'updated_at',
+        ];
+
+        return array_map(function (Column $column) use ($hiddenByDefault): Column {
+            if (! in_array($column->getName(), $hiddenByDefault, true)) {
+                $column->toggleable();
+            }
+
+            return $column;
+        }, $columns);
     }
 }

@@ -220,6 +220,11 @@ class StorefrontController extends Controller
         $brandSlug = $request->query('marca');
         $homeSection = (string) $request->query('secao', '');
         $sort = (string) $request->query('ordenar', 'relevancia');
+        $hasActiveSearch = $query !== ''
+            || filled($categorySlug)
+            || filled($brandSlug)
+            || $homeSection !== ''
+            || $sort !== 'relevancia';
         $homeSectionFilters = [
             'emagrecer' => 'show_in_weight_loss',
             'energia' => 'show_in_energy',
@@ -260,16 +265,42 @@ class StorefrontController extends Controller
                 : $productsQuery->orderByDesc('is_featured')->orderByDesc('sales_count'),
         };
 
+        $categories = Category::query()
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get();
+
+        $discoveryCategories = Category::query()
+            ->where('is_active', true)
+            ->withCount(['products as active_products_count' => fn (Builder $product) => $product->where('is_active', true)])
+            ->addSelect([
+                'discovery_image_path' => Product::query()
+                    ->select('image_path')
+                    ->whereColumn('products.category_id', 'categories.id')
+                    ->where('is_active', true)
+                    ->whereNotNull('image_path')
+                    ->orderByDesc('sales_count')
+                    ->limit(1),
+            ])
+            ->orderByDesc('is_featured')
+            ->orderByDesc('active_products_count')
+            ->orderBy('sort_order')
+            ->limit(12)
+            ->get()
+            ->filter(fn (Category $category): bool => $category->active_products_count > 0)
+            ->values();
+
         return view('storefront.search', [
             'query' => $query,
+            'hasActiveSearch' => $hasActiveSearch,
             'selectedCategory' => $categorySlug,
             'selectedBrand' => $brandSlug,
             'selectedHomeSection' => $homeSection,
             'selectedSort' => $sort,
-            'categories' => Category::query()
-                ->where('is_active', true)
-                ->orderBy('sort_order')
-                ->get(),
+            'categories' => $categories,
+            'discoveryCategories' => $discoveryCategories,
+            'popularTerms' => $discoveryCategories->take(8),
             'brands' => Brand::query()
                 ->where('is_active', true)
                 ->orderBy('name')

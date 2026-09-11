@@ -6,7 +6,9 @@ use App\Filament\Forms\CurrencyInput;
 use App\Models\Product;
 use App\Models\ProductVariation;
 use App\Models\ProductVariationOption;
+use App\Support\Products\ProductSeo;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\KeyValue;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\RichEditor;
@@ -18,7 +20,9 @@ use Filament\Forms\Components\Toggle;
 use Filament\Forms\Components\ViewField;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
+use Illuminate\Support\Str;
 
 class ProductForm
 {
@@ -35,10 +39,25 @@ class ProductForm
                     ->relationship('brand', 'name'),
                 TextInput::make('name')
                     ->label('Nome')
+                    ->live(onBlur: true)
+                    ->afterStateUpdated(function (?string $state, Get $get, Set $set, ?Product $record): void {
+                        if ($get('_slug_is_automatic')) {
+                            $set('slug', app(ProductSeo::class)->uniqueSlug((string) $state, $record?->getKey()));
+                        }
+
+                        if ($get('_meta_description_is_automatic')) {
+                            $set('meta_description', app(ProductSeo::class)->metaDescription($get('short_description'), $state));
+                        }
+                    })
                     ->required(),
                 TextInput::make('slug')
                     ->label('Slug')
+                    ->live(onBlur: true)
+                    ->afterStateUpdated(fn (Set $set) => $set('_slug_is_automatic', false))
                     ->required(),
+                Hidden::make('_slug_is_automatic')
+                    ->default(fn (string $operation, ?Product $record): bool => self::usesAutomaticSeo($operation, $record))
+                    ->dehydrated(false),
                 TextInput::make('sku')
                     ->label('SKU')
                     ->required(),
@@ -142,6 +161,12 @@ class ProductForm
                     ->reorderable()
                     ->columnSpanFull(),
                 Textarea::make('short_description')
+                    ->live(onBlur: true)
+                    ->afterStateUpdated(function (?string $state, Get $get, Set $set): void {
+                        if ($get('_meta_description_is_automatic')) {
+                            $set('meta_description', app(ProductSeo::class)->metaDescription($state, $get('name')));
+                        }
+                    })
                     ->label('Descrição curta')
                     ->columnSpanFull(),
                 RichEditor::make('description')
@@ -255,8 +280,20 @@ class ProductForm
                 TextInput::make('meta_title')
                     ->label('Meta title'),
                 TextInput::make('meta_description')
-                    ->label('Meta description'),
+                    ->label('Meta description')
+                    ->live(onBlur: true)
+                    ->afterStateUpdated(fn (Set $set) => $set('_meta_description_is_automatic', false)),
+                Hidden::make('_meta_description_is_automatic')
+                    ->default(fn (string $operation, ?Product $record): bool => self::usesAutomaticSeo($operation, $record))
+                    ->dehydrated(false),
             ]);
+    }
+
+    private static function usesAutomaticSeo(string $operation, ?Product $record): bool
+    {
+        return $operation === 'create'
+            || request()->boolean('auto_seo')
+            || ($record && Str::startsWith($record->name, 'Cópia de '));
     }
 
     private static function variationOptionChoices(Get $get): array

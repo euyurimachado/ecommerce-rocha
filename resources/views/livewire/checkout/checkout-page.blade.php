@@ -134,7 +134,9 @@
                     @foreach ($items as $item)
                         @php($product = $item['product'])
                         <div class="flex gap-3 text-sm">
-                            <div class="grid size-12 place-items-center rounded-md bg-slate-100 text-xs font-bold text-rocha-blue">{{ $product->category->icon ?? 'RS' }}</div>
+                            <div class="grid size-12 shrink-0 place-items-center overflow-hidden rounded-md bg-slate-100">
+                                <img class="h-full w-full object-contain" src="{{ $product->imageUrlForSelections($item['variant_selections']) }}" alt="{{ $product->name }}" loading="lazy">
+                            </div>
                             <div class="min-w-0 flex-1">
                                 <p class="font-bold text-slate-950">{{ $product->name }}</p>
                                 <p class="mt-1 text-slate-500">{{ $item['quantity'] }} x R$ {{ number_format($item['unit_price_cents'] / 100, 2, ',', '.') }}</p>

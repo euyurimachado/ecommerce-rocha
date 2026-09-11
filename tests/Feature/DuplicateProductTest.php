@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Category;
 use App\Models\Product;
 use App\Support\Products\DuplicateProduct;
+use App\Support\Products\ProductSeo;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -61,5 +62,31 @@ class DuplicateProductTest extends TestCase
 
         $this->assertNotSame($first->slug, $second->slug);
         $this->assertNotSame($first->sku, $second->sku);
+    }
+
+    public function test_automatic_slug_is_unique_and_ignores_the_current_product(): void
+    {
+        $category = Category::create([
+            'name' => 'Creatina', 'slug' => 'creatina', 'icon' => 'CR', 'is_active' => true, 'is_featured' => true,
+        ]);
+        $product = Product::create([
+            'category_id' => $category->id, 'name' => 'Creatina 300g', 'slug' => 'creatina-300g', 'sku' => 'CRE-300', 'price_cents' => 5000,
+        ]);
+
+        $seo = app(ProductSeo::class);
+
+        $this->assertSame('creatina-300g-2', $seo->uniqueSlug('Creatina 300g'));
+        $this->assertSame('creatina-300g', $seo->uniqueSlug('Creatina 300g', $product->id));
+    }
+
+    public function test_automatic_meta_description_removes_html_and_truncates_at_a_word_boundary(): void
+    {
+        $description = '<p>'.str_repeat('Creatina pura para força e desempenho muscular. ', 6).'</p>';
+        $meta = app(ProductSeo::class)->metaDescription($description, 'Creatina');
+
+        $this->assertStringNotContainsString('<p>', $meta);
+        $this->assertLessThanOrEqual(159, mb_strlen($meta));
+        $this->assertStringEndsWith('…', $meta);
+        $this->assertSame('Whey Protein na Rocha Sports.', app(ProductSeo::class)->metaDescription(null, 'Whey Protein'));
     }
 }

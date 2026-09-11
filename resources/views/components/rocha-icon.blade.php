@@ -28,6 +28,7 @@
         'share-2' => 'fa-solid fa-share-nodes',
         'shield-check' => 'fa-solid fa-shield-halved',
         'shopping-cart' => 'fa-solid fa-cart-shopping',
+        'sliders-horizontal' => 'fa-solid fa-sliders',
         'sparkles' => 'fa-solid fa-wand-magic-sparkles',
         'store' => 'fa-solid fa-store',
         'star' => 'fa-solid fa-star',

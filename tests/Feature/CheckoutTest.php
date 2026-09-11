@@ -352,15 +352,55 @@ class CheckoutTest extends TestCase
         $this->assertSame(26000, $order->total_cents);
     }
 
+    public function test_checkout_summary_uses_selected_variation_image(): void
+    {
+        $product = $this->createProduct([
+            'image_path' => 'products/creatina.webp',
+            'variations' => [[
+                'name' => 'Sabor',
+                'options' => [[
+                    'value' => 'Frutas Vermelhas',
+                    'image_path' => 'products/gallery/frutas-vermelhas.webp',
+                ]],
+            ]],
+        ]);
+        app(CartManager::class)->add($product->id, variantSelections: ['Sabor' => 'Frutas Vermelhas']);
+
+        Livewire::test(CheckoutPage::class)
+            ->assertSee(asset('storage/products/gallery/frutas-vermelhas.webp'), false);
+    }
+
+    public function test_checkout_summary_uses_product_image_then_fallback(): void
+    {
+        $product = $this->createProduct(['image_path' => 'products/creatina.webp']);
+        app(CartManager::class)->add($product->id);
+
+        Livewire::test(CheckoutPage::class)
+            ->assertSee(asset('storage/products/creatina.webp'), false);
+
+        app(CartManager::class)->clear();
+        $fallbackProduct = $this->createProduct([
+            'slug' => 'produto-sem-foto',
+            'sku' => 'TEST-CHECKOUT-SEM-FOTO',
+            'name' => 'Produto sem foto',
+        ]);
+        app(CartManager::class)->add($fallbackProduct->id);
+
+        Livewire::test(CheckoutPage::class)
+            ->assertSee(asset('images/products/placeholder.svg'), false);
+    }
+
     private function createProduct(array $overrides = []): Product
     {
-        $category = Category::create([
-            'name' => 'Creatina',
-            'slug' => 'creatina',
-            'icon' => 'CR',
-            'is_active' => true,
-            'is_featured' => true,
-        ]);
+        $category = Category::firstOrCreate(
+            ['slug' => 'creatina'],
+            [
+                'name' => 'Creatina',
+                'icon' => 'CR',
+                'is_active' => true,
+                'is_featured' => true,
+            ],
+        );
 
         return Product::create(array_merge([
             'category_id' => $category->id,

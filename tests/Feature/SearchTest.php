@@ -105,6 +105,31 @@ class SearchTest extends TestCase
             ->assertSee('page=2', false);
     }
 
+    public function test_search_without_a_term_shows_data_driven_discovery(): void
+    {
+        $this->createProduct('Creatina Monohidratada 300g', 'Creatina', 'Integralmedica');
+
+        $this->get(route('search'))
+            ->assertOk()
+            ->assertSee('Explore por categoria')
+            ->assertSee('Creatina')
+            ->assertSee('Em alta')
+            ->assertSee('data-search-experience', false)
+            ->assertDontSee('Resultados para');
+    }
+
+    public function test_empty_search_keeps_discovery_terms_available(): void
+    {
+        $this->createProduct('Whey Protein 900g', 'Whey Protein', 'Max Titanium');
+
+        $this->get(route('search', ['q' => 'produto-inexistente']))
+            ->assertOk()
+            ->assertSee('Nenhum produto encontrado para')
+            ->assertSee('Tente buscar por outro produto, marca ou categoria.')
+            ->assertSee('Em alta')
+            ->assertSee('Whey Protein');
+    }
+
     private function createProduct(string $name, string $categoryName, string $brandName, bool $active = true): Product
     {
         $category = Category::firstOrCreate(
