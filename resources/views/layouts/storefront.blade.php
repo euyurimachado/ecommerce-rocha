@@ -37,6 +37,12 @@
                     <span>Entrega em Campos dos Goytacazes, RJ</span>
                 </div>
 
+                <form action="{{ route('search') }}" method="GET" role="search" class="relative min-w-0 flex-1">
+                    <label class="sr-only" for="desktop-storefront-search">Buscar produtos, marcas ou categorias</label>
+                    <x-rocha-icon name="search" class="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-slate-500" />
+                    <input id="desktop-storefront-search" name="q" value="{{ request()->routeIs('search') ? request('q') : '' }}" type="search" enterkeyhint="search" autocomplete="off" placeholder="O que você está procurando?" class="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 pl-11 pr-4 text-sm outline-none transition focus:border-rocha-blue focus:bg-white focus:ring-2 focus:ring-rocha-blue/20">
+                </form>
+
                 <nav class="ml-auto flex items-center gap-2">
                     <a class="grid size-10 place-items-center rounded-lg border border-slate-200 text-slate-600 transition hover:border-rocha-blue/30 hover:bg-rocha-blue/5 hover:text-rocha-blue" href="#" aria-label="Conta">
                         <x-rocha-icon name="user" class="size-5" />

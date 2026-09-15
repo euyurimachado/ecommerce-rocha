@@ -46,4 +46,13 @@ class StorefrontRedesignTest extends TestCase
             ->assertSee('h-[70px] items-center justify-between bg-white px-4 md:hidden', false)
             ->assertSee('fa-cart-shopping size-7', false);
     }
+
+    public function test_desktop_header_contains_the_shared_search_and_preserves_its_term(): void
+    {
+        $this->get(route('search', ['q' => 'creatina']))
+            ->assertOk()
+            ->assertSee('id="desktop-storefront-search"', false)
+            ->assertSee('name="q" value="creatina"', false)
+            ->assertSee('class="flex h-[70px] items-center justify-between bg-white px-4 md:hidden"', false);
+    }
 }
