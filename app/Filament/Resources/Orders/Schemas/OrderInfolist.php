@@ -60,6 +60,10 @@ class OrderInfolist
                         TextEntry::make('customer_phone')
                             ->label('Telefone')
                             ->copyable(),
+                        TextEntry::make('customer_tax_id')
+                            ->label('CPF/CNPJ')
+                            ->copyable()
+                            ->placeholder('-'),
                     ]),
                 Section::make('Entrega')
                     ->columns(3)
@@ -86,6 +90,13 @@ class OrderInfolist
                             ->label('Complemento')
                             ->placeholder('-')
                             ->columnSpanFull(),
+                        TextEntry::make('shipping_carrier')->label('Transportadora')->placeholder('-'),
+                        TextEntry::make('shipping_service_name')->label('Serviço')->placeholder('-'),
+                        TextEntry::make('shipping_status')->label('Status da entrega')->badge()->placeholder('-'),
+                        TextEntry::make('tracking_code')->label('Rastreamento')->copyable()->placeholder('-'),
+                        TextEntry::make('shipping_estimated_days')->label('Prazo estimado')->suffix(' dias úteis')->placeholder('-'),
+                        TextEntry::make('shipping_external_id')->label('ID externo')->copyable()->placeholder('-'),
+                        TextEntry::make('shipping_invoice_key')->label('Chave da NF-e')->copyable()->placeholder('-'),
                     ]),
                 Section::make('Itens')
                     ->schema([

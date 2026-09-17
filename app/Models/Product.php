@@ -19,6 +19,11 @@ class Product extends Model
         'image_path',
         'gallery_images',
         'weight',
+        'requires_shipping',
+        'weight_kg',
+        'width_cm',
+        'height_cm',
+        'length_cm',
         'variations',
         'short_description',
         'description',
@@ -74,6 +79,11 @@ class Product extends Model
             'show_in_creatine_house' => 'boolean',
             'allows_pickup' => 'boolean',
             'allows_local_delivery' => 'boolean',
+            'requires_shipping' => 'boolean',
+            'weight_kg' => 'decimal:3',
+            'width_cm' => 'decimal:2',
+            'height_cm' => 'decimal:2',
+            'length_cm' => 'decimal:2',
         ];
     }
 
@@ -92,6 +102,17 @@ class Product extends Model
     public function brand(): BelongsTo
     {
         return $this->belongsTo(Brand::class);
+    }
+
+    public function shippingDimensionsOrFail(): void
+    {
+        if (! $this->requires_shipping) {
+            return;
+        }
+
+        if (min((float) $this->weight_kg, (float) $this->width_cm, (float) $this->height_cm, (float) $this->length_cm) <= 0) {
+            throw new InvalidArgumentException("O produto {$this->name} não possui peso e dimensões válidos para o frete.");
+        }
     }
 
     public function getFormattedPriceAttribute(): string

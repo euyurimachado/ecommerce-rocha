@@ -2,7 +2,9 @@
 
 namespace App\Support\Payments\MercadoPago;
 
+use App\Models\IntegrationSetting;
 use App\Models\Order;
+use App\Models\StoreSetting;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Http;
 use RuntimeException;
@@ -57,7 +59,7 @@ class MercadoPagoClient
             ->post('/checkout/preferences', $payload);
 
         if ($response->failed()) {
-            throw new RuntimeException('Mercado Pago preference error: '.$response->body());
+            throw new RuntimeException('Não foi possível iniciar o checkout do Mercado Pago.');
         }
 
         return $response->json();
@@ -68,7 +70,7 @@ class MercadoPagoClient
         $response = $this->request()->get("/v1/payments/{$paymentId}");
 
         if ($response->failed()) {
-            throw new RuntimeException('Mercado Pago payment error: '.$response->body());
+            throw new RuntimeException('Não foi possível consultar o pagamento no Mercado Pago.');
         }
 
         return $response->json();
@@ -76,12 +78,19 @@ class MercadoPagoClient
 
     public function shouldUseSandboxInitPoint(): bool
     {
-        return (bool) config('services.mercado_pago.sandbox');
+        $integration = IntegrationSetting::active('payment');
+
+        return $integration?->provider === 'mercado_pago'
+            ? $integration->environment === 'sandbox'
+            : (bool) config('services.mercado_pago.sandbox');
     }
 
     private function request(): PendingRequest
     {
-        $accessToken = config('services.mercado_pago.access_token');
+        $integration = IntegrationSetting::active('payment');
+        $accessToken = $integration?->provider === 'mercado_pago'
+            ? $integration->credential('access_token')
+            : config('services.mercado_pago.access_token');
 
         if (! $accessToken) {
             throw new RuntimeException('MERCADO_PAGO_ACCESS_TOKEN não configurado.');
@@ -108,7 +117,7 @@ class MercadoPagoClient
         if ($order->discount_cents > 0) {
             return [[
                 'id' => $order->code,
-                'title' => "Pedido {$order->code} - Rocha Sports",
+                'title' => "Pedido {$order->code} - ".(StoreSetting::current()->name ?: config('app.name')),
                 'quantity' => 1,
                 'currency_id' => 'BRL',
                 'unit_price' => round($order->total_cents / 100, 2),

@@ -160,7 +160,7 @@
     "src": "node_modules/@fortawesome/fontawesome-free/webfonts/fa-v4compatibility.woff2"
   },
   "resources/css/app.css": {
-    "file": "assets/app-B77HnaZN.css",
+    "file": "assets/app-DNIH6VFf.css",
     "name": "app",
     "names": [
       "app.css"
@@ -210,8 +210,17 @@
       "assets/fa-v4compatibility-DD84SGiu.woff2"
     ]
   },
+  "resources/css/filament/admin/theme.css": {
+    "file": "assets/theme-QNG8XzSf.css",
+    "name": "theme",
+    "names": [
+      "theme.css"
+    ],
+    "src": "resources/css/filament/admin/theme.css",
+    "isEntry": true
+  },
   "resources/js/app.js": {
-    "file": "assets/app-DG6ePfCD.js",
+    "file": "assets/app-Bp9pRsBR.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true

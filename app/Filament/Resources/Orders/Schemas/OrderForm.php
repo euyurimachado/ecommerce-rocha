@@ -44,6 +44,9 @@ class OrderForm
                     ->label('Telefone')
                     ->tel()
                     ->required(),
+                TextInput::make('customer_tax_id')
+                    ->label('CPF/CNPJ do destinatário')
+                    ->maxLength(14),
                 Select::make('fulfillment_method')
                     ->options([
                         'delivery' => 'Entrega local',
@@ -64,6 +67,12 @@ class OrderForm
                     ->label('Cidade'),
                 TextInput::make('state')
                     ->label('UF'),
+                TextInput::make('shipping_invoice_key')
+                    ->label('Chave da NF-e para o envio')
+                    ->helperText('Obrigatória no Melhor Envio quando a remessa for comercial.')
+                    ->minLength(44)
+                    ->maxLength(44)
+                    ->regex('/^\d{44}$/'),
                 Select::make('payment_method')
                     ->label('Pagamento')
                     ->options([

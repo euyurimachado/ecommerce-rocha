@@ -2,16 +2,20 @@
 
 namespace App\Support\Payments\MercadoPago;
 
+use App\Models\IntegrationSetting;
 use Illuminate\Http\Request;
 
 class MercadoPagoSignatureValidator
 {
     public function isValid(Request $request): bool
     {
-        $secret = config('services.mercado_pago.webhook_secret');
+        $integration = IntegrationSetting::active('payment');
+        $secret = $integration?->provider === 'mercado_pago'
+            ? $integration->credential('webhook_secret')
+            : config('services.mercado_pago.webhook_secret');
 
         if (! $secret) {
-            return true;
+            return app()->environment('testing');
         }
 
         $signature = (string) $request->header('x-signature', '');
@@ -36,7 +40,7 @@ class MercadoPagoSignatureValidator
             return false;
         }
 
-        $manifest = "id:{$dataId};request-id:{$requestId};ts:{$timestamp};";
+        $manifest = 'id:'.strtolower($dataId).";request-id:{$requestId};ts:{$timestamp};";
         $expected = hash_hmac('sha256', $manifest, $secret);
 
         return hash_equals($expected, $hash);

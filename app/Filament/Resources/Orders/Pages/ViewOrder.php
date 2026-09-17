@@ -5,6 +5,8 @@ namespace App\Filament\Resources\Orders\Pages;
 use App\Filament\Resources\Orders\OrderResource;
 use App\Models\Order;
 use App\Support\Orders\UpdateOrderPaymentStatus;
+use App\Support\Shipping\ShippingProviderManager;
+use App\Support\Shipping\UpdateShipment;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Notifications\Notification;
@@ -68,6 +70,38 @@ class ViewOrder extends ViewRecord
                 ->color('success')
                 ->visible(fn (Order $record): bool => in_array($record->status, ['out_for_delivery', 'ready_for_pickup'], true))
                 ->action(fn (Order $record) => $record->update(['status' => 'delivered'])),
+            Action::make('createShipment')
+                ->label('Criar envio no Melhor Envio')
+                ->icon('heroicon-o-truck')
+                ->visible(fn (Order $record): bool => $record->shipping_provider === 'melhor_envio'
+                    && $record->payment_approved_at !== null && blank($record->shipping_external_id))
+                ->requiresConfirmation()
+                ->action(fn (Order $record) => $this->runShipmentAction($record, 'createShipment')),
+            Action::make('purchaseLabel')
+                ->label('Comprar etiqueta')
+                ->icon('heroicon-o-credit-card')
+                ->visible(fn (Order $record): bool => $record->shipping_provider === 'melhor_envio'
+                    && filled($record->shipping_external_id) && $record->shipping_status === 'label_created')
+                ->requiresConfirmation()
+                ->action(fn (Order $record) => $this->runShipmentAction($record, 'purchaseLabel')),
+            Action::make('generateLabel')
+                ->label('Gerar etiqueta')
+                ->icon('heroicon-o-document-arrow-down')
+                ->visible(fn (Order $record): bool => $record->shipping_provider === 'melhor_envio'
+                    && in_array($record->shipping_status, ['paid', 'generated'], true))
+                ->action(fn (Order $record) => $this->runShipmentAction($record, 'generateLabel')),
+            Action::make('printLabel')
+                ->label('Visualizar etiqueta')
+                ->icon('heroicon-o-printer')
+                ->visible(fn (Order $record): bool => filled($record->shipping_label_url))
+                ->url(fn (Order $record): string => $record->shipping_label_url)
+                ->openUrlInNewTab(),
+            Action::make('refreshTracking')
+                ->label('Atualizar rastreamento')
+                ->icon('heroicon-o-arrow-path')
+                ->visible(fn (Order $record): bool => $record->shipping_provider === 'melhor_envio'
+                    && filled($record->shipping_external_id))
+                ->action(fn (Order $record) => $this->runShipmentAction($record, 'tracking')),
             EditAction::make(),
         ];
     }
@@ -80,5 +114,18 @@ class ViewOrder extends ViewRecord
             ->title('Status de pagamento atualizado')
             ->success()
             ->send();
+    }
+
+    private function runShipmentAction(Order $record, string $method): void
+    {
+        try {
+            $provider = app(ShippingProviderManager::class)->for('melhor_envio');
+            $result = $provider->{$method}($record);
+            app(UpdateShipment::class)->apply($record, $result);
+            Notification::make()->title('Envio atualizado com sucesso')->success()->send();
+        } catch (\Throwable $exception) {
+            report($exception);
+            Notification::make()->title('Não foi possível atualizar o envio')->body($exception->getMessage())->danger()->send();
+        }
     }
 }

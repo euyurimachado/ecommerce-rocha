@@ -18,7 +18,6 @@ class UpdateOrderPaymentStatus
         return DB::transaction(function () use ($order, $status): Order {
             $order = Order::query()->lockForUpdate()->findOrFail($order->id);
             $shouldRecordSale = $status === 'payment_approved'
-                && $order->payment_provider === 'mercado_pago'
                 && ! $order->payment_approved_at;
 
             $order->forceFill([

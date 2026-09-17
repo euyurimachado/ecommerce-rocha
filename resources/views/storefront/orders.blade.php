@@ -1,7 +1,7 @@
 @extends('layouts.storefront')
 
-@section('title', 'Meus pedidos | Rocha Sports')
-@section('meta_description', 'Consulte seus pedidos, status de entrega e retirada na Rocha Sports.')
+@section('title', 'Meus pedidos | '.$storeSettings->name)
+@section('meta_description', 'Consulte seus pedidos, status de entrega e retirada na '.$storeSettings->name.'.')
 
 @section('content')
     <section class="mx-auto max-w-5xl px-4 py-8 lg:px-6">
@@ -10,7 +10,7 @@
                 <p class="text-sm font-semibold text-rocha-blue">Histórico de pedidos</p>
                 <h1 class="mt-2 text-2xl font-bold leading-snug text-slate-950 md:text-3xl">Acompanhe suas compras</h1>
                 <p class="mt-3 text-sm text-slate-600">
-                    Informe o mesmo e-mail ou telefone usado no checkout para consultar os últimos pedidos feitos na Rocha Sports.
+                    Informe o mesmo e-mail ou telefone usado no checkout para consultar seus últimos pedidos.
                 </p>
 
                 <form action="{{ route('orders.index') }}" method="GET" class="mt-5 space-y-3">

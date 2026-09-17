@@ -4,37 +4,42 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Rocha Sports | Suplementos em Campos dos Goytacazes')</title>
-    <meta name="description" content="@yield('meta_description', 'Suplementos originais com entrega rápida em Campos dos Goytacazes, RJ. Whey, creatina, pré-treino, vitaminas e combos na Rocha Sports.')">
-    <meta name="theme-color" content="#0098d7">
+    <title>@yield('title', $storeSettings->name)</title>
+    <meta name="description" content="@yield('meta_description', $storeSettings->slogan)">
+    <meta name="theme-color" content="{{ $storeSettings->primary_color }}">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-title" content="Rocha Sports">
+    <meta name="apple-mobile-web-app-title" content="{{ $storeSettings->short_name }}">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <link rel="canonical" href="{{ url()->current() }}">
     <link rel="manifest" href="{{ route('pwa.manifest') }}">
-    <link rel="icon" href="{{ asset('images/pwa-icon.svg') }}" type="image/svg+xml">
-    <link rel="apple-touch-icon" href="{{ asset('images/pwa-icon.svg') }}">
-    <meta property="og:title" content="@yield('title', 'Rocha Sports')">
-    <meta property="og:description" content="@yield('meta_description', 'Suplementos originais com entrega rápida em Campos dos Goytacazes.')">
+    <link rel="icon" href="{{ $storeSettings->assetUrl('favicon_path', 'images/pwa-icon.svg') }}">
+    <link rel="apple-touch-icon" href="{{ $storeSettings->assetUrl('pwa_icon_path', 'images/pwa-icon.svg') }}">
+    <meta property="og:title" content="@yield('title', $storeSettings->name)">
+    <meta property="og:description" content="@yield('meta_description', $storeSettings->slogan)">
     <meta property="og:type" content="website">
     <meta property="og:url" content="{{ url()->current() }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @if ($storeSettings->font_family && $storeSettings->font_family !== 'Ubuntu')
+        <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family={{ str_replace(' ', '+', $storeSettings->font_family) }}:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    @endif
+    <style>:root{--brand-primary:{{ $storeSettings->primary_color ?: '#0098D7' }};--brand-primary-dark:{{ $storeSettings->primary_dark_color ?: '#005D8F' }};--brand-secondary:{{ $storeSettings->secondary_color ?: '#A7A9AC' }};--brand-accent:{{ $storeSettings->accent_color ?: '#F59E0B' }};--store-background:{{ $storeSettings->background_color ?: '#F8FAFC' }};--store-font:'{{ $storeSettings->font_family ?: 'Ubuntu' }}';}</style>
     @livewireStyles
     @yield('schema')
 </head>
 @php($storefrontVariant = trim($__env->yieldContent('storefront_variant', 'default')))
-<body class="{{ $storefrontVariant === 'product' ? 'bg-white' : 'bg-slate-50' }} text-slate-950 antialiased">
+<body class="{{ $storefrontVariant === 'product' ? 'bg-white' : '' }} text-slate-950 antialiased" style="{{ $storefrontVariant === 'product' ? '' : 'background-color:var(--store-background)' }}">
     <div class="min-h-screen {{ $storefrontVariant === 'home' ? 'pb-24' : ($storefrontVariant === 'product' ? 'pb-24 md:pb-0' : 'pb-24') }} md:pb-0">
         <header class="sticky top-0 z-40 hidden border-b border-slate-200 bg-white/95 shadow-sm backdrop-blur md:block">
             <div class="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3 lg:px-6">
-                <a href="{{ route('home') }}" class="flex min-w-fit items-center" aria-label="Rocha Sports">
-                    <img class="h-11 w-auto max-w-[9.5rem] object-contain md:h-12 md:max-w-[12rem]" src="{{ asset('images/logo-rocha-sports.webp') }}" alt="Rocha Sports" width="280" height="80">
+                <a href="{{ route('home') }}" class="flex min-w-fit items-center" aria-label="{{ $storeSettings->name }}">
+                    <img class="h-11 w-auto max-w-[9.5rem] object-contain md:h-12 md:max-w-[12rem]" src="{{ $storeSettings->assetUrl('logo_path', 'images/logo-rocha-sports.webp') }}" alt="{{ $storeSettings->name }}" width="280" height="80">
                 </a>
 
                 <div class="hidden items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 lg:flex">
                     <x-rocha-icon name="map-pin" class="size-4 text-rocha-blue" />
-                    <span>Entrega em Campos dos Goytacazes, RJ</span>
+                    <span>Entrega em {{ $storeSettings->city ?: 'sua região' }}{{ $storeSettings->state ? ', '.$storeSettings->state : '' }}</span>
                 </div>
 
                 <form action="{{ route('search') }}" method="GET" role="search" class="relative min-w-0 flex-1">
@@ -53,13 +58,13 @@
             </div>
 
             <div class="mx-auto px-4 pb-3 md:hidden">
-                <p class="flex items-center gap-1.5 text-xs font-medium text-slate-600"><x-rocha-icon name="map-pin" class="size-3.5 text-rocha-blue" /> Entrega em Campos dos Goytacazes, RJ</p>
+                <p class="flex items-center gap-1.5 text-xs font-medium text-slate-600"><x-rocha-icon name="map-pin" class="size-3.5 text-rocha-blue" /> Entrega em {{ $storeSettings->city ?: 'sua região' }}{{ $storeSettings->state ? ', '.$storeSettings->state : '' }}</p>
             </div>
         </header>
 
         <header class="flex h-[70px] items-center justify-between bg-white px-4 md:hidden">
-            <a href="{{ route('home') }}" aria-label="Rocha Sports">
-                <img class="h-10 w-auto max-w-[150px] object-contain" src="{{ asset('images/logo-rocha-sports.webp') }}" alt="Rocha Sports" width="280" height="80">
+            <a href="{{ route('home') }}" aria-label="{{ $storeSettings->name }}">
+                <img class="h-10 w-auto max-w-[150px] object-contain" src="{{ $storeSettings->assetUrl('logo_path', 'images/logo-rocha-sports.webp') }}" alt="{{ $storeSettings->name }}" width="280" height="80">
             </a>
             <livewire:cart.cart-badge variant="minimal" />
         </header>
@@ -71,8 +76,8 @@
         <footer class="{{ $storefrontVariant === 'product' ? 'hidden md:block' : '' }} border-t border-slate-200 bg-white">
             <div class="mx-auto grid max-w-7xl gap-8 px-4 py-10 text-sm text-slate-600 md:grid-cols-4 lg:px-6">
                 <div>
-                    <img class="h-12 w-auto object-contain" src="{{ asset('images/logo-rocha-sports.webp') }}" alt="Rocha Sports" width="280" height="80">
-                    <p class="mt-2">Suplementos originais, entrega local e atendimento especializado em Campos dos Goytacazes.</p>
+                    <img class="h-12 w-auto object-contain" src="{{ $storeSettings->assetUrl('logo_path', 'images/logo-rocha-sports.webp') }}" alt="{{ $storeSettings->name }}" width="280" height="80">
+                    <p class="mt-2">{{ $storeSettings->slogan }}</p>
                 </div>
                 <div>
                     <p class="font-bold text-slate-950">Compra segura</p>

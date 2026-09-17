@@ -1,6 +1,6 @@
 @extends('layouts.storefront')
 
-@section('title', 'Pedido '.$order->code.' | Rocha Sports')
+@section('title', 'Pedido '.$order->code.' | '.$storeSettings->name)
 
 @section('content')
     <section class="mx-auto max-w-4xl px-4 py-10 lg:px-6">
@@ -63,6 +63,19 @@
                     </li>
                 @endforeach
             </ol>
+
+            @if ($order->shipping_carrier || $order->tracking_code)
+                <div class="mt-6 rounded-lg border border-slate-200 p-5">
+                    <h2 class="font-bold">Rastreamento da entrega</h2>
+                    <dl class="mt-3 grid gap-3 text-sm sm:grid-cols-2">
+                        @if ($order->shipping_carrier)<div><dt class="text-slate-500">Transportadora</dt><dd class="font-bold">{{ $order->shipping_carrier }}</dd></div>@endif
+                        @if ($order->shipping_service_name)<div><dt class="text-slate-500">Serviço</dt><dd class="font-bold">{{ $order->shipping_service_name }}</dd></div>@endif
+                        @if ($order->tracking_code)<div><dt class="text-slate-500">Código de rastreamento</dt><dd class="font-bold">{{ $order->tracking_code }}</dd></div>@endif
+                        @if ($order->shipping_estimated_days)<div><dt class="text-slate-500">Prazo estimado</dt><dd class="font-bold">Até {{ $order->shipping_estimated_days }} dias úteis</dd></div>@endif
+                        @if ($order->shipping_external_status)<div><dt class="text-slate-500">Status</dt><dd class="font-bold">{{ str($order->shipping_external_status)->replace('_', ' ')->title() }}</dd></div>@endif
+                    </dl>
+                </div>
+            @endif
         </div>
 
         <div class="mt-6 rounded-lg border border-slate-200 bg-white p-6 shadow-sm">

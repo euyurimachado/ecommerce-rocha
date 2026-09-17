@@ -1,0 +1,9 @@
+@import '../../../../vendor/filament/filament/resources/css/theme.css';
+
+@source '../../../../app/Filament/**/*';
+@source '../../../../resources/views/filament/**/*';
+@source '../../../../resources/views/components/filament/**/*';
+
+@theme {
+    --font-sans: var(--store-font, 'Inter'), ui-sans-serif, system-ui, sans-serif;
+}

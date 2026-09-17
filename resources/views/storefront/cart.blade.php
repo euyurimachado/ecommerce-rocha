@@ -1,6 +1,6 @@
 @extends('layouts.storefront')
 
-@section('title', 'Carrinho | Rocha Sports')
+@section('title', 'Carrinho | '.$storeSettings->name)
 
 @section('content')
     <section class="mx-auto max-w-4xl px-4 py-10 lg:px-6">

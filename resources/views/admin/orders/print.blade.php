@@ -120,7 +120,7 @@
     <main class="page">
         <header class="header">
             <div>
-                <h1>Rocha Sports</h1>
+                <h1>{{ $storeSettings->name }}</h1>
                 <p class="muted">Separação e entrega de pedido</p>
             </div>
             <div>
@@ -148,7 +148,7 @@
             <div class="box full">
                 <h2>{{ $order->fulfillment_method === 'pickup' ? 'Retirada' : 'Endereço de entrega' }}</h2>
                 @if ($order->fulfillment_method === 'pickup')
-                    <p>Retirada na loja Rocha Sports.</p>
+                    <p>Retirada na loja {{ $storeSettings->name }}.</p>
                 @else
                     <p>
                         <strong>{{ $order->street }}, {{ $order->number }}</strong>

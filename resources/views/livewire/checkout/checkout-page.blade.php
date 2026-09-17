@@ -27,6 +27,13 @@
                             <input wire:model="customer_phone" class="mt-2 h-11 w-full rounded-lg border border-slate-200 px-3 outline-none focus:border-rocha-blue" type="tel" autocomplete="tel" inputmode="tel" maxlength="15" placeholder="(22) 99999-0000" data-phone-mask>
                             @error('customer_phone') <span class="mt-1 block text-sm text-rose-700">{{ $message }}</span> @enderror
                         </label>
+                        @if ($fulfillment_method === 'delivery' && app(\App\Support\Shipping\ShippingProviderManager::class)->provider() === 'melhor_envio')
+                            <label class="block">
+                                <span class="text-sm font-bold text-slate-700">CPF ou CNPJ do destinatário</span>
+                                <input wire:model="customer_tax_id" class="mt-2 h-11 w-full rounded-lg border border-slate-200 px-3 outline-none focus:border-rocha-blue" type="text" inputmode="numeric" maxlength="18" autocomplete="off" placeholder="Somente números">
+                                @error('customer_tax_id') <span class="mt-1 block text-sm text-rose-700">{{ $message }}</span> @enderror
+                            </label>
+                        @endif
                         <label class="block md:col-span-2">
                             <span class="text-sm font-bold text-slate-700">E-mail</span>
                             <input wire:model="customer_email" class="mt-2 h-11 w-full rounded-lg border border-slate-200 px-3 outline-none focus:border-rocha-blue" type="email" autocomplete="email" inputmode="email" placeholder="voce@email.com" data-email-normalize>
@@ -42,7 +49,7 @@
                             <input wire:model.live="fulfillment_method" class="mt-1" type="radio" value="delivery">
                             <span>
                                 <span class="block font-bold">Entrega local</span>
-                                <span class="mt-1 block text-sm text-slate-600">Receba em Campos dos Goytacazes.</span>
+                                <span class="mt-1 block text-sm text-slate-600">Receba no endereço informado.</span>
                             </span>
                         </label>
                         <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-200 p-4">
@@ -95,9 +102,23 @@
                                 @error('state') <span class="mt-1 block text-sm text-rose-700">{{ $message }}</span> @enderror
                             </label>
                         </div>
+                        <button type="button" wire:click="loadShippingQuotes" class="mt-4 rounded-lg border border-rocha-blue px-4 py-2 text-sm font-bold text-rocha-blue">Calcular frete</button>
+                        @if ($shipping_quotes)
+                            <div class="mt-4 grid gap-2">
+                                @foreach ($shipping_quotes as $quote)
+                                    <label class="flex cursor-pointer items-center justify-between rounded-lg border border-slate-200 p-4">
+                                        <span class="flex items-start gap-3">
+                                            <input wire:model.live="selected_shipping" type="radio" value="{{ $quote['service_id'] }}">
+                                            <span><strong class="block">{{ $quote['service_name'] }}</strong><small class="text-slate-500">{{ $quote['carrier'] }} · até {{ $quote['delivery_days'] }} dias úteis</small></span>
+                                        </span>
+                                        <strong>{{ $quote['price_cents'] === 0 ? 'Grátis' : 'R$ '.number_format($quote['price_cents'] / 100, 2, ',', '.') }}</strong>
+                                    </label>
+                                @endforeach
+                            </div>
+                        @endif
                     @else
                         <div class="mt-5 rounded-lg bg-slate-50 p-4 text-sm text-slate-600">
-                            Retirada na Rocha Sports. A equipe confirmará o horário pelo WhatsApp após o pedido.
+                            Retirada na {{ $storeSettings->name }}. A equipe confirmará o horário pelo WhatsApp após o pedido.
                         </div>
                     @endif
                 </section>
@@ -105,14 +126,30 @@
                 <section class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
                     <h2 class="text-lg font-bold md:text-xl">3. Pagamento</h2>
                     <div class="mt-5 grid gap-3">
-                        <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-rocha-blue/30 bg-rocha-blue/5 p-4">
-                            <input wire:model="payment_method" class="mt-1" type="radio" value="mercado_pago">
-                            <span>
-                                <span class="block font-bold text-slate-950">Pagar com Mercado Pago</span>
-                                <span class="mt-1 block text-sm text-slate-600">Você será direcionado ao ambiente seguro do Mercado Pago para pagar via PIX ou cartão.</span>
-                            </span>
-                        </label>
+                        @if (! \App\Models\IntegrationSetting::active('payment'))
+                            <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-rocha-blue/30 bg-rocha-blue/5 p-4">
+                                <input wire:model.live="payment_method" class="mt-1" type="radio" value="mercado_pago">
+                                <span><span class="block font-bold text-slate-950">Pagar com Mercado Pago</span><span class="mt-1 block text-sm text-slate-600">Você será direcionado ao ambiente seguro do Mercado Pago.</span></span>
+                            </label>
+                        @endif
+                        @if ($paymentCapabilities->pix)
+                            <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-200 p-4">
+                                <input wire:model.live="payment_method" class="mt-1" type="radio" value="pix">
+                                <span><span class="block font-bold">PIX</span><span class="text-sm text-slate-600">QR Code e código copia e cola. O pedido só será pago após confirmação.</span></span>
+                            </label>
+                        @endif
+                        @if ($paymentCapabilities->creditCard)
+                            <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-200 p-4">
+                                <input wire:model.live="payment_method" class="mt-1" type="radio" value="credit_card">
+                                <span><span class="block font-bold">Cartão de crédito</span><span class="text-sm text-slate-600">{{ $paymentProvider === 'asaas' ? 'Pagamento no ambiente seguro do Asaas.' : 'Dados tokenizados com MercadoPago.js.' }}</span></span>
+                            </label>
+                        @endif
                     </div>
+                    @if ($payment_method === 'credit_card' && $paymentProvider === 'mercado_pago')
+                        <div wire:ignore id="paymentBrick_container" class="mt-4"></div>
+                        <input wire:model="card_token" type="hidden">
+                        @error('card_token') <span class="mt-2 block text-sm text-rose-700">Não foi possível tokenizar o cartão. Revise os dados.</span> @enderror
+                    @endif
                     @error('payment_method') <span class="mt-2 block text-sm text-rose-700">{{ $message }}</span> @enderror
 
                     <label class="mt-5 block">
@@ -165,11 +202,44 @@
                         <span class="font-bold">{{ $total }}</span>
                     </div>
                 </div>
-                <button wire:loading.attr="disabled" wire:target="placeOrder" class="mt-6 flex w-full justify-center rounded-lg bg-rocha-blue px-5 py-3 font-bold text-white disabled:cursor-wait disabled:opacity-70" type="submit">
-                    <span wire:loading.remove wire:target="placeOrder">Finalizar pedido</span>
-                    <span wire:loading wire:target="placeOrder">Finalizando...</span>
-                </button>
+                @if (! ($payment_method === 'credit_card' && $paymentProvider === 'mercado_pago'))
+                    <button wire:loading.attr="disabled" wire:target="placeOrder" class="mt-6 flex w-full justify-center rounded-lg bg-rocha-blue px-5 py-3 font-bold text-white disabled:cursor-wait disabled:opacity-70" type="submit">
+                        <span wire:loading.remove wire:target="placeOrder">Finalizar pedido</span>
+                        <span wire:loading wire:target="placeOrder">Finalizando...</span>
+                    </button>
+                @else
+                    <p class="mt-6 text-center text-sm text-slate-600">Finalize pelo botão seguro exibido no formulário do cartão.</p>
+                @endif
             </aside>
         </form>
+    @endif
+
+    @if ($paymentProvider === 'mercado_pago' && $paymentPublicKey)
+        @assets
+            <script src="https://sdk.mercadopago.com/js/v2"></script>
+        @endassets
+        @script
+            let brickController;
+            const mountCardBrick = async () => {
+                if ($wire.payment_method !== 'credit_card' || ! document.getElementById('paymentBrick_container') || typeof MercadoPago === 'undefined') return;
+                if (brickController) await brickController.unmount();
+                const mp = new MercadoPago(@js($paymentPublicKey), { locale: 'pt-BR' });
+                brickController = await mp.bricks().create('cardPayment', 'paymentBrick_container', {
+                    initialization: { amount: @js($totalCents / 100), payer: { email: $wire.customer_email || '' } },
+                    customization: { paymentMethods: { maxInstallments: 12 } },
+                    callbacks: {
+                        onSubmit: ({ formData }) => {
+                            $wire.card_token = formData.token;
+                            $wire.card_payment_method_id = formData.payment_method_id;
+                            $wire.card_installments = Number(formData.installments || 1);
+                            return $wire.placeOrder();
+                        },
+                        onError: () => { $wire.checkoutError = 'Não foi possível validar o cartão. Revise os dados.'; },
+                    },
+                });
+            };
+            $wire.$watch('payment_method', () => setTimeout(mountCardBrick, 0));
+            mountCardBrick();
+        @endscript
     @endif
 </div>

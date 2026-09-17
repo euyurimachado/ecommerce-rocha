@@ -9,21 +9,30 @@
 @source '../views/**/*.blade.php';
 
 @theme {
-    --font-sans: 'Ubuntu', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+    --font-sans: var(--store-font, 'Ubuntu'), ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
-    --color-rocha-blue: #0098d7;
-    --color-rocha-blue-dark: #005d8f;
-    --color-rocha-silver: #a7a9ac;
+    --color-rocha-blue: var(--brand-primary, #0098d7);
+    --color-rocha-blue-dark: var(--brand-primary-dark, #005d8f);
+    --color-rocha-silver: var(--brand-secondary, #a7a9ac);
     --color-rocha-graphite: #1f2937;
 }
 
 @layer base {
+    :root {
+        --brand-primary: #0098d7;
+        --brand-primary-dark: #005d8f;
+        --brand-secondary: #a7a9ac;
+        --brand-accent: #f59e0b;
+        --store-background: #f8fafc;
+        --store-font: 'Ubuntu';
+    }
+
     html {
         scroll-behavior: smooth;
     }
 
     body {
-        font-family: var(--font-sans);
+        font-family: var(--store-font), var(--font-sans);
     }
 }
 
@@ -66,21 +75,33 @@
 
     .brand-logo-marquee {
         position: relative;
-        overflow: hidden;
-        mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+        overflow-x: auto;
+        overflow-y: hidden;
+        overscroll-behavior-inline: contain;
+        scroll-snap-type: x proximity;
+        scrollbar-width: none;
+        touch-action: pan-x;
+    }
+
+    .brand-logo-marquee::-webkit-scrollbar {
+        display: none;
     }
 
     .brand-logo-track {
         display: flex;
         width: max-content;
-        animation: brand-logo-marquee 42s linear infinite;
+        padding-inline: 1rem;
     }
 
     .brand-logo-sequence {
         display: flex;
         flex: 0 0 auto;
-        gap: 1rem;
-        padding-right: 1rem;
+        gap: 0.875rem;
+        padding-right: 0.875rem;
+    }
+
+    .brand-logo-sequence-copy {
+        display: flex;
     }
 
     .brand-logo-marquee:hover .brand-logo-track {
@@ -89,7 +110,7 @@
 
     .brand-logo-item {
         display: grid;
-        width: 11rem;
+        width: min(10.5rem, calc((100vw - 3.75rem) / 2));
         height: 5.5rem;
         flex: 0 0 auto;
         place-items: center;
@@ -102,6 +123,7 @@
             border-color 160ms ease,
             transform 160ms ease,
             box-shadow 160ms ease;
+        scroll-snap-align: start;
     }
 
     .brand-logo-item:hover {
@@ -138,9 +160,49 @@
         }
     }
 
+    @media (min-width: 768px) {
+        .brand-logo-marquee {
+            overflow: hidden;
+            scroll-snap-type: none;
+            mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+        }
+
+        .brand-logo-track {
+            padding-inline: 0;
+            animation: brand-logo-marquee 42s linear infinite;
+        }
+
+        .brand-logo-sequence {
+            gap: 1rem;
+            padding-right: 1rem;
+        }
+
+        .brand-logo-sequence-copy {
+            display: flex;
+        }
+
+        .brand-logo-sequence-mobile-copy {
+            display: none;
+        }
+
+        .brand-logo-item {
+            width: 11rem;
+            scroll-snap-align: none;
+        }
+    }
+
     @media (prefers-reduced-motion: reduce) {
+        .brand-logo-marquee {
+            overflow-x: auto;
+            mask-image: none;
+        }
+
         .brand-logo-track {
             animation: none;
+        }
+
+        .brand-logo-sequence-copy {
+            display: none;
         }
     }
 }

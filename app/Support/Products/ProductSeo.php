@@ -3,6 +3,7 @@
 namespace App\Support\Products;
 
 use App\Models\Product;
+use App\Models\StoreSetting;
 use Illuminate\Support\Str;
 
 class ProductSeo
@@ -27,7 +28,7 @@ class ProductSeo
     {
         $source = filled($shortDescription)
             ? (string) $shortDescription
-            : trim((string) $name).' na Rocha Sports.';
+            : trim((string) $name).' na '.(StoreSetting::current()->name ?: config('app.name')).'.';
 
         $plainText = Str::of(html_entity_decode(strip_tags($source), ENT_QUOTES | ENT_HTML5, 'UTF-8'))
             ->squish()

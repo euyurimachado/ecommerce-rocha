@@ -1,13 +1,13 @@
 @extends('layouts.storefront')
 
-@section('title', 'Política de Privacidade | Rocha Sports')
-@section('meta_description', 'Política de privacidade da Rocha Sports: dados coletados, finalidades, direitos do titular, segurança e canais de atendimento LGPD.')
+@section('title', 'Política de Privacidade | '.$storeSettings->name)
+@section('meta_description', 'Política de privacidade da '.$storeSettings->name.': dados coletados, finalidades, direitos do titular, segurança e canais de atendimento LGPD.')
 
 @section('content')
     <article class="mx-auto max-w-4xl px-4 py-10 lg:px-6">
         <p class="text-sm font-semibold text-rocha-blue">LGPD</p>
         <h1 class="mt-2 text-2xl font-bold leading-snug md:text-3xl">Política de Privacidade</h1>
-        <p class="mt-4 text-slate-600">A Rocha Sports trata dados pessoais para vender suplementos, processar pagamentos, realizar entrega ou retirada, prestar atendimento e cumprir obrigações legais.</p>
+        <p class="mt-4 text-slate-600">A {{ $storeSettings->name }} trata dados pessoais para processar compras, pagamentos, entrega ou retirada, prestar atendimento e cumprir obrigações legais.</p>
 
         <div class="mt-8 space-y-6 text-slate-600">
             <section>
@@ -27,7 +27,7 @@
 
             <section>
                 <h2 class="text-lg font-bold text-slate-950 md:text-xl">Direitos do titular</h2>
-                <p class="mt-2">Você pode solicitar confirmação de tratamento, acesso, correção, portabilidade, anonimização, exclusão, revisão de consentimentos e informações sobre compartilhamento pelos canais oficiais da Rocha Sports.</p>
+                <p class="mt-2">Você pode solicitar confirmação de tratamento, acesso, correção, portabilidade, anonimização, exclusão, revisão de consentimentos e informações sobre compartilhamento pelos canais oficiais da {{ $storeSettings->name }}.</p>
             </section>
 
             <section>
@@ -37,7 +37,7 @@
 
             <section>
                 <h2 class="text-lg font-bold text-slate-950 md:text-xl">Contato</h2>
-                <p class="mt-2">Solicitações sobre privacidade podem ser feitas pelo WhatsApp, e-mail ou canais oficiais informados pela Rocha Sports. O atendimento confirmará a identidade do solicitante antes de qualquer alteração sensível.</p>
+                <p class="mt-2">Solicitações sobre privacidade podem ser feitas pelo WhatsApp, e-mail ou canais oficiais informados pela {{ $storeSettings->name }}. O atendimento confirmará a identidade do solicitante antes de qualquer alteração sensível.</p>
             </section>
         </div>
     </article>

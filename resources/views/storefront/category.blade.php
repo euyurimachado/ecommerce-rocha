@@ -1,6 +1,6 @@
 @extends('layouts.storefront')
 
-@section('title', $category->meta_title ?? $category->name.' | Rocha Sports')
+@section('title', $category->meta_title ?? $category->name.' | '.$storeSettings->name)
 @section('meta_description', $category->meta_description ?? $category->short_description)
 
 @section('schema')

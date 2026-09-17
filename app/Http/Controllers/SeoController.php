@@ -11,7 +11,7 @@ class SeoController extends Controller
     public function robots(): Response
     {
         return response(
-            "User-agent: *\nDisallow:\nSitemap: https://rochasports.com.br/sitemap.xml\n",
+            "User-agent: *\nDisallow:\nSitemap: ".route('seo.sitemap')."\n",
             200,
             ['Content-Type' => 'text/plain'],
         );

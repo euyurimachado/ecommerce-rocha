@@ -16,6 +16,7 @@ class Order extends Model
         'customer_name',
         'customer_email',
         'customer_phone',
+        'customer_tax_id',
         'fulfillment_method',
         'postal_code',
         'street',
@@ -40,6 +41,21 @@ class Order extends Model
         'coupon_code',
         'subtotal_cents',
         'shipping_cents',
+        'shipping_provider',
+        'shipping_service_id',
+        'shipping_service_name',
+        'shipping_carrier',
+        'shipping_price_cents',
+        'shipping_estimated_days',
+        'shipping_external_id',
+        'shipping_invoice_key',
+        'tracking_code',
+        'shipping_status',
+        'shipping_external_status',
+        'shipping_label_url',
+        'shipping_quote_snapshot',
+        'shipping_posted_at',
+        'shipping_delivered_at',
         'discount_cents',
         'total_cents',
         'notes',
@@ -53,12 +69,20 @@ class Order extends Model
             'privacy_accepted_at' => 'datetime',
             'payment_approved_at' => 'datetime',
             'pix_expires_at' => 'datetime',
+            'shipping_quote_snapshot' => 'array',
+            'shipping_posted_at' => 'datetime',
+            'shipping_delivered_at' => 'datetime',
         ];
     }
 
     public function items(): HasMany
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class);
     }
 
     public function routeNotificationForMail(): string
@@ -94,26 +118,30 @@ class Order extends Model
 
     public function getFulfillmentMethodLabelAttribute(): string
     {
-        return $this->fulfillment_method === 'pickup' ? 'Retirada na loja' : 'Entrega local';
+        return $this->fulfillment_method === 'pickup'
+            ? 'Retirada na loja'
+            : ($this->shipping_service_name ?: 'Entrega');
     }
 
     public function getPaymentMethodLabelAttribute(): string
     {
         return match ($this->payment_method) {
-            'card' => 'Cartão',
+            'card', 'credit_card' => 'Cartão de crédito',
             'pix' => 'PIX',
-            default => 'Mercado Pago',
+            'mercado_pago' => 'Mercado Pago',
+            default => ucfirst(str_replace('_', ' ', (string) $this->payment_method)),
         };
     }
 
     public function getPaymentMessageAttribute(): string
     {
         return match ($this->payment_status) {
-            'approved' => 'Pagamento aprovado! Já recebemos seu pedido e vamos iniciar a preparação para entrega.',
-            'rejected', 'cancelled' => 'Pagamento não aprovado. Confira os dados e tente novamente com segurança.',
-            'pending', 'in_process' => $this->payment_method === 'pix'
+            'approved', 'paid' => 'Pagamento aprovado! Já recebemos seu pedido e vamos iniciar a preparação para entrega.',
+            'rejected', 'failed', 'cancelled' => 'Pagamento não aprovado. Confira os dados e tente novamente com segurança.',
+            'pending', 'in_process', 'processing' => $this->payment_method === 'pix'
                 ? 'Seu pedido foi criado e está aguardando a confirmação do pagamento via PIX. Assim que o pagamento for confirmado, iniciaremos a preparação.'
                 : 'Seu pagamento está sendo processado. Avisaremos assim que houver uma atualização.',
+            'refunded' => 'O pagamento deste pedido foi estornado.',
             default => 'Seu pedido foi realizado e o estado do pagamento será atualizado por aqui.',
         };
     }

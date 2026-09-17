@@ -1,0 +1,11 @@
+{
+    "latest": "1.5.0",
+    "channel": "stable",
+    "minimum_php": "8.3.0",
+    "minimum_laravel": "13.0.0",
+    "released_at": "2026-09-16T12:00:00-03:00",
+    "security": false,
+    "breaking": false,
+    "release_notes": "Novidades e correções da versão 1.5.0.",
+    "checksum": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+}

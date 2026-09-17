@@ -1,6 +1,6 @@
 @extends('layouts.storefront')
 @section('storefront_variant', 'product')
-@section('title', $product->meta_title ?? $product->name.' | Rocha Sports')
+@section('title', $product->meta_title ?? $product->name.' | '.$storeSettings->name)
 @section('meta_description', $product->meta_description ?? $product->short_description)
 
 @section('schema')
@@ -115,7 +115,7 @@
                 @if ($product->benefits)<h3 class="mt-7 font-bold">Visão rápida</h3><ul class="mt-3 space-y-2 text-sm text-slate-700">@foreach ($product->benefits as $benefit)<li class="flex gap-2"><x-rocha-icon name="badge-check" class="mt-0.5 size-4 text-rocha-blue" />{{ $benefit }}</li>@endforeach</ul>@endif
             </article>
             <aside class="border-t border-slate-200 py-6 md:mt-6 md:rounded-lg md:border md:p-5">
-                <h2 class="text-lg font-bold">Detalhes</h2><dl class="mt-4 grid gap-3 text-sm"><div class="flex justify-between gap-3"><dt class="text-slate-500">Marca</dt><dd class="font-bold">{{ $product->brand?->name ?? 'Rocha Sports' }}</dd></div><div class="flex justify-between gap-3"><dt class="text-slate-500">Categoria</dt><dd class="font-bold">{{ $product->category->name }}</dd></div></dl>
+                <h2 class="text-lg font-bold">Detalhes</h2><dl class="mt-4 grid gap-3 text-sm"><div class="flex justify-between gap-3"><dt class="text-slate-500">Marca</dt><dd class="font-bold">{{ $product->brand?->name ?? $storeSettings->name }}</dd></div><div class="flex justify-between gap-3"><dt class="text-slate-500">Categoria</dt><dd class="font-bold">{{ $product->category->name }}</dd></div></dl>
                 @foreach ([['Modo de uso', $product->usage_instructions], ['Ingredientes', $product->ingredients], ['Alergênicos', $product->allergen_info]] as [$heading, $text])@if ($text)<h3 class="mt-7 font-bold">{{ $heading }}</h3><p class="mt-2 text-sm leading-relaxed text-slate-700">{{ $text }}</p>@endif @endforeach
                 @if ($product->nutrition_facts)<h3 class="mt-7 font-bold">Tabela nutricional</h3>@if ($product->serving_size)<p class="mt-2 text-sm">Porção: {{ $product->serving_size }}</p>@endif<dl class="mt-3 text-sm">@foreach ($product->nutrition_facts as $nutrient => $amount)<div class="flex justify-between border-b border-slate-100 py-2"><dt>{{ $nutrient }}</dt><dd class="font-bold">{{ $amount }}</dd></div>@endforeach</dl>@endif
             </aside>

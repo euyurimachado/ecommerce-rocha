@@ -52,6 +52,6 @@ class SeoTest extends TestCase
     {
         $this->get('/robots.txt')
             ->assertOk()
-            ->assertSee('Sitemap: https://rochasports.com.br/sitemap.xml');
+            ->assertSee('Sitemap: '.route('seo.sitemap'));
     }
 }

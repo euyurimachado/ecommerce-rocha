@@ -2,9 +2,12 @@
 
 namespace App\Support\Payments\MercadoPago;
 
+use App\Enums\PaymentStatus;
 use App\Models\Order;
+use App\Models\Payment;
 use App\Support\Orders\UpdateOrderPaymentStatus;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 
 class SyncMercadoPagoPayment
 {
@@ -34,6 +37,35 @@ class SyncMercadoPagoPayment
     {
         $status = (string) data_get($payment, 'status');
         $orderStatus = $this->orderStatus($status);
+        $internalStatus = match ($status) {
+            'approved' => PaymentStatus::Paid,
+            'in_process', 'authorized' => PaymentStatus::Processing,
+            'rejected' => PaymentStatus::Failed,
+            'cancelled' => PaymentStatus::Cancelled,
+            'refunded', 'charged_back' => PaymentStatus::Refunded,
+            default => PaymentStatus::Pending,
+        };
+
+        $paymentRecord = Payment::query()
+            ->where('provider', 'mercado_pago')
+            ->where('provider_payment_id', (string) data_get($payment, 'id'))
+            ->first()
+            ?? ($order->payment_idempotency_key
+                ? Payment::query()->where('idempotency_key', $order->payment_idempotency_key)->first()
+                : null)
+            ?? new Payment(['idempotency_key' => (string) Str::uuid()]);
+        $paymentRecord->fill([
+            'order_id' => $order->id,
+            'provider' => 'mercado_pago',
+            'provider_payment_id' => (string) data_get($payment, 'id'),
+            'method' => data_get($payment, 'payment_type_id') === 'bank_transfer' ? 'pix' : 'credit_card',
+            'amount_cents' => (int) round((float) data_get($payment, 'transaction_amount', $order->total_cents / 100) * 100),
+            'status' => $internalStatus,
+            'external_status' => $status,
+            'paid_at' => $internalStatus === PaymentStatus::Paid ? Carbon::parse(data_get($payment, 'date_approved', now())) : null,
+            'failed_at' => $internalStatus === PaymentStatus::Failed ? now() : null,
+            'metadata' => ['status_detail' => data_get($payment, 'status_detail')],
+        ])->save();
 
         $order->forceFill([
             'payment_method' => match (data_get($payment, 'payment_type_id')) {

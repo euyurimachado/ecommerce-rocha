@@ -2,23 +2,23 @@
 
 @section('storefront_variant', 'home')
 
-@section('title', 'Rocha Sports | Suplementos com entrega rápida em Campos')
-@section('meta_description', 'Compre whey, creatina, pré-treino e suplementos originais com entrega rápida em Campos dos Goytacazes ou retirada na Rocha Sports.')
+@section('title', $storeSettings->name.' | '.$storeSettings->slogan)
+@section('meta_description', $storeSettings->slogan)
 
 @section('schema')
     <script type="application/ld+json">
         {
             "@@context": "https://schema.org",
             "@@type": "LocalBusiness",
-            "name": "Rocha Sports",
+            "name": @json($storeSettings->name),
             "url": "{{ url('/') }}",
             "address": {
                 "@@type": "PostalAddress",
-                "addressLocality": "Campos dos Goytacazes",
-                "addressRegion": "RJ",
-                "addressCountry": "BR"
+                "addressLocality": @json($storeSettings->city),
+                "addressRegion": @json($storeSettings->state),
+                "addressCountry": @json($storeSettings->country)
             },
-            "areaServed": "Campos dos Goytacazes, RJ"
+            "areaServed": @json(trim(($storeSettings->city ?: '').($storeSettings->state ? ', '.$storeSettings->state : '')))
         }
     </script>
 @endsection
@@ -211,7 +211,7 @@
             <div class="mx-auto grid max-w-7xl gap-6 px-4 py-8 text-slate-950 lg:grid-cols-[0.85fr_1.15fr] lg:px-6">
                 <div>
                     <p class="text-xs font-bold text-rocha-blue">Força todo dia</p>
-                    <h2 class="mt-2 text-xl font-bold md:text-2xl">Rocha Sports, a casa da creatina</h2>
+                    <h2 class="mt-2 text-xl font-bold md:text-2xl">{{ $storeSettings->name }}, a casa da creatina</h2>
                     <p class="mt-3 text-sm leading-relaxed text-slate-600">Potes, sticks, Creapure e monohidratadas para colocar constância na rotina.</p>
                     <a href="{{ route('search', ['categoria' => 'creatina']) }}" class="mt-5 inline-flex rounded-lg bg-rocha-blue px-4 py-2 text-sm font-bold text-white">Comprar creatina</a>
                 </div>
@@ -247,17 +247,43 @@
             <h2 class="text-xl font-bold text-slate-950 md:text-2xl">Marcas parceiras</h2>
         </div>
 
-        <div class="brand-logo-marquee mt-5" aria-label="Marcas parceiras Rocha Sports">
+        <div class="brand-logo-marquee mt-5" aria-label="Marcas parceiras {{ $storeSettings->name }}" data-brand-logo-slider>
             <div class="brand-logo-track">
-                @foreach ($brands->concat($brands) as $brand)
-                    <a href="{{ route('search', ['marca' => $brand->slug]) }}" class="brand-logo-item" aria-label="Ver produtos {{ $brand->name }}">
-                        @if ($brand->logo_path)
-                            <img src="{{ asset('storage/'.$brand->logo_path) }}" alt="{{ $brand->name }}" loading="lazy">
-                        @else
-                            <span>{{ $brand->name }}</span>
-                        @endif
-                    </a>
-                @endforeach
+                <div class="brand-logo-sequence" data-brand-logo-sequence>
+                    @foreach ($brands as $brand)
+                        <a href="{{ route('search', ['marca' => $brand->slug]) }}" class="brand-logo-item" data-brand-slug="{{ $brand->slug }}" aria-label="Ver produtos {{ $brand->name }}">
+                            @if ($brand->logo_path)
+                                <img src="{{ asset('storage/'.$brand->logo_path) }}" alt="{{ $brand->name }}" loading="lazy">
+                            @else
+                                <span>{{ $brand->name }}</span>
+                            @endif
+                        </a>
+                    @endforeach
+                </div>
+
+                <div class="brand-logo-sequence brand-logo-sequence-copy" aria-hidden="true">
+                    @foreach ($brands as $brand)
+                        <a href="{{ route('search', ['marca' => $brand->slug]) }}" class="brand-logo-item" data-brand-slug="{{ $brand->slug }}" aria-label="" tabindex="-1">
+                            @if ($brand->logo_path)
+                                <img src="{{ asset('storage/'.$brand->logo_path) }}" alt="" loading="lazy">
+                            @else
+                                <span>{{ $brand->name }}</span>
+                            @endif
+                        </a>
+                    @endforeach
+                </div>
+
+                <div class="brand-logo-sequence brand-logo-sequence-copy brand-logo-sequence-mobile-copy" aria-hidden="true">
+                    @foreach ($brands as $brand)
+                        <a href="{{ route('search', ['marca' => $brand->slug]) }}" class="brand-logo-item" data-brand-slug="{{ $brand->slug }}" aria-label="" tabindex="-1">
+                            @if ($brand->logo_path)
+                                <img src="{{ asset('storage/'.$brand->logo_path) }}" alt="" loading="lazy">
+                            @else
+                                <span>{{ $brand->name }}</span>
+                            @endif
+                        </a>
+                    @endforeach
+                </div>
             </div>
         </div>
     </section>

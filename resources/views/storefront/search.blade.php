@@ -1,7 +1,7 @@
 @extends('layouts.storefront')
 
-@section('title', ($query ? 'Resultados para '.$query : 'Busca').' | Rocha Sports')
-@section('meta_description', 'Busque suplementos, marcas e categorias na Rocha Sports com entrega rápida em Campos dos Goytacazes.')
+@section('title', ($query ? 'Resultados para '.$query : 'Busca').' | '.$storeSettings->name)
+@section('meta_description', 'Busque produtos, marcas e categorias na '.$storeSettings->name.'.')
 
 @section('content')
     @php
@@ -20,7 +20,7 @@
             <div class="mx-auto max-w-5xl px-4 py-4 md:px-6 md:py-8">
                 <div class="hidden md:block">
                     <p class="text-sm font-semibold text-rocha-blue">Encontre seu próximo suplemento</p>
-                    <h1 class="mt-1 text-3xl font-bold text-slate-950">Busca Rocha Sports</h1>
+                    <h1 class="mt-1 text-3xl font-bold text-slate-950">Busca {{ $storeSettings->name }}</h1>
                 </div>
                 <form action="{{ route('search') }}" method="GET" role="search" class="flex items-center gap-3 md:mt-5" data-search-form>
                     <label class="sr-only" for="catalog-search">Buscar produtos, marcas ou categorias</label>

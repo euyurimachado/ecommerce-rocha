@@ -18,7 +18,7 @@ class ExampleTest extends TestCase
 
         $response
             ->assertStatus(200)
-            ->assertSee('Rocha Sports')
-            ->assertSee('Suplementos');
+            ->assertSee(config('app.name'))
+            ->assertSee('Produtos selecionados para você');
     }
 }

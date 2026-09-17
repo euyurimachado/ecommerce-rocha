@@ -1,13 +1,13 @@
 @extends('layouts.storefront')
 
-@section('title', 'Política de Cookies | Rocha Sports')
-@section('meta_description', 'Política de cookies da Rocha Sports com categorias essenciais, analíticas e marketing, além da central de preferências LGPD.')
+@section('title', 'Política de Cookies | '.$storeSettings->name)
+@section('meta_description', 'Política de cookies da '.$storeSettings->name.' com categorias essenciais, analíticas e marketing, além da central de preferências LGPD.')
 
 @section('content')
     <article class="mx-auto max-w-4xl px-4 py-10 lg:px-6">
         <p class="text-sm font-semibold text-rocha-blue">Preferências</p>
         <h1 class="mt-2 text-2xl font-bold leading-snug md:text-3xl">Política de Cookies</h1>
-        <p class="mt-4 text-slate-600">A Rocha Sports usa cookies e tecnologias semelhantes para manter a loja funcionando, proteger a compra e, quando autorizado, medir desempenho e personalizar campanhas.</p>
+        <p class="mt-4 text-slate-600">A {{ $storeSettings->name }} usa cookies e tecnologias semelhantes para manter a loja funcionando, proteger a compra e, quando autorizado, medir desempenho e personalizar campanhas.</p>
 
         <button class="mt-6 rounded-lg bg-rocha-blue px-5 py-3 font-bold text-white" type="button" data-cookie-preferences-open>
             Gerenciar preferências

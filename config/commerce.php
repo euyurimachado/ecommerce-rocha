@@ -2,6 +2,7 @@
 
 return [
     'shipping' => [
+        'origin_postal_code' => env('COMMERCE_ORIGIN_POSTAL_CODE', '28000000'),
         'local_delivery_fee_cents' => (int) env('COMMERCE_LOCAL_DELIVERY_FEE_CENTS', 990),
         'free_shipping_threshold_cents' => (int) env('COMMERCE_FREE_SHIPPING_THRESHOLD_CENTS', 25000),
         'delivery_estimate' => env('COMMERCE_DELIVERY_ESTIMATE', 'Entrega local em até 24h úteis'),

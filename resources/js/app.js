@@ -373,6 +373,107 @@ const initializeHomeHeroSlider = () => {
     });
 };
 
+const initializeBrandLogoSliders = () => {
+    const mobileViewport = window.matchMedia('(max-width: 767px)');
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+    document.querySelectorAll('[data-brand-logo-slider]').forEach((slider) => {
+        if (slider.dataset.autoplayReady === 'true') {
+            return;
+        }
+
+        const sequence = slider.querySelector('[data-brand-logo-sequence]');
+
+        if (!sequence || sequence.children.length < 2) {
+            return;
+        }
+
+        slider.dataset.autoplayReady = 'true';
+
+        let autoplayTimer = null;
+        let resumeTimer = null;
+        let normalizationTimer = null;
+        let interactionPaused = false;
+
+        const canAutoplay = () => mobileViewport.matches
+            && !reducedMotion.matches
+            && !document.hidden
+            && slider.scrollWidth > slider.clientWidth;
+
+        const normalizePosition = () => {
+            const cycleWidth = sequence.offsetWidth;
+
+            if (cycleWidth > 0 && slider.scrollLeft >= cycleWidth - 2) {
+                slider.scrollLeft -= cycleWidth;
+            }
+        };
+
+        const advance = () => {
+            if (!slider.isConnected || interactionPaused || !canAutoplay()) {
+                return;
+            }
+
+            normalizePosition();
+
+            const firstItem = sequence.querySelector('.brand-logo-item');
+            const styles = window.getComputedStyle(sequence);
+            const gap = Number.parseFloat(styles.columnGap || styles.gap || '0');
+            const step = (firstItem?.getBoundingClientRect().width ?? slider.clientWidth * 0.45) + gap;
+
+            slider.scrollTo({
+                left: slider.scrollLeft + step,
+                behavior: 'smooth',
+            });
+
+            window.clearTimeout(normalizationTimer);
+            normalizationTimer = window.setTimeout(normalizePosition, 700);
+        };
+
+        const startAutoplay = () => {
+            window.clearInterval(autoplayTimer);
+
+            if (!interactionPaused && canAutoplay()) {
+                autoplayTimer = window.setInterval(advance, 2600);
+            }
+        };
+
+        const pauseAutoplay = () => {
+            interactionPaused = true;
+            window.clearInterval(autoplayTimer);
+            window.clearTimeout(resumeTimer);
+        };
+
+        const resumeAutoplaySoon = () => {
+            window.clearTimeout(resumeTimer);
+            resumeTimer = window.setTimeout(() => {
+                interactionPaused = false;
+                startAutoplay();
+            }, 2200);
+        };
+
+        slider.addEventListener('pointerdown', pauseAutoplay, { passive: true });
+        window.addEventListener('pointerup', resumeAutoplaySoon, { passive: true });
+        window.addEventListener('pointercancel', resumeAutoplaySoon, { passive: true });
+        slider.addEventListener('wheel', () => {
+            pauseAutoplay();
+            resumeAutoplaySoon();
+        }, { passive: true });
+        slider.addEventListener('focusin', pauseAutoplay);
+        slider.addEventListener('focusout', resumeAutoplaySoon);
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                window.clearInterval(autoplayTimer);
+            } else {
+                startAutoplay();
+            }
+        });
+        mobileViewport.addEventListener('change', startAutoplay);
+        reducedMotion.addEventListener('change', startAutoplay);
+
+        startAutoplay();
+    });
+};
+
 const initializeProductPage = () => {
     const mainImages = document.querySelectorAll('[data-product-main-image]');
     const gallery = document.querySelector('[data-product-gallery]');
@@ -822,6 +923,7 @@ document.addEventListener('DOMContentLoaded', initializeCookieConsent);
 document.addEventListener('DOMContentLoaded', initializeSentenceCase);
 document.addEventListener('DOMContentLoaded', initializeInfiniteProductScroll);
 document.addEventListener('DOMContentLoaded', initializeHomeHeroSlider);
+document.addEventListener('DOMContentLoaded', initializeBrandLogoSliders);
 document.addEventListener('DOMContentLoaded', initializeProductPage);
 document.addEventListener('DOMContentLoaded', initializeCheckoutFields);
 document.addEventListener('DOMContentLoaded', initializePixCopy);
@@ -830,6 +932,7 @@ document.addEventListener('livewire:navigated', initializeCookieConsent);
 document.addEventListener('livewire:navigated', initializeSentenceCase);
 document.addEventListener('livewire:navigated', initializeInfiniteProductScroll);
 document.addEventListener('livewire:navigated', initializeHomeHeroSlider);
+document.addEventListener('livewire:navigated', initializeBrandLogoSliders);
 document.addEventListener('livewire:navigated', initializeProductPage);
 document.addEventListener('livewire:navigated', initializeCheckoutFields);
 document.addEventListener('livewire:navigated', initializePixCopy);

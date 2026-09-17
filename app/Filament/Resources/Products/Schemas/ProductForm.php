@@ -84,6 +84,33 @@ class ProductForm
                     ->columnSpanFull(),
                 TextInput::make('weight')
                     ->label('Peso/volume'),
+                Section::make('Frete e dimensões')
+                    ->description('Produtos físicos precisam de peso em kg e dimensões em cm. O checkout bloqueará cotações sem estes dados.')
+                    ->columns(4)
+                    ->schema([
+                        Toggle::make('requires_shipping')
+                            ->label('Produto físico / requer entrega')
+                            ->default(true)
+                            ->live()
+                            ->columnSpanFull(),
+                        TextInput::make('weight_kg')
+                            ->label('Peso (kg)')
+                            ->numeric()->minValue(0.001)
+                            ->required(fn (Get $get): bool => (bool) $get('requires_shipping')),
+                        TextInput::make('width_cm')
+                            ->label('Largura (cm)')
+                            ->numeric()->minValue(0.01)
+                            ->required(fn (Get $get): bool => (bool) $get('requires_shipping')),
+                        TextInput::make('height_cm')
+                            ->label('Altura (cm)')
+                            ->numeric()->minValue(0.01)
+                            ->required(fn (Get $get): bool => (bool) $get('requires_shipping')),
+                        TextInput::make('length_cm')
+                            ->label('Comprimento (cm)')
+                            ->numeric()->minValue(0.01)
+                            ->required(fn (Get $get): bool => (bool) $get('requires_shipping')),
+                    ])
+                    ->columnSpanFull(),
                 Repeater::make('variations')
                     ->label('Variações do produto')
                     ->schema([

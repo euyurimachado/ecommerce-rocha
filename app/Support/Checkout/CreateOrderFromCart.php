@@ -4,6 +4,7 @@ namespace App\Support\Checkout;
 
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\StoreSetting;
 use App\Support\Cart\CartManager;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -27,7 +28,10 @@ class CreateOrderFromCart
 
         return DB::transaction(function () use ($cart, $data, $items, $clearCart, $recordSale) {
             $coupon = $cart->coupon();
-            $shippingCents = $this->shipping->calculate($data['fulfillment_method'], $cart->subtotalCents());
+            $shippingQuote = $data['shipping_quote'] ?? null;
+            $shippingCents = $data['fulfillment_method'] === 'pickup'
+                ? 0
+                : (int) ($shippingQuote['price_cents'] ?? $this->shipping->calculate($data['fulfillment_method'], $cart->subtotalCents()));
 
             $order = Order::create([
                 'code' => $this->generateCode(),
@@ -35,6 +39,7 @@ class CreateOrderFromCart
                 'customer_name' => $data['customer_name'],
                 'customer_email' => $data['customer_email'],
                 'customer_phone' => $data['customer_phone'],
+                'customer_tax_id' => $data['customer_tax_id'] ?? null,
                 'fulfillment_method' => $data['fulfillment_method'],
                 'postal_code' => $data['postal_code'] ?? null,
                 'street' => $data['street'] ?? null,
@@ -50,6 +55,13 @@ class CreateOrderFromCart
                 'coupon_code' => $coupon?->code,
                 'subtotal_cents' => $cart->subtotalCents(),
                 'shipping_cents' => $shippingCents,
+                'shipping_provider' => $shippingQuote['provider'] ?? ($data['fulfillment_method'] === 'pickup' ? 'pickup' : null),
+                'shipping_service_id' => $shippingQuote['service_id'] ?? null,
+                'shipping_service_name' => $shippingQuote['service_name'] ?? null,
+                'shipping_carrier' => $shippingQuote['carrier'] ?? null,
+                'shipping_price_cents' => $shippingCents,
+                'shipping_estimated_days' => $shippingQuote['delivery_days'] ?? null,
+                'shipping_quote_snapshot' => $shippingQuote,
                 'discount_cents' => $cart->discountCents(),
                 'total_cents' => $cart->totalCents() + $shippingCents,
                 'notes' => $data['notes'] ?? null,
@@ -94,8 +106,16 @@ class CreateOrderFromCart
 
     private function generateCode(): string
     {
+        $prefix = str(StoreSetting::current()->short_name ?: StoreSetting::current()->name ?: 'LO')
+            ->ascii()
+            ->explode(' ')
+            ->filter()
+            ->map(fn (string $word): string => mb_substr($word, 0, 1))
+            ->implode('');
+        $prefix = Str::upper(Str::substr($prefix ?: 'LO', 0, 3));
+
         do {
-            $code = 'RS'.now()->format('ymd').Str::upper(Str::random(5));
+            $code = $prefix.now()->format('ymd').Str::upper(Str::random(5));
         } while (Order::where('code', $code)->exists());
 
         return $code;
