@@ -11,6 +11,7 @@ use App\Support\Payments\PaymentRequest;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use RuntimeException;
 use Tests\TestCase;
 
@@ -40,7 +41,50 @@ class PaymentGatewaysTest extends TestCase
         $this->assertSame(PaymentStatus::Paid, $card->status);
         Http::assertSent(fn (Request $request): bool => $request->url() === 'https://api.mercadopago.com/v1/orders'
             && filled($request->header('X-Idempotency-Key')[0] ?? null));
-        Http::assertSent(fn (Request $request): bool => data_get($request->data(), 'transactions.payments.0.payment_method.token') === 'secure-card-token');
+        Http::assertSent(fn (Request $request): bool => $request->url() === 'https://api.mercadopago.com/v1/orders'
+            && data_get($request->data(), 'processing_mode') === 'automatic'
+            && data_get($request->data(), 'transactions.payments.0.payment_method.id') === 'pix');
+        Http::assertSent(fn (Request $request): bool => $request->url() === 'https://api.mercadopago.com/v1/orders'
+            && data_get($request->data(), 'processing_mode') === 'automatic'
+            && data_get($request->data(), 'transactions.payments.0.payment_method.token') === 'secure-card-token');
+    }
+
+    public function test_mercado_pago_logs_sanitized_order_failure_context(): void
+    {
+        $integration = $this->integration('mercado_pago', ['access_token' => 'TEST-secret-token']);
+        $order = $this->order();
+        $payment = $this->payment($order, 'pix');
+        Http::fake(['api.mercadopago.com/v1/orders' => Http::response([
+            'error' => 'bad_request',
+            'cause' => [['code' => 'missing_field', 'description' => 'processing_mode is required']],
+            'message' => 'Invalid request for buyer@example.com; card=4111111111111111; cvv=123; access_token=TEST-message-token; Authorization: Bearer TEST-bearer-token; card_token=TEST-card-token',
+        ], 400, ['x-request-id' => 'provider-request-123'])]);
+
+        Log::shouldReceive('warning')->once()->withArgs(function (string $message, array $context) use ($order, $payment): bool {
+            return $message === 'Mercado Pago order creation failed.'
+                && $context['provider'] === 'mercado_pago'
+                && $context['order_id'] === $order->id
+                && $context['payment_id'] === $payment->id
+                && $context['endpoint'] === '/v1/orders'
+                && $context['http_status'] === 400
+                && $context['provider_error_code'] === 'bad_request'
+                && $context['provider_cause_codes'] === ['missing_field']
+                && $context['provider_message'] === 'Invalid request for [redacted-email]; card=[redacted-number]; cvv=[REDACTED]; access_token=[REDACTED]; Authorization=[REDACTED]; card_token=[REDACTED]'
+                && $context['provider_request_id'] === 'provider-request-123'
+                && ! str_contains(json_encode($context), 'TEST-secret-token')
+                && ! str_contains(json_encode($context), 'TEST-message-token')
+                && ! str_contains(json_encode($context), 'TEST-bearer-token')
+                && ! str_contains(json_encode($context), 'TEST-card-token')
+                && ! str_contains(json_encode($context), '4111111111111111');
+        });
+
+        try {
+            app(PaymentGatewayManager::class)->for('mercado_pago', $integration)
+                ->createPayment(new PaymentRequest($order, $payment, 'pix'));
+            $this->fail('Expected Mercado Pago order creation to fail.');
+        } catch (RuntimeException $exception) {
+            $this->assertSame('Não foi possível criar o pagamento no Mercado Pago.', $exception->getMessage());
+        }
     }
 
     public function test_asaas_creates_pix_and_hosted_credit_card_without_card_data(): void

@@ -13,6 +13,7 @@ use App\Support\Payments\WebhookResult;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use RuntimeException;
 
 class MercadoPagoGateway implements PaymentGateway
@@ -54,6 +55,7 @@ class MercadoPagoGateway implements PaymentGateway
             ->withHeader('X-Idempotency-Key', $request->payment->idempotency_key)
             ->post('/v1/orders', [
                 'type' => 'online',
+                'processing_mode' => 'automatic',
                 'external_reference' => $order->code,
                 'total_amount' => number_format($request->payment->amount_cents / 100, 2, '.', ''),
                 'payer' => ['email' => $order->customer_email],
@@ -65,6 +67,30 @@ class MercadoPagoGateway implements PaymentGateway
             ]);
 
         if ($response->failed()) {
+            $error = $response->json();
+            $errorCode = data_get($error, 'error');
+
+            Log::warning('Mercado Pago order creation failed.', [
+                'provider' => 'mercado_pago',
+                'environment' => $this->integration->environment,
+                'order_id' => $order->id,
+                'payment_id' => $request->payment->id,
+                'method' => $request->method,
+                'endpoint' => '/v1/orders',
+                'http_status' => $response->status(),
+                'provider_error_code' => is_string($errorCode) && preg_match('/^[A-Za-z0-9_.-]{1,80}$/', $errorCode)
+                    ? $errorCode
+                    : null,
+                'provider_cause_codes' => collect(data_get($error, 'cause', []))
+                    ->pluck('code')
+                    ->filter(fn (mixed $code): bool => is_int($code) || (is_string($code) && preg_match('/^[A-Za-z0-9_.-]{1,40}$/', $code)))
+                    ->take(5)
+                    ->values()
+                    ->all(),
+                'provider_message' => $this->sanitizeProviderMessage(data_get($error, 'message')),
+                'provider_request_id' => $response->header('x-request-id'),
+            ]);
+
             throw new RuntimeException('Não foi possível criar o pagamento no Mercado Pago.');
         }
 
@@ -239,6 +265,23 @@ class MercadoPagoGateway implements PaymentGateway
             'refunded', 'charged_back' => PaymentStatus::Refunded,
             default => PaymentStatus::Pending,
         };
+    }
+
+    private function sanitizeProviderMessage(mixed $message): ?string
+    {
+        if (! is_string($message) || trim($message) === '') {
+            return null;
+        }
+
+        $message = strip_tags($message);
+        $message = preg_replace('/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i', '[redacted-email]', $message) ?? '';
+        $message = preg_replace('/(?<!\d)(?:\d[.\-\s]?){10,19}(?!\d)/', '[redacted-number]', $message) ?? '';
+        $message = preg_replace('/\b(authorization)\b\s*[:=]\s*(?:Bearer\s+)?[^\s,;]+/i', '$1=[REDACTED]', $message) ?? '';
+        $message = preg_replace('/\b(bearer)\s+[A-Za-z0-9._~+\/=-]+/i', '$1 [REDACTED]', $message) ?? '';
+        $message = preg_replace('/\b(cvv|cvc|security[_\s-]?code)\b\s*[:=]\s*\d{3,4}\b/i', '$1=[REDACTED]', $message) ?? '';
+        $message = preg_replace('/\b(access[_\s-]?token|public[_\s-]?key|card[_\s-]?token|webhook[_\s-]?secret)\b\s*[:=]\s*[^\s,;]+/i', '$1=[REDACTED]', $message) ?? '';
+
+        return mb_substr(trim($message), 0, 300) ?: null;
     }
 
     private function request(): PendingRequest
