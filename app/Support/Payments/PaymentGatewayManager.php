@@ -16,26 +16,16 @@ class PaymentGatewayManager
         'asaas' => AsaasGateway::class,
     ];
 
-    public function active(): PaymentGateway
+    public function active(): ?PaymentGateway
     {
-        $integration = IntegrationSetting::active('payment');
+        $integration = $this->activeIntegration();
 
-        if (! $integration) {
-            $integration = new IntegrationSetting([
-                'type' => 'payment',
-                'provider' => 'mercado_pago',
-                'enabled' => true,
-                'environment' => config('services.mercado_pago.sandbox') ? 'sandbox' : 'production',
-                'credentials' => [
-                    'access_token' => config('services.mercado_pago.access_token'),
-                    'public_key' => config('services.mercado_pago.public_key'),
-                    'webhook_secret' => config('services.mercado_pago.webhook_secret'),
-                ],
-                'settings' => ['statement_descriptor' => config('services.mercado_pago.statement_descriptor')],
-            ]);
-        }
+        return $integration ? $this->for($integration->provider, $integration) : null;
+    }
 
-        return $this->for($integration->provider, $integration);
+    public function activeIntegration(): ?IntegrationSetting
+    {
+        return IntegrationSetting::active('payment');
     }
 
     public function for(string $provider, ?IntegrationSetting $integration = null): PaymentGateway
@@ -58,8 +48,17 @@ class PaymentGatewayManager
         return app()->make($driver, ['integration' => $integration]);
     }
 
-    public function provider(): string
+    public function provider(): ?string
     {
-        return IntegrationSetting::active('payment')?->provider ?? 'mercado_pago';
+        return $this->activeIntegration()?->provider;
+    }
+
+    public function publicKey(): ?string
+    {
+        $integration = $this->activeIntegration();
+
+        return $integration?->provider === 'mercado_pago'
+            ? $integration->credential('public_key')
+            : null;
     }
 }

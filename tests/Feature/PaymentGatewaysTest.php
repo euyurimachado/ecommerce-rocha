@@ -6,6 +6,8 @@ use App\Enums\PaymentStatus;
 use App\Models\IntegrationSetting;
 use App\Models\Order;
 use App\Models\Payment;
+use App\Support\Payments\Asaas\AsaasGateway;
+use App\Support\Payments\MercadoPago\MercadoPagoGateway;
 use App\Support\Payments\PaymentGatewayManager;
 use App\Support\Payments\PaymentRequest;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -355,6 +357,157 @@ class PaymentGatewaysTest extends TestCase
         $order = $this->order();
         app(PaymentGatewayManager::class)->for('mercado_pago', $integration)
             ->createPayment(new PaymentRequest($order, $this->payment($order, 'pix'), 'pix'));
+    }
+
+    public function test_payment_gateway_manager_has_no_runtime_fallback_without_persisted_settings(): void
+    {
+        config([
+            'services.mercado_pago.access_token' => 'legacy-access-token',
+            'services.mercado_pago.public_key' => 'legacy-public-key',
+        ]);
+
+        $manager = app(PaymentGatewayManager::class);
+
+        $this->assertNull($manager->active());
+        $this->assertNull($manager->provider());
+        $this->assertNull($manager->publicKey());
+        $this->assertDatabaseCount('integration_settings', 0);
+    }
+
+    public function test_payment_gateway_manager_ignores_fallback_when_persisted_mercado_pago_is_disabled(): void
+    {
+        config([
+            'services.mercado_pago.access_token' => 'legacy-access-token',
+            'services.mercado_pago.public_key' => 'legacy-public-key',
+        ]);
+        IntegrationSetting::create([
+            'type' => 'payment', 'provider' => 'mercado_pago', 'enabled' => false,
+            'environment' => 'production', 'credentials' => [], 'settings' => [],
+        ]);
+
+        $manager = app(PaymentGatewayManager::class);
+
+        $this->assertNull($manager->active());
+        $this->assertNull($manager->provider());
+        $this->assertNull($manager->publicKey());
+    }
+
+    public function test_payment_gateway_manager_uses_active_persisted_mercado_pago(): void
+    {
+        config([
+            'services.mercado_pago.access_token' => 'legacy-access-token',
+            'services.mercado_pago.public_key' => 'legacy-public-key',
+        ]);
+        $integration = $this->integration('mercado_pago', [
+            'access_token' => 'database-access-token', 'public_key' => 'database-public-key',
+        ]);
+
+        $manager = app(PaymentGatewayManager::class);
+
+        $this->assertInstanceOf(MercadoPagoGateway::class, $manager->active());
+        $this->assertSame($integration->id, $manager->activeIntegration()?->id);
+        $this->assertSame('database-public-key', $manager->publicKey());
+    }
+
+    public function test_payment_gateway_manager_selects_active_asaas(): void
+    {
+        config(['services.mercado_pago.public_key' => 'legacy-public-key']);
+        $integration = $this->integration('asaas', ['api_key' => 'asaas-api-key']);
+
+        $manager = app(PaymentGatewayManager::class);
+
+        $this->assertInstanceOf(AsaasGateway::class, $manager->active());
+        $this->assertSame($integration->id, $manager->activeIntegration()?->id);
+        $this->assertSame('asaas', $manager->provider());
+        $this->assertNull($manager->publicKey());
+    }
+
+    public function test_payment_gateway_manager_returns_no_gateway_when_all_settings_are_disabled(): void
+    {
+        config(['services.mercado_pago.access_token' => 'legacy-access-token']);
+        IntegrationSetting::create([
+            'type' => 'payment', 'provider' => 'mercado_pago', 'enabled' => false,
+            'environment' => 'production', 'credentials' => [], 'settings' => [],
+        ]);
+        IntegrationSetting::create([
+            'type' => 'payment', 'provider' => 'asaas', 'enabled' => false,
+            'environment' => 'production', 'credentials' => [], 'settings' => [],
+        ]);
+
+        $manager = app(PaymentGatewayManager::class);
+
+        $this->assertNull($manager->active());
+        $this->assertNull($manager->provider());
+    }
+
+    public function test_payment_gateway_manager_disconnect_removes_mercado_pago_from_checkout(): void
+    {
+        config(['services.mercado_pago.public_key' => 'legacy-public-key']);
+        $integration = $this->integration('mercado_pago', [
+            'access_token' => 'database-access-token', 'public_key' => 'database-public-key',
+        ]);
+        $integration->update([
+            'enabled' => false, 'credentials' => [], 'connected_at' => null,
+            'last_test_status' => 'disconnected',
+        ]);
+
+        $manager = app(PaymentGatewayManager::class);
+
+        $this->assertNull($manager->active());
+        $this->assertNull($manager->publicKey());
+    }
+
+    public function test_payment_gateway_manager_delete_does_not_reactivate_environment_and_allows_recreation(): void
+    {
+        config([
+            'services.mercado_pago.access_token' => 'legacy-access-token',
+            'services.mercado_pago.public_key' => 'legacy-public-key',
+        ]);
+        $integration = $this->integration('mercado_pago', [
+            'access_token' => 'database-access-token', 'public_key' => 'database-public-key',
+        ]);
+        $integration->delete();
+
+        $manager = app(PaymentGatewayManager::class);
+        $this->assertNull($manager->active());
+        $this->assertNull($manager->publicKey());
+
+        $replacement = $this->integration('mercado_pago', [
+            'access_token' => 'replacement-token', 'public_key' => 'replacement-public-key',
+        ]);
+        $this->assertSame($replacement->id, $manager->activeIntegration()?->id);
+    }
+
+    public function test_payment_gateway_manager_keeps_disabled_provider_unavailable_after_delete_with_legacy_credentials(): void
+    {
+        config([
+            'services.mercado_pago.access_token' => 'legacy-access-token',
+            'services.mercado_pago.public_key' => 'legacy-public-key',
+        ]);
+        $integration = IntegrationSetting::create([
+            'type' => 'payment', 'provider' => 'mercado_pago', 'enabled' => false,
+            'environment' => 'production', 'credentials' => [], 'settings' => [],
+        ]);
+        $integration->delete();
+
+        $manager = app(PaymentGatewayManager::class);
+        $this->assertNull($manager->active());
+        $this->assertNull($manager->provider());
+        $this->assertNull($manager->publicKey());
+    }
+
+    public function test_payment_gateway_manager_webhook_resolves_disabled_setting_and_rejects_missing_secret(): void
+    {
+        $this->app['env'] = 'production';
+        IntegrationSetting::create([
+            'type' => 'payment', 'provider' => 'mercado_pago', 'enabled' => false,
+            'environment' => 'production', 'credentials' => [], 'settings' => [],
+        ]);
+
+        $this->postJson('/webhooks/payments/mercado-pago', ['type' => 'payment', 'data' => ['id' => 123]])
+            ->assertUnauthorized();
+
+        $this->assertDatabaseCount('webhook_events', 0);
     }
 
     private function integration(string $provider, array $credentials): IntegrationSetting

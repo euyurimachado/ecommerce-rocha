@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Livewire\Checkout\CheckoutPage;
 use App\Models\Category;
 use App\Models\Coupon;
+use App\Models\IntegrationSetting;
 use App\Models\Order;
 use App\Models\Product;
 use App\Support\Cart\CartManager;
@@ -23,6 +24,12 @@ class CheckoutTest extends TestCase
         parent::setUp();
 
         config(['services.mercado_pago.access_token' => 'TEST-ACCESS-TOKEN']);
+        IntegrationSetting::create([
+            'type' => 'payment', 'provider' => 'mercado_pago', 'enabled' => true,
+            'environment' => 'sandbox',
+            'credentials' => ['access_token' => 'TEST-ACCESS-TOKEN', 'public_key' => 'TEST-public-key'],
+            'settings' => [],
+        ]);
         Http::fake([
             'api.mercadopago.com/v1/payments' => function (Request $request) {
                 if (config('testing.fail_payment')) {
@@ -65,7 +72,7 @@ class CheckoutTest extends TestCase
         $this->assertStringContainsString('onSubmit:', $blade);
     }
 
-    public function test_checkout_fallback_does_not_offer_legacy_hosted_mercado_pago(): void
+    public function test_checkout_uses_persisted_gateway_without_legacy_hosted_checkout(): void
     {
         $product = $this->createProduct();
         app(CartManager::class)->add($product->id);
@@ -80,6 +87,9 @@ class CheckoutTest extends TestCase
     public function test_checkout_handles_missing_public_key_without_exposing_card_form(): void
     {
         config(['services.mercado_pago.public_key' => null]);
+        IntegrationSetting::query()->where('provider', 'mercado_pago')->firstOrFail()->update([
+            'credentials' => ['access_token' => 'TEST-ACCESS-TOKEN'],
+        ]);
         $product = $this->createProduct();
         app(CartManager::class)->add($product->id);
 
@@ -105,6 +115,28 @@ class CheckoutTest extends TestCase
             ->assertHasErrors(['card_token', 'card_payment_method_id']);
 
         Http::assertNotSent(fn (Request $request) => str_ends_with($request->url(), '/v1/payments'));
+    }
+
+    public function test_checkout_without_active_persisted_payment_gateway_shows_message_and_does_not_create_order(): void
+    {
+        config([
+            'services.mercado_pago.access_token' => 'legacy-access-token',
+            'services.mercado_pago.public_key' => 'legacy-public-key',
+        ]);
+        IntegrationSetting::query()->where('provider', 'mercado_pago')->firstOrFail()->update([
+            'enabled' => false,
+            'credentials' => [],
+        ]);
+        $product = $this->createProduct();
+        app(CartManager::class)->add($product->id);
+
+        Livewire::test(CheckoutPage::class)
+            ->assertSee('Nenhum meio de pagamento online está configurado. Entre em contato com a loja.')
+            ->assertDontSee('paymentBrick_container', false)
+            ->call('placeOrder')
+            ->assertSet('checkoutError', 'Nenhum meio de pagamento online está configurado. Entre em contato com a loja.');
+
+        $this->assertDatabaseCount('orders', 0);
     }
 
     public function test_checkout_creates_order_from_cart(): void

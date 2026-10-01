@@ -2,7 +2,6 @@
 
 namespace App\Livewire\Checkout;
 
-use App\Models\IntegrationSetting;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\StoreSetting;
@@ -84,13 +83,21 @@ class CheckoutPage extends Component
         $this->city = (string) $store->city;
         $this->state = (string) $store->state;
 
-        if (IntegrationSetting::active('payment')) {
-            $this->payment_method = app(PaymentGatewayManager::class)->active()->capabilities()->pix ? 'pix' : 'credit_card';
+        $gateway = app(PaymentGatewayManager::class)->active();
+        if ($gateway) {
+            $this->payment_method = $gateway->capabilities()->pix ? 'pix' : 'credit_card';
         }
     }
 
     public function placeOrder(CartManager $cart, CreateOrderFromCart $createOrder, PaymentGatewayManager $gateways)
     {
+        $gateway = $gateways->active();
+        if (! $gateway) {
+            $this->checkoutError = 'Nenhum meio de pagamento online está configurado. Entre em contato com a loja.';
+
+            return null;
+        }
+
         $this->normalizeFields();
 
         $validated = $this->validate();
@@ -102,7 +109,6 @@ class CheckoutPage extends Component
         }
 
         try {
-            $gateway = $gateways->active();
             $provider = $gateways->provider();
             $shippingQuote = $this->selectedShippingQuote();
             $validated += [
@@ -279,7 +285,8 @@ class CheckoutPage extends Component
         $shippingCents = $this->fulfillment_method === 'pickup'
             ? 0
             : (int) ($selectedQuote['price_cents'] ?? $shipping->calculate($this->fulfillment_method, $cart->subtotalCents()));
-        $gateway = app(PaymentGatewayManager::class)->active();
+        $gateways = app(PaymentGatewayManager::class);
+        $gateway = $gateways->active();
 
         return view('livewire.checkout.checkout-page', [
             'items' => $cart->items(),
@@ -293,15 +300,18 @@ class CheckoutPage extends Component
                 : config('commerce.shipping.delivery_estimate'),
             'total' => $cart->formatCurrency($cart->totalCents() + $shippingCents),
             'totalCents' => $cart->totalCents() + $shippingCents,
-            'paymentCapabilities' => $gateway->capabilities(),
-            'paymentProvider' => app(PaymentGatewayManager::class)->provider(),
-            'paymentPublicKey' => IntegrationSetting::active('payment')?->credential('public_key')
-                ?: config('services.mercado_pago.public_key'),
+            'paymentCapabilities' => $gateway?->capabilities(),
+            'paymentProvider' => $gateways->provider(),
+            'paymentPublicKey' => $gateways->publicKey(),
         ]);
     }
 
     protected function rules(): array
     {
+        $gateways = app(PaymentGatewayManager::class);
+        $paymentGateway = $gateways->active();
+        $paymentProvider = $gateways->provider();
+
         return [
             'customer_name' => ['required', 'string', 'min:3', 'max:120'],
             'customer_email' => ['required', 'email:rfc,filter', 'max:160'],
@@ -310,7 +320,7 @@ class CheckoutPage extends Component
                 ($this->fulfillment_method === 'delivery'
                     && app(ShippingProviderManager::class)->provider() === 'melhor_envio')
                 || ($this->payment_method === 'pix'
-                    && app(PaymentGatewayManager::class)->provider() === 'mercado_pago')
+                    && $paymentProvider === 'mercado_pago')
             ), 'nullable', 'regex:/^(?:\d{11}|\d{14})$/'],
             'fulfillment_method' => ['required', Rule::in(['delivery', 'pickup'])],
             'postal_code' => [Rule::requiredIf($this->fulfillment_method === 'delivery'), 'nullable', 'digits:8'],
@@ -320,13 +330,13 @@ class CheckoutPage extends Component
             'neighborhood' => [Rule::requiredIf($this->fulfillment_method === 'delivery'), 'nullable', 'string', 'max:120'],
             'city' => [Rule::requiredIf($this->fulfillment_method === 'delivery'), 'nullable', 'string', 'max:120'],
             'state' => [Rule::requiredIf($this->fulfillment_method === 'delivery'), 'nullable', 'string', 'size:2'],
-            'payment_method' => ['required', Rule::in(app(PaymentGatewayManager::class)->active()->capabilities()->methods())],
+            'payment_method' => ['required', Rule::in($paymentGateway?->capabilities()->methods() ?? [])],
             'selected_shipping' => [Rule::requiredIf(
                 $this->fulfillment_method === 'delivery'
                 && app(ShippingProviderManager::class)->provider() === 'melhor_envio'
             ), 'nullable', 'string'],
-            'card_token' => [Rule::requiredIf($this->payment_method === 'credit_card' && app(PaymentGatewayManager::class)->provider() === 'mercado_pago'), 'nullable', 'string'],
-            'card_payment_method_id' => [Rule::requiredIf($this->payment_method === 'credit_card' && app(PaymentGatewayManager::class)->provider() === 'mercado_pago'), 'nullable', 'string', 'max:40'],
+            'card_token' => [Rule::requiredIf($this->payment_method === 'credit_card' && $paymentProvider === 'mercado_pago'), 'nullable', 'string'],
+            'card_payment_method_id' => [Rule::requiredIf($this->payment_method === 'credit_card' && $paymentProvider === 'mercado_pago'), 'nullable', 'string', 'max:40'],
             'card_issuer_id' => ['nullable', 'string', 'max:40'],
             'card_identification_type' => ['nullable', 'in:CPF,CNPJ'],
             'card_identification_number' => ['nullable', 'digits_between:11,14'],

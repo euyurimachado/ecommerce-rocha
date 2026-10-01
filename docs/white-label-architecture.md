@@ -55,6 +55,8 @@ O core pode definir contratos, implementação padrão, migrations aditivas, pá
 
 Integrações de pagamento e entrega são módulos do core porque sua lógica e segurança são compartilhadas; suas credenciais e o provider ativo continuam em `IntegrationSetting` de cada loja.
 
+O checkout resolve pagamentos exclusivamente pela `IntegrationSetting` ativa. Credenciais em `.env` podem ser importadas explicitamente durante a configuração inicial/reconfigure, mas não são fallback de runtime; a ausência ou exclusão de registros não reativa providers legados.
+
 ## Composer
 
 Um package Composer privado é adequado porque resolve dependências e versões de forma determinística pelo `composer.lock`, permite restrições SemVer e evita cópia arbitrária de diretórios. Cada loja deverá declarar uma faixa intencional, por exemplo:

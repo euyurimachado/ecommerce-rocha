@@ -125,6 +125,9 @@
 
                 <section class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
                     <h2 class="text-lg font-bold md:text-xl">3. Pagamento</h2>
+                    @if (! $paymentCapabilities)
+                        <p class="mt-5 text-sm text-rose-700" role="alert">Nenhum meio de pagamento online está configurado. Entre em contato com a loja.</p>
+                    @else
                     <div class="mt-5 grid gap-3">
                         @if ($paymentCapabilities->pix)
                             <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-200 p-4">
@@ -155,6 +158,7 @@
                             <p class="mt-4 text-sm text-rose-700" role="alert">O pagamento com cartão está temporariamente indisponível.</p>
                         @endif
                         @error('card_token') <span class="mt-2 block text-sm text-rose-700">Não foi possível validar o cartão. Confira os dados e tente novamente.</span> @enderror
+                    @endif
                     @endif
                     @error('payment_method') <span class="mt-2 block text-sm text-rose-700">{{ $message }}</span> @enderror
 
@@ -209,7 +213,7 @@
                     </div>
                 </div>
                 @if (! ($payment_method === 'credit_card' && $paymentProvider === 'mercado_pago'))
-                    <button wire:loading.attr="disabled" wire:target="placeOrder" class="mt-6 flex w-full justify-center rounded-lg bg-rocha-blue px-5 py-3 font-bold text-white disabled:cursor-wait disabled:opacity-70" type="submit">
+                    <button wire:loading.attr="disabled" @disabled(! $paymentProvider) wire:target="placeOrder" class="mt-6 flex w-full justify-center rounded-lg bg-rocha-blue px-5 py-3 font-bold text-white disabled:cursor-not-allowed disabled:opacity-70" type="submit">
                         <span wire:loading.remove wire:target="placeOrder">Finalizar pedido</span>
                         <span wire:loading wire:target="placeOrder">Finalizando...</span>
                     </button>
