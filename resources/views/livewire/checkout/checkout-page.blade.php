@@ -126,12 +126,6 @@
                 <section class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
                     <h2 class="text-lg font-bold md:text-xl">3. Pagamento</h2>
                     <div class="mt-5 grid gap-3">
-                        @if (! \App\Models\IntegrationSetting::active('payment'))
-                            <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-rocha-blue/30 bg-rocha-blue/5 p-4">
-                                <input wire:model.live="payment_method" class="mt-1" type="radio" value="mercado_pago">
-                                <span><span class="block font-bold text-slate-950">Pagar com Mercado Pago</span><span class="mt-1 block text-sm text-slate-600">Você será direcionado ao ambiente seguro do Mercado Pago.</span></span>
-                            </label>
-                        @endif
                         @if ($paymentCapabilities->pix)
                             <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-200 p-4">
                                 <input wire:model.live="payment_method" class="mt-1" type="radio" value="pix">
@@ -141,14 +135,26 @@
                         @if ($paymentCapabilities->creditCard)
                             <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-200 p-4">
                                 <input wire:model.live="payment_method" class="mt-1" type="radio" value="credit_card">
-                                <span><span class="block font-bold">Cartão de crédito</span><span class="text-sm text-slate-600">{{ $paymentProvider === 'asaas' ? 'Pagamento no ambiente seguro do Asaas.' : 'Dados tokenizados com MercadoPago.js.' }}</span></span>
+                                <span><span class="block font-bold">Cartão de crédito</span><span class="text-sm text-slate-600">{{ $paymentProvider === 'asaas' ? 'Pagamento no ambiente seguro do Asaas.' : 'Pagamento seguro com cartão.' }}</span></span>
                             </label>
                         @endif
                     </div>
+                    @if ($payment_method === 'pix' && $paymentProvider === 'mercado_pago' && ! ($fulfillment_method === 'delivery' && app(\App\Support\Shipping\ShippingProviderManager::class)->provider() === 'melhor_envio'))
+                        <label class="mt-4 block">
+                            <span class="text-sm font-bold text-slate-700">CPF ou CNPJ para gerar o PIX</span>
+                            <input wire:model="customer_tax_id" class="mt-2 h-11 w-full rounded-lg border border-slate-200 px-3 outline-none focus:border-rocha-blue" type="text" inputmode="numeric" maxlength="14" autocomplete="off" placeholder="Somente números">
+                            @error('customer_tax_id') <span class="mt-1 block text-sm text-rose-700">Informe um CPF ou CNPJ válido para gerar o PIX.</span> @enderror
+                        </label>
+                    @endif
                     @if ($payment_method === 'credit_card' && $paymentProvider === 'mercado_pago')
-                        <div wire:ignore id="paymentBrick_container" class="mt-4"></div>
-                        <input wire:model="card_token" type="hidden">
-                        @error('card_token') <span class="mt-2 block text-sm text-rose-700">Não foi possível tokenizar o cartão. Revise os dados.</span> @enderror
+                        @if ($paymentPublicKey)
+                            <p id="paymentBrick_loading" class="mt-4 text-sm text-slate-600" role="status" aria-live="polite">Carregando pagamento seguro...</p>
+                            <p id="paymentBrick_error" class="mt-4 hidden text-sm text-rose-700" role="alert">Não foi possível carregar o formulário de cartão. Tente novamente.</p>
+                            <div wire:ignore id="paymentBrick_container" class="mt-4"></div>
+                        @else
+                            <p class="mt-4 text-sm text-rose-700" role="alert">O pagamento com cartão está temporariamente indisponível.</p>
+                        @endif
+                        @error('card_token') <span class="mt-2 block text-sm text-rose-700">Não foi possível validar o cartão. Confira os dados e tente novamente.</span> @enderror
                     @endif
                     @error('payment_method') <span class="mt-2 block text-sm text-rose-700">{{ $message }}</span> @enderror
 
@@ -219,27 +225,124 @@
             <script src="https://sdk.mercadopago.com/js/v2"></script>
         @endassets
         @script
-            let brickController;
-            const mountCardBrick = async () => {
-                if ($wire.payment_method !== 'credit_card' || ! document.getElementById('paymentBrick_container') || typeof MercadoPago === 'undefined') return;
-                if (brickController) await brickController.unmount();
-                const mp = new MercadoPago(@js($paymentPublicKey), { locale: 'pt-BR' });
-                brickController = await mp.bricks().create('cardPayment', 'paymentBrick_container', {
-                    initialization: { amount: @js($totalCents / 100), payer: { email: $wire.customer_email || '' } },
-                    customization: { paymentMethods: { maxInstallments: 12 } },
-                    callbacks: {
-                        onSubmit: ({ formData }) => {
-                            $wire.card_token = formData.token;
-                            $wire.card_payment_method_id = formData.payment_method_id;
-                            $wire.card_installments = Number(formData.installments || 1);
-                            return $wire.placeOrder();
-                        },
-                        onError: () => { $wire.checkoutError = 'Não foi possível validar o cartão. Revise os dados.'; },
-                    },
-                });
+            let brickController = null;
+            let brickGeneration = 0;
+            let brickTransition = Promise.resolve();
+            let brickSubmitting = false;
+            const setBrickState = (ready, failed = false) => {
+                const loading = document.getElementById('paymentBrick_loading');
+                const error = document.getElementById('paymentBrick_error');
+                if (loading) loading.hidden = ready || failed;
+                if (error) error.hidden = !failed;
             };
-            $wire.$watch('payment_method', () => setTimeout(mountCardBrick, 0));
-            mountCardBrick();
+            const waitForMercadoPago = async () => {
+                for (let attempt = 0; attempt < 50; attempt++) {
+                    if (typeof MercadoPago !== 'undefined') return true;
+                    await new Promise((resolve) => setTimeout(resolve, 100));
+                }
+                return false;
+            };
+            const syncCardBrick = async () => {
+                const generation = ++brickGeneration;
+                const container = document.getElementById('paymentBrick_container');
+                if ($wire.payment_method !== 'credit_card') {
+                    if (container) container.hidden = true;
+                    if (brickController) {
+                        const current = brickController;
+                        brickController = null;
+                        await current.unmount();
+                    }
+                    $wire.card_token = null;
+                    $wire.card_payment_method_id = null;
+                    $wire.card_issuer_id = null;
+                    $wire.card_identification_type = null;
+                    $wire.card_identification_number = null;
+                    return;
+                }
+                if (!container || generation !== brickGeneration) return;
+                container.hidden = false;
+                setBrickState(false);
+                if (brickController) {
+                    const current = brickController;
+                    brickController = null;
+                    await current.unmount();
+                }
+                if (generation !== brickGeneration) return;
+                if (!await waitForMercadoPago()) {
+                    setBrickState(false, true);
+                    return;
+                }
+                try {
+                    const mp = new MercadoPago(@js($paymentPublicKey), { locale: 'pt-BR' });
+                    brickController = await mp.bricks().create('cardPayment', 'paymentBrick_container', {
+                        initialization: {
+                            amount: @js($totalCents / 100),
+                            payer: { email: $wire.customer_email || '' },
+                        },
+                        customization: { paymentMethods: { maxInstallments: 12 } },
+                        callbacks: {
+                            onReady: () => {
+                                if (generation === brickGeneration) setBrickState(true);
+                            },
+                            onSubmit: async (formData) => {
+                                if (brickSubmitting) return Promise.reject();
+                                const token = formData?.token;
+                                const paymentMethodId = formData?.payment_method_id;
+                                if (!token || !paymentMethodId) {
+                                    $wire.checkoutError = 'Não foi possível validar o cartão. Confira os dados e tente novamente.';
+                                    return Promise.reject();
+                                }
+                                brickSubmitting = true;
+                                $wire.card_token = token;
+                                $wire.card_payment_method_id = paymentMethodId;
+                                $wire.card_installments = Number(formData.installments || 1);
+                                $wire.card_issuer_id = formData.issuer_id ? String(formData.issuer_id) : null;
+                                $wire.card_identification_type = formData.payer?.identification?.type || null;
+                                $wire.card_identification_number = formData.payer?.identification?.number || null;
+                                try {
+                                    const result = await $wire.placeOrder();
+                                    if ($wire.checkoutError) {
+                                        brickSubmitting = false;
+                                        return Promise.reject();
+                                    }
+                                    return result;
+                                } catch (error) {
+                                    brickSubmitting = false;
+                                    $wire.checkoutError = 'Não foi possível finalizar o pagamento. Tente novamente.';
+                                    return Promise.reject();
+                                }
+                            },
+                            onError: () => setBrickState(false, true),
+                        },
+                    });
+                    if (generation !== brickGeneration && brickController) {
+                        const current = brickController;
+                        brickController = null;
+                        await current.unmount();
+                    }
+                } catch (error) {
+                    brickController = null;
+                    setBrickState(false, true);
+                }
+            };
+            const queueBrickSync = () => {
+                brickTransition = brickTransition.then(syncCardBrick).catch(() => setBrickState(false, true));
+            };
+            $wire.$watch('payment_method', queueBrickSync);
+            queueBrickSync();
+            if (!window.rochaMercadoPagoBrickNavigationBound) {
+                window.rochaMercadoPagoBrickNavigationBound = true;
+                document.addEventListener('livewire:navigating', () => {
+                    const current = window.rochaMercadoPagoBrickController;
+                    if (current) current.unmount();
+                    window.rochaMercadoPagoBrickController = null;
+                });
+            }
+            Object.defineProperty(window, 'rochaMercadoPagoBrickController', {
+                configurable: true,
+                get: () => brickController,
+                set: (value) => { brickController = value; },
+            });
         @endscript
     @endif
 </div>

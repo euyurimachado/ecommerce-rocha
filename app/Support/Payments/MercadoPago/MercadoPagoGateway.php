@@ -12,6 +12,7 @@ use App\Support\Payments\PaymentResult;
 use App\Support\Payments\WebhookResult;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use RuntimeException;
@@ -29,64 +30,86 @@ class MercadoPagoGateway implements PaymentGateway
 
     public function createPayment(PaymentRequest $request): PaymentResult
     {
-        if ($request->method === 'mercado_pago') {
-            return $this->createHostedPayment($request);
+        $key = hash('sha256', (string) $request->payment->idempotency_key);
+
+        return Cache::lock('mercado-pago-payment-'.$key, 30)
+            ->block(10, fn (): PaymentResult => $this->createPaymentOnce($request));
+    }
+
+    private function createPaymentOnce(PaymentRequest $request): PaymentResult
+    {
+        if (filled($request->payment->provider_payment_id)) {
+            return $this->findPayment((string) $request->payment->provider_payment_id);
         }
 
         if (! in_array($request->method, $this->capabilities()->methods(), true)) {
             throw new RuntimeException('Método de pagamento não suportado pelo Mercado Pago.');
         }
 
-        if ($request->method === 'credit_card' && blank($request->token)) {
-            throw new RuntimeException('O token seguro do cartão não foi informado.');
+        if ($request->method === 'credit_card' && (blank($request->token) || blank($request->paymentMethodId))) {
+            throw new RuntimeException('Não foi possível validar o cartão. Confira os dados e tente novamente.');
         }
 
         $order = $request->order;
-        $paymentMethod = $request->method === 'pix'
-            ? ['type' => 'bank_transfer', 'id' => 'pix']
-            : array_filter([
-                'type' => 'credit_card',
-                'id' => $request->paymentMethodId,
+        $name = preg_split('/\s+/', trim($order->customer_name), 2) ?: [];
+        $payer = array_filter([
+            'email' => $order->customer_email,
+            'first_name' => $name[0] ?? null,
+            'last_name' => $name[1] ?? null,
+        ], fn (mixed $value): bool => filled($value));
+
+        $identificationNumber = preg_replace('/\D+/', '', (string) ($request->identificationNumber ?: $order->customer_tax_id));
+        $identificationType = $request->identificationType ?: match (strlen($identificationNumber)) {
+            11 => 'CPF',
+            14 => 'CNPJ',
+            default => null,
+        };
+        if ($identificationNumber !== '' && $identificationType) {
+            $payer['identification'] = ['type' => $identificationType, 'number' => $identificationNumber];
+        }
+
+        $payload = [
+            'transaction_amount' => round($request->payment->amount_cents / 100, 2),
+            'description' => 'Pedido '.$order->code.' - '.(string) config('app.name'),
+            'external_reference' => $order->code,
+            'payment_method_id' => $request->method === 'pix' ? 'pix' : $request->paymentMethodId,
+            'payer' => $payer,
+        ];
+
+        if ($request->method === 'credit_card') {
+            $payload += [
                 'token' => $request->token,
                 'installments' => $request->installments,
-            ], fn (mixed $value): bool => filled($value));
+            ];
+            if (filled($request->issuerId) && ctype_digit((string) $request->issuerId)) {
+                $payload['issuer_id'] = (int) $request->issuerId;
+            }
+        }
+
+        if ($notificationUrl = $this->publicUrl()) {
+            $payload['notification_url'] = $notificationUrl;
+        }
 
         $response = $this->request()
             ->withHeader('X-Idempotency-Key', $request->payment->idempotency_key)
-            ->post('/v1/orders', [
-                'type' => 'online',
-                'processing_mode' => 'automatic',
-                'external_reference' => $order->code,
-                'total_amount' => number_format($request->payment->amount_cents / 100, 2, '.', ''),
-                'payer' => ['email' => $order->customer_email],
-                'transactions' => ['payments' => [[
-                    'amount' => number_format($request->payment->amount_cents / 100, 2, '.', ''),
-                    'payment_method' => $paymentMethod,
-                ]]],
-                'notification_url' => $this->publicUrl(),
-            ]);
+            ->post('/v1/payments', $payload);
 
         if ($response->failed()) {
             $error = $response->json();
             $errorCode = data_get($error, 'error');
-
-            Log::warning('Mercado Pago order creation failed.', [
+            Log::warning('Mercado Pago payment creation failed.', [
                 'provider' => 'mercado_pago',
                 'environment' => $this->integration->environment,
                 'order_id' => $order->id,
                 'payment_id' => $request->payment->id,
                 'method' => $request->method,
-                'endpoint' => '/v1/orders',
+                'endpoint' => '/v1/payments',
                 'http_status' => $response->status(),
-                'provider_error_code' => is_string($errorCode) && preg_match('/^[A-Za-z0-9_.-]{1,80}$/', $errorCode)
-                    ? $errorCode
-                    : null,
-                'provider_cause_codes' => collect(data_get($error, 'cause', []))
-                    ->pluck('code')
-                    ->filter(fn (mixed $code): bool => is_int($code) || (is_string($code) && preg_match('/^[A-Za-z0-9_.-]{1,40}$/', $code)))
-                    ->take(5)
-                    ->values()
-                    ->all(),
+                'provider_error_code' => is_string($errorCode) && preg_match('/^[A-Za-z0-9_.-]{1,80}$/', $errorCode) ? $errorCode : null,
+                'provider_causes' => collect(data_get($error, 'cause', []))->take(5)->map(fn (mixed $cause): array => array_filter([
+                    'code' => is_int(data_get($cause, 'code')) || (is_string(data_get($cause, 'code')) && preg_match('/^[A-Za-z0-9_.-]{1,40}$/', data_get($cause, 'code'))) ? data_get($cause, 'code') : null,
+                    'description' => $this->sanitizeProviderMessage(data_get($cause, 'description')),
+                ], fn (mixed $value): bool => $value !== null))->values()->all(),
                 'provider_message' => $this->sanitizeProviderMessage(data_get($error, 'message')),
                 'provider_request_id' => $response->header('x-request-id'),
             ]);
@@ -94,18 +117,7 @@ class MercadoPagoGateway implements PaymentGateway
             throw new RuntimeException('Não foi possível criar o pagamento no Mercado Pago.');
         }
 
-        $data = $response->json();
-        $payment = data_get($data, 'transactions.payments.0', []);
-
-        return new PaymentResult(
-            providerPaymentId: (string) (data_get($payment, 'id') ?: data_get($data, 'id')),
-            status: $this->mapStatus((string) (data_get($payment, 'status') ?: data_get($data, 'status'))),
-            externalStatus: (string) (data_get($payment, 'status') ?: data_get($data, 'status')),
-            pixCode: data_get($payment, 'payment_method.qr_code') ?: data_get($payment, 'point_of_interaction.transaction_data.qr_code'),
-            pixQrCodeBase64: data_get($payment, 'payment_method.qr_code_base64') ?: data_get($payment, 'point_of_interaction.transaction_data.qr_code_base64'),
-            expiresAt: data_get($payment, 'date_of_expiration'),
-            metadata: ['order_id' => data_get($data, 'id')],
-        );
+        return $this->fromPayment($response->json());
     }
 
     public function findPayment(string $providerPaymentId): PaymentResult
@@ -116,7 +128,7 @@ class MercadoPagoGateway implements PaymentGateway
             throw new RuntimeException('Não foi possível consultar o pagamento no Mercado Pago.');
         }
 
-        return $this->fromLegacyPayment($response->json());
+        return $this->fromPayment($response->json());
     }
 
     public function cancel(string $providerPaymentId): PaymentResult
@@ -127,20 +139,21 @@ class MercadoPagoGateway implements PaymentGateway
             throw new RuntimeException('Não foi possível cancelar o pagamento no Mercado Pago.');
         }
 
-        return $this->fromLegacyPayment($response->json());
+        return $this->fromPayment($response->json());
     }
 
     public function refund(string $providerPaymentId, ?int $amountCents = null): PaymentResult
     {
         $payload = $amountCents ? ['amount' => $amountCents / 100] : [];
-        $response = $this->request()->withHeader('X-Idempotency-Key', (string) str()->uuid())
+        $refundKey = hash('sha256', 'mercado-pago-refund:'.$providerPaymentId.':'.($amountCents ?? 'full'));
+        $response = $this->request()->withHeader('X-Idempotency-Key', $refundKey)
             ->post("/v1/payments/{$providerPaymentId}/refunds", $payload);
 
         if ($response->failed()) {
             throw new RuntimeException('Não foi possível estornar o pagamento no Mercado Pago.');
         }
 
-        return new PaymentResult($providerPaymentId, PaymentStatus::Refunded, 'refunded');
+        return $this->findPayment($providerPaymentId);
     }
 
     public function validateWebhook(Request $request): bool
@@ -195,64 +208,40 @@ class MercadoPagoGateway implements PaymentGateway
         }
     }
 
-    private function createHostedPayment(PaymentRequest $request): PaymentResult
+    private function fromPayment(array $data): PaymentResult
     {
-        $client = app()->make(MercadoPagoClient::class);
-        $preference = $client->createPreference($request->order);
-        $redirect = $this->integration->environment === 'sandbox'
-            ? ($preference['sandbox_init_point'] ?? $preference['init_point'] ?? null)
-            : ($preference['init_point'] ?? null);
-
-        return new PaymentResult(
-            providerPaymentId: (string) ($preference['id'] ?? ''),
-            status: PaymentStatus::Pending,
-            externalStatus: 'pending',
-            redirectUrl: $redirect,
-            metadata: ['preference_id' => $preference['id'] ?? null],
-        );
-    }
-
-    private function fromLegacyPayment(array $data): PaymentResult
-    {
-        $status = (string) data_get($data, 'status');
+        $status = (string) data_get($data, 'status', 'pending');
+        $transaction = 'point_of_interaction.transaction_data.';
 
         return new PaymentResult(
             providerPaymentId: (string) data_get($data, 'id'),
             status: $this->mapStatus($status),
             externalStatus: $status,
-            pixCode: data_get($data, 'point_of_interaction.transaction_data.qr_code'),
-            pixQrCodeBase64: data_get($data, 'point_of_interaction.transaction_data.qr_code_base64'),
+            pixCode: data_get($data, $transaction.'qr_code'),
+            pixQrCodeBase64: data_get($data, $transaction.'qr_code_base64'),
             expiresAt: data_get($data, 'date_of_expiration'),
-            metadata: [
+            metadata: array_filter([
                 'external_reference' => data_get($data, 'external_reference'),
                 'status_detail' => data_get($data, 'status_detail'),
-            ],
+                'ticket_url' => data_get($data, $transaction.'ticket_url'),
+            ], fn (mixed $value): bool => $value !== null),
+            pixTicketUrl: data_get($data, $transaction.'ticket_url'),
         );
     }
 
     private function findOrderPayment(string $orderId): PaymentResult
     {
         $response = $this->request()->get("/v1/orders/{$orderId}");
-
         if ($response->failed()) {
             throw new RuntimeException('Não foi possível consultar o pedido de pagamento no Mercado Pago.');
         }
 
-        $data = $response->json();
-        $payment = (array) data_get($data, 'transactions.payments.0', []);
-        $status = (string) (data_get($payment, 'status') ?: data_get($data, 'status'));
+        $paymentId = data_get($response->json(), 'transactions.payments.0.id');
+        if (! filled($paymentId)) {
+            throw new RuntimeException('O pedido antigo não contém um pagamento consultável.');
+        }
 
-        return new PaymentResult(
-            providerPaymentId: (string) (data_get($payment, 'id') ?: $orderId),
-            status: $this->mapStatus($status),
-            externalStatus: $status,
-            pixCode: data_get($payment, 'payment_method.qr_code'),
-            pixQrCodeBase64: data_get($payment, 'payment_method.qr_code_base64'),
-            metadata: [
-                'external_reference' => data_get($data, 'external_reference'),
-                'order_id' => data_get($data, 'id'),
-            ],
-        );
+        return $this->findPayment((string) $paymentId);
     }
 
     private function mapStatus(string $status): PaymentStatus

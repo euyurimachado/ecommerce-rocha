@@ -12,6 +12,8 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\URL;
+use PHPUnit\Framework\Attributes\DataProvider;
 use RuntimeException;
 use Tests\TestCase;
 
@@ -19,34 +21,188 @@ class PaymentGatewaysTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_mercado_pago_creates_pix_and_tokenized_card_with_idempotency(): void
+    public function test_mercado_pago_creates_pix_and_tokenized_card_through_payments_api(): void
     {
         $integration = $this->integration('mercado_pago', ['access_token' => 'TEST-token', 'public_key' => 'TEST-public']);
         $order = $this->order();
-        Http::fake(['api.mercadopago.com/v1/orders' => Http::sequence()
-            ->push(['id' => 'order-pix', 'status' => 'action_required', 'transactions' => ['payments' => [[
-                'id' => 'pay-pix', 'status' => 'pending', 'payment_method' => ['qr_code' => 'pix-code', 'qr_code_base64' => 'base64'],
-            ]]]], 201)
-            ->push(['id' => 'order-card', 'status' => 'processed', 'transactions' => ['payments' => [[
-                'id' => 'pay-card', 'status' => 'approved',
-            ]]]], 201)]);
+        $order->forceFill(['customer_tax_id' => '12345678909'])->save();
+        Http::fake(['api.mercadopago.com/v1/payments' => Http::sequence()
+            ->push([
+                'id' => 501, 'status' => 'pending', 'status_detail' => 'pending_waiting_payment',
+                'point_of_interaction' => ['transaction_data' => [
+                    'qr_code' => 'pix-code', 'qr_code_base64' => 'base64-image', 'ticket_url' => 'https://www.mercadopago.com.br/ticket/501',
+                ]],
+            ], 201)
+            ->push(['id' => 502, 'status' => 'approved', 'status_detail' => 'accredited'], 201)]);
+        URL::forceRootUrl('https://shop.example.test');
+        URL::forceScheme('https');
         $gateway = app(PaymentGatewayManager::class)->for('mercado_pago', $integration);
-
         $pixPayment = $this->payment($order, 'pix');
         $pix = $gateway->createPayment(new PaymentRequest($order, $pixPayment, 'pix'));
         $cardPayment = $this->payment($order, 'credit_card');
-        $card = $gateway->createPayment(new PaymentRequest($order, $cardPayment, 'credit_card', 'secure-card-token', 'master', 3));
+        $card = $gateway->createPayment(new PaymentRequest($order, $cardPayment, 'credit_card', 'secure-card-token', 'master', 3, '123', 'CPF', '12345678909'));
 
+        $this->assertSame('501', $pix->providerPaymentId);
+        $this->assertSame(PaymentStatus::Pending, $pix->status);
+        $this->assertSame('pending_waiting_payment', $pix->metadata['status_detail']);
         $this->assertSame('pix-code', $pix->pixCode);
+        $this->assertSame('base64-image', $pix->pixQrCodeBase64);
+        $this->assertSame('https://www.mercadopago.com.br/ticket/501', $pix->pixTicketUrl);
+        $this->assertSame('payment_pending', $order->status);
+        $this->assertSame('pending', $order->payment_status);
         $this->assertSame(PaymentStatus::Paid, $card->status);
-        Http::assertSent(fn (Request $request): bool => $request->url() === 'https://api.mercadopago.com/v1/orders'
+
+        $posts = Http::recorded(fn (Request $sent): bool => $sent->method() === 'POST');
+        $this->assertCount(2, $posts);
+        Http::assertSent(fn (Request $sent): bool => $sent->url() === 'https://api.mercadopago.com/v1/payments'
+            && $sent->header('X-Idempotency-Key')[0] === $pixPayment->idempotency_key
+            && $sent['payment_method_id'] === 'pix'
+            && $sent['transaction_amount'] === 100.0
+            && $sent['external_reference'] === $order->code
+            && $sent['payer']['email'] === $order->customer_email
+            && $sent['payer']['first_name'] === 'Cliente'
+            && $sent['payer']['identification'] === ['type' => 'CPF', 'number' => '12345678909']
+            && $sent['notification_url'] === 'https://shop.example.test/webhooks/payments/mercado-pago'
+            && ! isset($sent['processing_mode'], $sent['total_amount'], $sent['transactions']));
+        Http::assertSent(fn (Request $sent): bool => $sent->url() === 'https://api.mercadopago.com/v1/payments'
+            && isset($sent['token'], $sent['issuer_id'])
+            && $sent['token'] === 'secure-card-token'
+            && $sent['installments'] === 3
+            && $sent['payment_method_id'] === 'master'
+            && $sent['issuer_id'] === 123
+            && $sent['notification_url'] === 'https://shop.example.test/webhooks/payments/mercado-pago'
+            && ! isset($sent['card_number'], $sent['cvv']));
+        Http::assertNotSent(fn (Request $sent): bool => str_ends_with($sent->url(), '/v1/orders'));
+    }
+
+    public function test_mercado_pago_retry_reuses_persisted_payment_without_second_post(): void
+    {
+        $integration = $this->integration('mercado_pago', ['access_token' => 'TEST-token']);
+        $order = $this->order();
+        $payment = $this->payment($order, 'pix');
+        Http::fake(function (Request $request) {
+            return Http::response(['id' => 811, 'status' => 'pending'], 201);
+        });
+        $gateway = app(PaymentGatewayManager::class)->for('mercado_pago', $integration);
+        $request = new PaymentRequest($order, $payment, 'pix');
+
+        $created = $gateway->createPayment($request);
+        $payment->update(['provider_payment_id' => $created->providerPaymentId]);
+        $retry = $gateway->createPayment($request);
+
+        $this->assertSame($created->providerPaymentId, $retry->providerPaymentId);
+        Http::assertSentCount(2);
+        $this->assertCount(1, Http::recorded(fn (Request $sent): bool => $sent->method() === 'POST'));
+        $this->assertCount(1, Http::recorded(fn (Request $sent): bool => $sent->method() === 'GET'));
+    }
+
+    public function test_mercado_pago_cancel_and_refund_use_payment_api(): void
+    {
+        $integration = $this->integration('mercado_pago', ['access_token' => 'TEST-token']);
+        Http::fake(function (Request $request) {
+            if ($request->method() === 'PUT') {
+                return Http::response(['id' => 812, 'status' => 'cancelled'], 200);
+            }
+            if ($request->method() === 'POST' && str_ends_with($request->url(), '/refunds')) {
+                return Http::response(['id' => 91, 'status' => 'approved'], 201);
+            }
+
+            return Http::response(['id' => 812, 'status' => 'refunded', 'status_detail' => 'refunded'], 200);
+        });
+        $gateway = app(PaymentGatewayManager::class)->for('mercado_pago', $integration);
+
+        $cancelled = $gateway->cancel('812');
+        $refunded = $gateway->refund('812', 2500);
+
+        $this->assertSame(PaymentStatus::Cancelled, $cancelled->status);
+        $this->assertSame(PaymentStatus::Refunded, $refunded->status);
+        Http::assertSent(fn (Request $request): bool => $request->method() === 'PUT'
+            && str_ends_with($request->url(), '/v1/payments/812')
+            && $request['status'] === 'cancelled');
+        Http::assertSent(fn (Request $request): bool => $request->method() === 'POST'
+            && str_ends_with($request->url(), '/v1/payments/812/refunds')
+            && $request['amount'] == 25.0
             && filled($request->header('X-Idempotency-Key')[0] ?? null));
-        Http::assertSent(fn (Request $request): bool => $request->url() === 'https://api.mercadopago.com/v1/orders'
-            && data_get($request->data(), 'processing_mode') === 'automatic'
-            && data_get($request->data(), 'transactions.payments.0.payment_method.id') === 'pix');
-        Http::assertSent(fn (Request $request): bool => $request->url() === 'https://api.mercadopago.com/v1/orders'
-            && data_get($request->data(), 'processing_mode') === 'automatic'
-            && data_get($request->data(), 'transactions.payments.0.payment_method.token') === 'secure-card-token');
+        Http::assertSent(fn (Request $request): bool => $request->method() === 'GET'
+            && str_ends_with($request->url(), '/v1/payments/812'));
+    }
+
+    public static function mercadoPagoStatuses(): array
+    {
+        return [
+            'approved' => ['approved', PaymentStatus::Paid],
+            'pending' => ['pending', PaymentStatus::Pending],
+            'authorized' => ['authorized', PaymentStatus::Processing],
+            'in process' => ['in_process', PaymentStatus::Processing],
+            'rejected' => ['rejected', PaymentStatus::Failed],
+            'cancelled' => ['cancelled', PaymentStatus::Cancelled],
+            'refunded' => ['refunded', PaymentStatus::Refunded],
+            'charged back' => ['charged_back', PaymentStatus::Refunded],
+        ];
+    }
+
+    #[DataProvider('mercadoPagoStatuses')]
+    public function test_mercado_pago_normalizes_payments_api_statuses(string $status, PaymentStatus $expected): void
+    {
+        $integration = $this->integration('mercado_pago', ['access_token' => 'TEST-token']);
+        $order = $this->order();
+        Http::fake(['api.mercadopago.com/v1/payments' => Http::response(['id' => 700, 'status' => $status, 'status_detail' => 'test_detail'], 201)]);
+
+        $result = app(PaymentGatewayManager::class)->for('mercado_pago', $integration)
+            ->createPayment(new PaymentRequest($order, $this->payment($order, 'pix'), 'pix'));
+
+        $this->assertSame($expected, $result->status);
+        $this->assertSame('test_detail', $result->metadata['status_detail']);
+    }
+
+    public function test_mercado_pago_rejects_card_without_token_before_api_call(): void
+    {
+        $integration = $this->integration('mercado_pago', ['access_token' => 'TEST-token']);
+        $order = $this->order();
+        Http::fake();
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Não foi possível validar o cartão. Confira os dados e tente novamente.');
+        app(PaymentGatewayManager::class)->for('mercado_pago', $integration)
+            ->createPayment(new PaymentRequest($order, $this->payment($order, 'credit_card'), 'credit_card'));
+    }
+
+    public static function mercadoPagoHttpErrors(): array
+    {
+        return ['400' => [400], '401' => [401], '403' => [403], '422' => [422], '500' => [500]];
+    }
+
+    #[DataProvider('mercadoPagoHttpErrors')]
+    public function test_mercado_pago_http_errors_are_logged_without_secrets(int $status): void
+    {
+        $integration = $this->integration('mercado_pago', ['access_token' => 'TEST-secret-token']);
+        $order = $this->order();
+        $payment = $this->payment($order, 'pix');
+        Http::fake(['api.mercadopago.com/v1/payments' => Http::response([
+            'error' => 'request_rejected', 'message' => 'Authorization: Bearer TEST-response-secret',
+            'cause' => [['code' => 'policy_denied', 'description' => 'buyer@example.com CPF 12345678909']],
+        ], $status)]);
+        Log::shouldReceive('warning')->once()->withArgs(function (string $message, array $context) use ($status, $order, $payment): bool {
+            $json = json_encode($context);
+
+            return $message === 'Mercado Pago payment creation failed.'
+                && $context['http_status'] === $status
+                && $context['order_id'] === $order->id
+                && $context['payment_id'] === $payment->id
+                && $context['endpoint'] === '/v1/payments'
+                && ! str_contains($json, 'TEST-secret-token')
+                && ! str_contains($json, 'TEST-response-secret')
+                && ! str_contains($json, 'buyer@example.com')
+                && ! str_contains($json, '12345678909');
+        });
+
+        try {
+            app(PaymentGatewayManager::class)->for('mercado_pago', $integration)
+                ->createPayment(new PaymentRequest($order, $payment, 'pix'));
+            $this->fail('Expected Mercado Pago payment creation to fail.');
+        } catch (RuntimeException $exception) {
+            $this->assertSame('Não foi possível criar o pagamento no Mercado Pago.', $exception->getMessage());
+        }
     }
 
     public function test_mercado_pago_logs_sanitized_order_failure_context(): void
@@ -54,21 +210,21 @@ class PaymentGatewaysTest extends TestCase
         $integration = $this->integration('mercado_pago', ['access_token' => 'TEST-secret-token']);
         $order = $this->order();
         $payment = $this->payment($order, 'pix');
-        Http::fake(['api.mercadopago.com/v1/orders' => Http::response([
+        Http::fake(['api.mercadopago.com/v1/payments' => Http::response([
             'error' => 'bad_request',
             'cause' => [['code' => 'missing_field', 'description' => 'processing_mode is required']],
             'message' => 'Invalid request for buyer@example.com; card=4111111111111111; cvv=123; access_token=TEST-message-token; Authorization: Bearer TEST-bearer-token; card_token=TEST-card-token',
         ], 400, ['x-request-id' => 'provider-request-123'])]);
 
         Log::shouldReceive('warning')->once()->withArgs(function (string $message, array $context) use ($order, $payment): bool {
-            return $message === 'Mercado Pago order creation failed.'
+            return $message === 'Mercado Pago payment creation failed.'
                 && $context['provider'] === 'mercado_pago'
                 && $context['order_id'] === $order->id
                 && $context['payment_id'] === $payment->id
-                && $context['endpoint'] === '/v1/orders'
+                && $context['endpoint'] === '/v1/payments'
                 && $context['http_status'] === 400
                 && $context['provider_error_code'] === 'bad_request'
-                && $context['provider_cause_codes'] === ['missing_field']
+                && $context['provider_causes'][0]['code'] === 'missing_field'
                 && $context['provider_message'] === 'Invalid request for [redacted-email]; card=[redacted-number]; cvv=[REDACTED]; access_token=[REDACTED]; Authorization=[REDACTED]; card_token=[REDACTED]'
                 && $context['provider_request_id'] === 'provider-request-123'
                 && ! str_contains(json_encode($context), 'TEST-secret-token')

@@ -15,5 +15,6 @@ final readonly class PaymentResult
         public ?string $pixQrCodeBase64 = null,
         public ?string $expiresAt = null,
         public array $metadata = [],
+        public ?string $pixTicketUrl = null,
     ) {}
 }

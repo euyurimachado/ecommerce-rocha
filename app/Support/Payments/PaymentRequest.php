@@ -14,5 +14,8 @@ final readonly class PaymentRequest
         public ?string $token = null,
         public ?string $paymentMethodId = null,
         public int $installments = 1,
+        public ?string $issuerId = null,
+        public ?string $identificationType = null,
+        public ?string $identificationNumber = null,
     ) {}
 }

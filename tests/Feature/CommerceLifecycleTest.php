@@ -58,11 +58,13 @@ class CommerceLifecycleTest extends TestCase
                     'id' => 1, 'name' => 'PAC', 'price' => '24.90', 'custom_price' => '24.90',
                     'delivery_time' => 6, 'custom_delivery_time' => 6, 'company' => ['name' => 'Correios'],
                 ]]),
-                str_ends_with($request->url(), '/v1/orders') => Http::response([
-                    'id' => 'mp-order-1', 'status' => 'action_required', 'transactions' => ['payments' => [[
-                        'id' => 'mp-payment-1', 'status' => 'pending',
-                        'payment_method' => ['qr_code' => 'pix-code', 'qr_code_base64' => 'pix-image'],
-                    ]]],
+                str_ends_with($request->url(), '/v1/payments') => Http::response([
+                    'id' => 'mp-payment-1', 'status' => 'pending', 'status_detail' => 'pending_waiting_transfer',
+                    'payment_method_id' => 'pix', 'transaction_amount' => 124.90,
+                    'point_of_interaction' => ['transaction_data' => [
+                        'qr_code' => 'pix-code', 'qr_code_base64' => 'pix-image',
+                        'ticket_url' => 'https://www.mercadopago.com.br/pix/ticket',
+                    ]],
                 ], 201),
                 str_ends_with($request->url(), '/v1/payments/mp-payment-1') => Http::response([
                     'id' => 'mp-payment-1', 'external_reference' => Order::query()->value('code'),

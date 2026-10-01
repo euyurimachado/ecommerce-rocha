@@ -9,6 +9,7 @@ use App\Models\StoreSetting;
 use App\Support\Cart\CartManager;
 use App\Support\Checkout\CreateOrderFromCart;
 use App\Support\Checkout\ShippingCalculator;
+use App\Support\Orders\UpdateOrderPaymentStatus;
 use App\Support\Payments\PaymentGatewayManager;
 use App\Support\Payments\PaymentRequest;
 use App\Support\Shipping\ShippingItem;
@@ -48,11 +49,17 @@ class CheckoutPage extends Component
 
     public string $state = '';
 
-    public string $payment_method = 'mercado_pago';
+    public string $payment_method = 'pix';
 
     public ?string $card_token = null;
 
     public ?string $card_payment_method_id = null;
+
+    public ?string $card_issuer_id = null;
+
+    public ?string $card_identification_type = null;
+
+    public ?string $card_identification_number = null;
 
     public int $card_installments = 1;
 
@@ -128,6 +135,9 @@ class CheckoutPage extends Component
                 token: $this->card_token,
                 paymentMethodId: $this->card_payment_method_id,
                 installments: $this->card_installments,
+                issuerId: $this->card_issuer_id,
+                identificationType: $this->card_identification_type,
+                identificationNumber: $this->card_identification_number,
             ));
             $payment->forceFill([
                 'provider_payment_id' => $result->providerPaymentId,
@@ -138,15 +148,26 @@ class CheckoutPage extends Component
             ])->save();
             $order->forceFill([
                 'payment_method' => $this->payment_method,
-                'payment_status' => $result->status->value,
+                'payment_status' => $result->externalStatus ?? $result->status->value,
                 'mercado_pago_preference_id' => $provider === 'mercado_pago' ? data_get($result->metadata, 'preference_id') : null,
-                'mercado_pago_payment_id' => $provider === 'mercado_pago' && $this->payment_method !== 'mercado_pago' ? $result->providerPaymentId : null,
+                'mercado_pago_payment_id' => $provider === 'mercado_pago' ? $result->providerPaymentId : null,
                 'pix_qr_code' => $result->pixCode,
                 'pix_qr_code_base64' => $result->pixQrCodeBase64,
+                'pix_ticket_url' => $result->pixTicketUrl,
                 'pix_expires_at' => $result->expiresAt,
                 'mercado_pago_init_point' => $provider === 'mercado_pago' ? $result->redirectUrl : null,
                 'mercado_pago_sandbox_init_point' => $provider === 'mercado_pago' ? $result->redirectUrl : null,
             ])->save();
+
+            $orderPaymentStatus = match ($result->status->value) {
+                'paid' => 'payment_approved',
+                'failed', 'cancelled' => 'payment_rejected',
+                'refunded' => 'payment_refunded',
+                default => null,
+            };
+            if ($orderPaymentStatus) {
+                app(UpdateOrderPaymentStatus::class)($order, $orderPaymentStatus);
+            }
 
             $cart->coupon()?->increment('used_count');
             $cart->clear();
@@ -286,8 +307,10 @@ class CheckoutPage extends Component
             'customer_email' => ['required', 'email:rfc,filter', 'max:160'],
             'customer_phone' => ['required', 'digits_between:10,11'],
             'customer_tax_id' => [Rule::requiredIf(
-                $this->fulfillment_method === 'delivery'
-                && app(ShippingProviderManager::class)->provider() === 'melhor_envio'
+                ($this->fulfillment_method === 'delivery'
+                    && app(ShippingProviderManager::class)->provider() === 'melhor_envio')
+                || ($this->payment_method === 'pix'
+                    && app(PaymentGatewayManager::class)->provider() === 'mercado_pago')
             ), 'nullable', 'regex:/^(?:\d{11}|\d{14})$/'],
             'fulfillment_method' => ['required', Rule::in(['delivery', 'pickup'])],
             'postal_code' => [Rule::requiredIf($this->fulfillment_method === 'delivery'), 'nullable', 'digits:8'],
@@ -297,12 +320,16 @@ class CheckoutPage extends Component
             'neighborhood' => [Rule::requiredIf($this->fulfillment_method === 'delivery'), 'nullable', 'string', 'max:120'],
             'city' => [Rule::requiredIf($this->fulfillment_method === 'delivery'), 'nullable', 'string', 'max:120'],
             'state' => [Rule::requiredIf($this->fulfillment_method === 'delivery'), 'nullable', 'string', 'size:2'],
-            'payment_method' => ['required', Rule::in(array_merge(['mercado_pago'], app(PaymentGatewayManager::class)->active()->capabilities()->methods()))],
+            'payment_method' => ['required', Rule::in(app(PaymentGatewayManager::class)->active()->capabilities()->methods())],
             'selected_shipping' => [Rule::requiredIf(
                 $this->fulfillment_method === 'delivery'
                 && app(ShippingProviderManager::class)->provider() === 'melhor_envio'
             ), 'nullable', 'string'],
             'card_token' => [Rule::requiredIf($this->payment_method === 'credit_card' && app(PaymentGatewayManager::class)->provider() === 'mercado_pago'), 'nullable', 'string'],
+            'card_payment_method_id' => [Rule::requiredIf($this->payment_method === 'credit_card' && app(PaymentGatewayManager::class)->provider() === 'mercado_pago'), 'nullable', 'string', 'max:40'],
+            'card_issuer_id' => ['nullable', 'string', 'max:40'],
+            'card_identification_type' => ['nullable', 'in:CPF,CNPJ'],
+            'card_identification_number' => ['nullable', 'digits_between:11,14'],
             'card_installments' => ['integer', 'min:1', 'max:24'],
             'notes' => ['nullable', 'string', 'max:500'],
             'privacy_accepted' => ['accepted'],

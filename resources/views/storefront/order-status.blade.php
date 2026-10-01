@@ -27,6 +27,9 @@
                     <label class="mt-4 block text-left text-sm font-bold text-slate-700" for="pix-code">PIX Copia e Cola</label>
                     <textarea id="pix-code" readonly class="mt-2 h-24 w-full rounded-lg border border-slate-200 bg-white p-3 text-xs">{{ $order->pix_qr_code }}</textarea>
                     <button type="button" data-copy-pix class="mt-3 rounded-lg bg-rocha-blue px-5 py-3 font-bold text-white">Copiar código PIX</button>
+                    @if ($order->pix_ticket_url)
+                        <a href="{{ $order->pix_ticket_url }}" target="_blank" rel="noopener noreferrer" class="mt-3 inline-flex text-sm font-bold text-rocha-blue underline">Abrir instruções do PIX</a>
+                    @endif
                     <p class="mt-3 text-sm text-slate-600">O pedido começará a ser preparado após a confirmação do pagamento.</p>
                 </div>
             @endif

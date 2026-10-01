@@ -24,18 +24,87 @@ class CheckoutTest extends TestCase
 
         config(['services.mercado_pago.access_token' => 'TEST-ACCESS-TOKEN']);
         Http::fake([
-            'api.mercadopago.com/checkout/preferences' => function (Request $request) {
+            'api.mercadopago.com/v1/payments' => function (Request $request) {
                 if (config('testing.fail_payment')) {
                     return Http::response(['message' => 'payment unavailable'], 400);
                 }
+                if ($response = config('testing.payment_response')) {
+                    return Http::response($response, 201);
+                }
 
                 return Http::response([
-                    'id' => 'pref-test-123',
-                    'init_point' => 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=pref-test-123',
-                    'sandbox_init_point' => 'https://sandbox.mercadopago.com.br/checkout/v1/redirect?pref_id=pref-test-123',
+                    'id' => 'pay-test-123',
+                    'status' => 'pending',
+                    'status_detail' => 'pending_waiting_payment',
+                    'point_of_interaction' => ['transaction_data' => [
+                        'qr_code' => 'pix-test-code',
+                        'qr_code_base64' => 'cGl4LWltYWdl',
+                        'ticket_url' => 'https://www.mercadopago.com.br/ticket/pay-test-123',
+                    ]],
                 ], 201);
             },
         ]);
+    }
+
+    public function test_checkout_renders_card_brick_callbacks_and_friendly_copy(): void
+    {
+        config(['services.mercado_pago.public_key' => 'TEST-public-key']);
+        $product = $this->createProduct();
+        app(CartManager::class)->add($product->id);
+
+        Livewire::test(CheckoutPage::class)
+            ->set('payment_method', 'credit_card')
+            ->assertSee('paymentBrick_container', false)
+            ->assertSee('Carregando pagamento seguro...')
+            ->assertSee('Pagamento seguro com cartão.')
+            ->assertDontSee('Dados tokenizados com MercadoPago.js.');
+
+        $blade = file_get_contents(resource_path('views/livewire/checkout/checkout-page.blade.php'));
+        $this->assertStringContainsString('onReady:', $blade);
+        $this->assertStringContainsString('onError:', $blade);
+        $this->assertStringContainsString('onSubmit:', $blade);
+    }
+
+    public function test_checkout_fallback_does_not_offer_legacy_hosted_mercado_pago(): void
+    {
+        $product = $this->createProduct();
+        app(CartManager::class)->add($product->id);
+
+        Livewire::test(CheckoutPage::class)
+            ->assertSee('PIX')
+            ->assertSee('Cartão de crédito')
+            ->assertDontSee('Você será direcionado ao ambiente seguro do Mercado Pago.')
+            ->assertDontSee('value="mercado_pago"', false);
+    }
+
+    public function test_checkout_handles_missing_public_key_without_exposing_card_form(): void
+    {
+        config(['services.mercado_pago.public_key' => null]);
+        $product = $this->createProduct();
+        app(CartManager::class)->add($product->id);
+
+        Livewire::test(CheckoutPage::class)
+            ->set('payment_method', 'credit_card')
+            ->assertSee('O pagamento com cartão está temporariamente indisponível.')
+            ->assertDontSee('paymentBrick_container', false);
+    }
+
+    public function test_checkout_rejects_credit_card_without_brick_token(): void
+    {
+        $product = $this->createProduct();
+        app(CartManager::class)->add($product->id);
+
+        Livewire::test(CheckoutPage::class)
+            ->set('customer_name', 'Yuri Machado')
+            ->set('customer_email', 'yuri@example.com')
+            ->set('customer_phone', '22999990000')
+            ->set('fulfillment_method', 'pickup')
+            ->set('payment_method', 'credit_card')
+            ->set('privacy_accepted', true)
+            ->call('placeOrder')
+            ->assertHasErrors(['card_token', 'card_payment_method_id']);
+
+        Http::assertNotSent(fn (Request $request) => str_ends_with($request->url(), '/v1/payments'));
     }
 
     public function test_checkout_creates_order_from_cart(): void
@@ -54,10 +123,11 @@ class CheckoutTest extends TestCase
             ->set('neighborhood', 'Centro')
             ->set('city', 'Campos dos Goytacazes')
             ->set('state', 'RJ')
-            ->set('payment_method', 'mercado_pago')
+            ->set('customer_tax_id', '12345678909')
+            ->set('payment_method', 'pix')
             ->set('privacy_accepted', true)
             ->call('placeOrder')
-            ->assertRedirect('https://sandbox.mercadopago.com.br/checkout/v1/redirect?pref_id=pref-test-123');
+            ->assertRedirect();
 
         $order = Order::query()->with('items')->first();
 
@@ -65,7 +135,10 @@ class CheckoutTest extends TestCase
         $this->assertStringContainsString($order->code, route('orders.status', ['order' => $order->code]));
         $this->assertSame('payment_pending', $order->status);
         $this->assertSame('pending', $order->payment_status);
-        $this->assertSame('pref-test-123', $order->mercado_pago_preference_id);
+        $this->assertNull($order->mercado_pago_preference_id);
+        $this->assertSame('pay-test-123', $order->mercado_pago_payment_id);
+        $this->assertSame('pix-test-code', $order->pix_qr_code);
+        $this->assertSame('https://www.mercadopago.com.br/ticket/pay-test-123', $order->pix_ticket_url);
         $this->assertSame(17980, $order->subtotal_cents);
         $this->assertSame(990, $order->shipping_cents);
         $this->assertSame(18970, $order->total_cents);
@@ -78,7 +151,37 @@ class CheckoutTest extends TestCase
         $this->get(route('orders.status', ['order' => $order->code]))
             ->assertOk()
             ->assertSee('Pedido realizado')
-            ->assertSee('Pagar com Mercado Pago');
+            ->assertSee('PIX Copia e Cola')
+            ->assertSee('Abrir instruções do PIX');
+    }
+
+    public function test_approved_card_payment_advances_order_and_records_sale(): void
+    {
+        $product = $this->createProduct();
+        app(CartManager::class)->add($product->id);
+        config(['testing.payment_response' => [
+            'id' => 'pay-card-approved', 'status' => 'approved', 'status_detail' => 'accredited',
+        ]]);
+
+        Livewire::test(CheckoutPage::class)
+            ->set('customer_name', 'Yuri Machado')
+            ->set('customer_email', 'yuri@example.com')
+            ->set('customer_phone', '22999990000')
+            ->set('fulfillment_method', 'pickup')
+            ->set('payment_method', 'credit_card')
+            ->set('card_token', 'secure-token')
+            ->set('card_payment_method_id', 'visa')
+            ->set('card_installments', 1)
+            ->set('privacy_accepted', true)
+            ->call('placeOrder')
+            ->assertHasNoErrors();
+
+        $order = Order::query()->firstOrFail();
+        $this->assertSame('preparing', $order->status);
+        $this->assertSame('approved', $order->payment_status);
+        $this->assertSame('pay-card-approved', $order->mercado_pago_payment_id);
+        $this->assertSame(1, $product->refresh()->sales_count);
+        $this->assertSame(9, $product->stock_quantity);
     }
 
     public function test_checkout_uses_variant_price_and_sku_without_inventory_control(): void
@@ -109,7 +212,8 @@ class CheckoutTest extends TestCase
             ->set('customer_email', 'yuri@example.com')
             ->set('customer_phone', '22999990000')
             ->set('fulfillment_method', 'pickup')
-            ->set('payment_method', 'mercado_pago')
+            ->set('customer_tax_id', '12345678909')
+            ->set('payment_method', 'pix')
             ->set('privacy_accepted', true)
             ->call('placeOrder')
             ->assertHasNoErrors();
@@ -125,10 +229,8 @@ class CheckoutTest extends TestCase
         $this->assertSame(10, $product->stock_quantity);
     }
 
-    public function test_checkout_creates_restricted_external_mercado_pago_preference(): void
+    public function test_checkout_uses_payments_api_without_hosted_checkout_redirect(): void
     {
-        config(['services.mercado_pago.access_token' => 'TEST-ACCESS-TOKEN']);
-
         $product = $this->createProduct();
         app(CartManager::class)->add($product->id);
 
@@ -137,23 +239,22 @@ class CheckoutTest extends TestCase
             ->set('customer_email', 'yuri@example.com')
             ->set('customer_phone', '22999990000')
             ->set('fulfillment_method', 'pickup')
-            ->set('payment_method', 'mercado_pago')
+            ->set('customer_tax_id', '12345678909')
+            ->set('payment_method', 'pix')
             ->set('privacy_accepted', true)
             ->call('placeOrder')
             ->assertRedirect();
 
-        $order = Order::query()->first();
-
+        $order = Order::query()->firstOrFail();
         $this->assertSame('payment_pending', $order->status);
-        $this->assertSame('mercado_pago', $order->payment_method);
-        $this->assertSame('pref-test-123', $order->mercado_pago_preference_id);
+        $this->assertSame('pix', $order->payment_method);
+        $this->assertSame('pay-test-123', $order->mercado_pago_payment_id);
         $this->assertSame(0, app(CartManager::class)->count());
         $this->assertSame(0, $product->refresh()->sales_count);
-
-        Http::assertSent(fn ($request) => $request->url() === 'https://api.mercadopago.com/checkout/preferences'
-            && collect($request['payment_methods']['excluded_payment_types'])->pluck('id')->contains('ticket')
-            && ! isset($request['payment_methods']['excluded_payment_methods'])
+        Http::assertSent(fn ($request) => $request->url() === 'https://api.mercadopago.com/v1/payments'
+            && $request['payment_method_id'] === 'pix'
             && filled($request->header('X-Idempotency-Key')[0] ?? null));
+        Http::assertNotSent(fn ($request) => str_ends_with($request->url(), '/checkout/preferences'));
     }
 
     public function test_checkout_rejects_payment_on_delivery(): void
@@ -194,7 +295,8 @@ class CheckoutTest extends TestCase
             ->set('customer_email', 'yuri@example.com')
             ->set('customer_phone', '22999990000')
             ->set('fulfillment_method', 'pickup')
-            ->set('payment_method', 'mercado_pago')
+            ->set('customer_tax_id', '12345678909')
+            ->set('payment_method', 'pix')
             ->set('privacy_accepted', true)
             ->call('placeOrder')
             ->assertSet('checkoutError', 'Não foi possível finalizar o pedido. Revise os dados e tente novamente.');
@@ -215,7 +317,8 @@ class CheckoutTest extends TestCase
             ->set('customer_email', 'yuri@example.com')
             ->set('customer_phone', '22999990000')
             ->set('fulfillment_method', 'delivery')
-            ->set('payment_method', 'mercado_pago')
+            ->set('customer_tax_id', '12345678909')
+            ->set('payment_method', 'pix')
             ->set('privacy_accepted', true)
             ->call('placeOrder')
             ->assertHasErrors(['postal_code', 'street', 'number', 'neighborhood']);
@@ -254,7 +357,8 @@ class CheckoutTest extends TestCase
             ->set('customer_email', 'email-invalido')
             ->set('customer_phone', '(22) 999')
             ->set('fulfillment_method', 'pickup')
-            ->set('payment_method', 'mercado_pago')
+            ->set('customer_tax_id', '12345678909')
+            ->set('payment_method', 'pix')
             ->set('privacy_accepted', true)
             ->call('placeOrder')
             ->assertHasErrors(['customer_email', 'customer_phone']);
@@ -286,7 +390,8 @@ class CheckoutTest extends TestCase
             ->set('neighborhood', 'Centro')
             ->set('city', 'Campos dos Goytacazes')
             ->set('state', 'RJ')
-            ->set('payment_method', 'mercado_pago')
+            ->set('customer_tax_id', '12345678909')
+            ->set('payment_method', 'pix')
             ->set('privacy_accepted', true)
             ->call('placeOrder')
             ->assertHasNoErrors();
@@ -311,7 +416,8 @@ class CheckoutTest extends TestCase
             ->set('customer_email', 'yuri@example.com')
             ->set('customer_phone', '22999990000')
             ->set('fulfillment_method', 'pickup')
-            ->set('payment_method', 'mercado_pago')
+            ->set('customer_tax_id', '12345678909')
+            ->set('payment_method', 'pix')
             ->set('privacy_accepted', true)
             ->call('placeOrder')
             ->assertHasNoErrors();
@@ -341,7 +447,8 @@ class CheckoutTest extends TestCase
             ->set('neighborhood', 'Centro')
             ->set('city', 'Campos dos Goytacazes')
             ->set('state', 'RJ')
-            ->set('payment_method', 'mercado_pago')
+            ->set('customer_tax_id', '12345678909')
+            ->set('payment_method', 'pix')
             ->set('privacy_accepted', true)
             ->call('placeOrder')
             ->assertHasNoErrors();

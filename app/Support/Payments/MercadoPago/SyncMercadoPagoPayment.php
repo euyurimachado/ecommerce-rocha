@@ -16,6 +16,14 @@ class SyncMercadoPagoPayment
         private readonly UpdateOrderPaymentStatus $paymentStatus,
     ) {}
 
+    public function byOrderId(string $orderId): ?Order
+    {
+        $order = $this->client->getOrder($orderId);
+        $paymentId = data_get($order, 'transactions.payments.0.id');
+
+        return filled($paymentId) ? $this->byPaymentId((string) $paymentId) : null;
+    }
+
     public function byPaymentId(string $paymentId): ?Order
     {
         $payment = $this->client->getPayment($paymentId);
@@ -79,6 +87,7 @@ class SyncMercadoPagoPayment
             'payment_status' => $status,
             'pix_qr_code' => data_get($payment, 'point_of_interaction.transaction_data.qr_code'),
             'pix_qr_code_base64' => data_get($payment, 'point_of_interaction.transaction_data.qr_code_base64'),
+            'pix_ticket_url' => data_get($payment, 'point_of_interaction.transaction_data.ticket_url'),
             'pix_expires_at' => data_get($payment, 'date_of_expiration'),
         ])->save();
 

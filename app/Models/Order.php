@@ -35,6 +35,7 @@ class Order extends Model
         'mercado_pago_status_detail',
         'pix_qr_code',
         'pix_qr_code_base64',
+        'pix_ticket_url',
         'pix_expires_at',
         'mercado_pago_init_point',
         'mercado_pago_sandbox_init_point',

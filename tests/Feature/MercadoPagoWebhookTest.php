@@ -2,8 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Enums\PaymentStatus;
 use App\Models\Category;
+use App\Models\IntegrationSetting;
 use App\Models\Order;
+use App\Models\Payment;
 use App\Models\Product;
 use App\Notifications\OrderStatusNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -85,6 +88,59 @@ class MercadoPagoWebhookTest extends TestCase
         $this->assertSame(1, $product->refresh()->sales_count);
         $this->assertSame(9, $product->stock_quantity);
         Notification::assertSentToTimes($order, OrderStatusNotification::class, 2);
+    }
+
+    public function test_invalid_mercado_pago_signature_is_rejected(): void
+    {
+        IntegrationSetting::create([
+            'type' => 'payment', 'provider' => 'mercado_pago', 'enabled' => true,
+            'environment' => 'sandbox', 'credentials' => [
+                'access_token' => 'TEST-ACCESS-TOKEN', 'webhook_secret' => 'TEST-WEBHOOK-SECRET',
+            ], 'settings' => [],
+        ]);
+
+        $this->withHeaders(['x-signature' => 'ts=1700000000,v1=invalid', 'x-request-id' => 'request-1'])
+            ->postJson('/webhooks/payments/mercado-pago?type=payment&data.id=123456', [
+                'type' => 'payment', 'data' => ['id' => '123456'],
+            ])->assertUnauthorized();
+    }
+
+    public function test_legacy_order_webhook_resolves_its_payment_id(): void
+    {
+        config(['services.mercado_pago.access_token' => 'TEST-ACCESS-TOKEN']);
+        $order = Order::create([
+            'code' => 'RS260615LEGACY', 'status' => 'payment_pending',
+            'customer_name' => 'Cliente Teste', 'customer_email' => 'cliente@example.com',
+            'customer_phone' => '22999990000', 'fulfillment_method' => 'pickup',
+            'payment_method' => 'pix', 'payment_provider' => 'mercado_pago',
+            'payment_status' => 'pending', 'subtotal_cents' => 8990, 'shipping_cents' => 0,
+            'discount_cents' => 0, 'total_cents' => 8990,
+        ]);
+        Payment::create([
+            'order_id' => $order->id, 'provider' => 'mercado_pago', 'method' => 'pix',
+            'provider_payment_id' => '654321', 'amount_cents' => 8990,
+            'status' => 'pending', 'external_status' => 'pending',
+            'idempotency_key' => 'legacy-payment-attempt',
+        ]);
+        Http::fake([
+            'api.mercadopago.com/v1/orders/ORD-LEGACY' => Http::response([
+                'id' => 'ORD-LEGACY', 'transactions' => ['payments' => [['id' => 654321]]],
+            ]),
+            'api.mercadopago.com/v1/payments/654321' => Http::response([
+                'id' => 654321, 'external_reference' => $order->code,
+                'status' => 'approved', 'status_detail' => 'accredited',
+                'payment_type_id' => 'bank_transfer', 'transaction_amount' => 89.90,
+            ]),
+        ]);
+
+        $this->postJson('/api/pagamentos/mercado-pago/webhook?type=order&data.id=ORD-LEGACY', [
+            'type' => 'order', 'data' => ['id' => 'ORD-LEGACY'],
+        ])->assertOk();
+
+        $this->assertSame('approved', $order->refresh()->payment_status);
+        $this->assertSame(PaymentStatus::Paid, Payment::query()->firstOrFail()->status);
+        Http::assertSent(fn ($request) => str_ends_with($request->url(), '/v1/orders/ORD-LEGACY'));
+        Http::assertSent(fn ($request) => str_ends_with($request->url(), '/v1/payments/654321'));
     }
 
     private function createProduct(): Product

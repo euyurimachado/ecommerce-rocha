@@ -44,9 +44,11 @@ class MercadoPagoController extends Controller
             ?: data_get($request->json()->all(), 'data.id')
             ?: $request->input('id');
 
-        if ($type === 'payment' && $paymentId) {
+        if (in_array($type, ['payment', 'order'], true) && $paymentId) {
             try {
-                $sync->byPaymentId((string) $paymentId);
+                $type === 'order'
+                    ? $sync->byOrderId((string) $paymentId)
+                    : $sync->byPaymentId((string) $paymentId);
             } catch (\Throwable $exception) {
                 report($exception);
 
