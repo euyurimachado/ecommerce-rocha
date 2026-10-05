@@ -71,7 +71,11 @@ class CheckoutTest extends TestCase
         $this->assertStringContainsString('onError:', $blade);
         $this->assertStringContainsString('onSubmit:', $blade);
         $this->assertSame(1, substr_count($blade, 'https://sdk.mercadopago.com/js/v2'));
-        $this->assertStringContainsString('$wire.$hook(\'morphed\'', $blade);
+        $this->assertStringNotContainsString("\$wire.\$hook('morphed'", $blade);
+        $this->assertStringNotContainsString("Livewire.hook('morphed'", $blade);
+        $this->assertStringContainsString('wire:ignore id="paymentBrick_region"', $blade);
+        $this->assertStringContainsString('brick-ready-timeout', $blade);
+        $this->assertStringContainsString('rejectTimeout(error instanceof Error', $blade);
         $this->assertStringContainsString('await previousCreation.promise;', $blade);
         $this->assertStringContainsString('$wire.$watch(\'payment_method\'', $blade);
         $this->assertStringContainsString('paymentBrick_retry', $blade);

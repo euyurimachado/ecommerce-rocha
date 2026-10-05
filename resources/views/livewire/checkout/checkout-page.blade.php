@@ -149,15 +149,20 @@
                             @error('customer_tax_id') <span class="mt-1 block text-sm text-rose-700">Informe um CPF ou CNPJ válido para gerar o PIX.</span> @enderror
                         </label>
                     @endif
-                    @if ($payment_method === 'credit_card' && $paymentProvider === 'mercado_pago')
+                    @if ($paymentProvider === 'mercado_pago')
                         @if ($paymentPublicKey)
-                            <p id="paymentBrick_loading" class="mt-4 text-sm text-slate-600" role="status" aria-live="polite">Carregando pagamento seguro...</p>
-                            <div id="paymentBrick_error" class="mt-4 text-sm text-rose-700" hidden role="alert"><p>Não foi possível carregar o formulário de cartão. Tente novamente.</p><button id="paymentBrick_retry" type="button" class="mt-2 rounded border border-rose-300 px-3 py-2 font-semibold hover:bg-rose-50">Tentar novamente</button></div>
-                            <div wire:ignore id="paymentBrick_container" class="mt-4"></div>
-                        @else
+                            <div wire:ignore id="paymentBrick_region" class="mt-4" hidden>
+                                <p id="paymentBrick_loading" class="text-sm text-slate-600" role="status" aria-live="polite">Carregando pagamento seguro...</p>
+                                <div id="paymentBrick_skeleton" class="mt-3 animate-pulse space-y-3" aria-hidden="true"><div class="h-11 rounded bg-slate-100"></div><div class="grid grid-cols-2 gap-3"><div class="h-11 rounded bg-slate-100"></div><div class="h-11 rounded bg-slate-100"></div></div></div>
+                                <div id="paymentBrick_error" class="mt-4 text-sm text-rose-700" hidden role="alert"><p>Não foi possível carregar o formulário de cartão. Tente novamente.</p><button id="paymentBrick_retry" type="button" class="mt-2 rounded border border-rose-300 px-3 py-2 font-semibold hover:bg-rose-50">Tentar novamente</button></div>
+                                <div id="paymentBrick_container" class="mt-4"></div>
+                            </div>
+                        @elseif ($paymentCapabilities->creditCard)
                             <p class="mt-4 text-sm text-rose-700" role="alert">O pagamento com cartão está temporariamente indisponível.</p>
                         @endif
-                        @error('card_token') <span class="mt-2 block text-sm text-rose-700">Não foi possível validar o cartão. Confira os dados e tente novamente.</span> @enderror
+                        @if ($payment_method === 'credit_card')
+                            @error('card_token') <span class="mt-2 block text-sm text-rose-700">Não foi possível validar o cartão. Confira os dados e tente novamente.</span> @enderror
+                        @endif
                     @endif
                     @endif
                     @error('payment_method') <span class="mt-2 block text-sm text-rose-700">{{ $message }}</span> @enderror
@@ -226,6 +231,7 @@
 
     @if ($paymentProvider === 'mercado_pago' && $paymentPublicKey)
         @assets
+            <link rel="preconnect" href="https://sdk.mercadopago.com" crossorigin>
             <script src="https://sdk.mercadopago.com/js/v2"></script>
         @endassets
         @script
@@ -243,11 +249,14 @@
 
             const isCardSelected = () => $wire.payment_method === 'credit_card';
             const getContainer = () => document.getElementById('paymentBrick_container');
+            const getRegion = () => document.getElementById('paymentBrick_region');
             const setBrickState = (ready, failed = false) => {
                 const loading = document.getElementById('paymentBrick_loading');
                 const error = document.getElementById('paymentBrick_error');
+                const skeleton = document.getElementById('paymentBrick_skeleton');
 
                 if (loading) loading.hidden = ready || failed;
+                if (skeleton) skeleton.hidden = ready || failed;
                 if (error) error.hidden = !failed;
             };
             const safeDiagnostic = (value) => String(value ?? '')
@@ -264,6 +273,18 @@
                     code: safeDiagnostic(error?.code || 'unknown'),
                     message: safeDiagnostic(error?.message || 'SDK initialization failed'),
                 });
+            };
+            const unmountController = async (controller, stage) => {
+                if (!controller) return;
+
+                try {
+                    await Promise.race([
+                        Promise.resolve().then(() => controller.unmount()),
+                        new Promise((_, reject) => setTimeout(() => reject(new Error('Brick unmount timed out')), 1500)),
+                    ]);
+                } catch (error) {
+                    reportBrickError(error, stage);
+                }
             };
             const clearCardFields = () => {
                 $wire.card_token = null;
@@ -293,13 +314,7 @@
                 controllerMount = null;
 
                 cleanupQueue = cleanupQueue.catch(() => {}).then(async () => {
-                    if (current) {
-                        try {
-                            await current.unmount();
-                        } catch (error) {
-                            reportBrickError(error, 'unmount');
-                        }
-                    }
+                    if (current) await unmountController(current, 'unmount');
 
                     removeMount(mount);
                 });
@@ -308,6 +323,10 @@
             };
             const failBrick = (error, stage, generation, mount = null) => {
                 if (generation !== brickGeneration) return;
+
+                if (pendingCreation?.mount === mount && pendingCreation.timer) {
+                    clearTimeout(pendingCreation.timer);
+                }
 
                 reportBrickError(error, stage);
                 brickGeneration += 1;
@@ -319,14 +338,14 @@
                     const current = brickController;
                     brickController = null;
                     controllerMount = null;
-                    void Promise.resolve().then(() => current.unmount()).catch((unmountError) => reportBrickError(unmountError, 'unmount'));
+                    void unmountController(current, 'unmount');
                 }
 
                 removeMount(mount);
                 setBrickState(false, true);
             };
             const waitForMercadoPago = async () => {
-                for (let attempt = 0; attempt < 50; attempt++) {
+                for (let attempt = 0; attempt < 30; attempt++) {
                     if (typeof window.MercadoPago === 'function') return true;
                     await new Promise((resolve) => setTimeout(resolve, 100));
                 }
@@ -344,6 +363,8 @@
                 const container = getContainer();
 
                 if (!isCardSelected()) {
+                    const region = getRegion();
+                    if (region) region.hidden = true;
                     if (container) container.hidden = true;
                     const staleCreation = invalidatePendingCreation();
                     clearCardFields();
@@ -361,6 +382,8 @@
                     return;
                 }
 
+                const region = getRegion();
+                if (region) region.hidden = false;
                 container.hidden = false;
 
                 if (generation !== brickGeneration) return;
@@ -410,11 +433,19 @@
                 mount.id = 'paymentBrick_mount_' + generation + '_' + (++mountSequence);
                 container.replaceChildren(mount);
 
-                const operation = { generation, mount, promise: null };
+                const operation = { generation, mount, promise: null, timer: null, ready: false, created: false };
                 pendingCreation = operation;
+                let rejectTimeout;
+                const timeoutPromise = new Promise((_, reject) => { rejectTimeout = reject; });
+                operation.timer = setTimeout(() => {
+                    operation.timedOut = true;
+                    const timeoutError = new Error('Card Payment Brick did not become ready within 5 seconds');
+                    rejectTimeout(timeoutError);
+                    if (operation.created) failBrick(timeoutError, 'brick-ready-timeout', generation, mount);
+                }, 5000);
                 operation.promise = (async () => {
                     try {
-                        const controller = await mercadoPagoInstance.bricks().create('cardPayment', mount.id, {
+                        const creationPromise = mercadoPagoInstance.bricks().create('cardPayment', mount.id, {
                             initialization: {
                                 amount: @js($totalCents / 100),
                                 payer: { email: $wire.customer_email || '' },
@@ -422,6 +453,11 @@
                             customization: { paymentMethods: { maxInstallments: 12 } },
                             callbacks: {
                                 onReady: () => {
+                                    operation.ready = true;
+                                    if (operation.created && operation.timer) {
+                                        clearTimeout(operation.timer);
+                                        operation.timer = null;
+                                    }
                                     if (isCurrentMount(generation, container, mount)) setBrickState(true);
                                 },
                                 onSubmit: async (formData) => {
@@ -463,9 +499,23 @@
                                         return Promise.reject();
                                     }
                                 },
-                                onError: (error) => failBrick(error, 'brick-callback', generation, mount),
+                                onError: (error) => {
+                                    rejectTimeout(error instanceof Error ? error : new Error(error?.message || 'Brick reported an error'));
+                                    failBrick(error, 'brick-callback', generation, mount);
+                                },
                             },
                         });
+                        creationPromise.then((lateController) => {
+                            if (operation.timedOut || generation !== brickGeneration || !isCurrentMount(generation, container, mount)) {
+                                void unmountController(lateController, 'late-unmount');
+                            }
+                        }).catch(() => {});
+                        const controller = await Promise.race([creationPromise, timeoutPromise]);
+                        operation.created = true;
+                        if (operation.ready && operation.timer) {
+                            clearTimeout(operation.timer);
+                            operation.timer = null;
+                        }
 
                         if (!isCurrentMount(generation, container, mount)) {
                             try {
@@ -483,12 +533,17 @@
                         brickController = controller;
                         controllerMount = mount;
                         if (pendingCreation === operation) pendingCreation = null;
-                        setBrickState(true);
+                        if (operation.ready) setBrickState(true);
                     } catch (error) {
+                        operation.timedOut = true;
+                        if (operation.timer) {
+                            clearTimeout(operation.timer);
+                            operation.timer = null;
+                        }
                         if (pendingCreation === operation) pendingCreation = null;
 
                         if (generation === brickGeneration && isCardSelected()) {
-                            failBrick(error, 'brick-create', generation, mount);
+                            failBrick(error, 'brick-create-or-ready', generation, mount);
                         } else {
                             removeMount(mount);
                         }
@@ -546,10 +601,6 @@
 
                 void syncCardBrick(generation);
             });
-            $wire.$hook('morphed', () => {
-                void syncCardBrick(brickGeneration);
-            });
-
             if (!window.rochaMercadoPagoBrickNavigationBound) {
                 window.rochaMercadoPagoBrickNavigationBound = true;
                 document.addEventListener('livewire:navigating', () => {
