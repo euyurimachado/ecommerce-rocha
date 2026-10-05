@@ -17,5 +17,6 @@ final readonly class PaymentRequest
         public ?string $issuerId = null,
         public ?string $identificationType = null,
         public ?string $identificationNumber = null,
+        public bool $reconcileFirst = false,
     ) {}
 }

@@ -1,5 +1,44 @@
 <div>
-    @if ($items->isEmpty())
+    @if ($existingOrderCode && ! $paymentAttemptUncertain)
+        <section class="mt-6 rounded-lg border border-slate-200 bg-white p-6 shadow-sm" aria-live="polite">
+            <h2 class="text-lg font-bold text-slate-950">Pedido {{ $existingOrderCode }}</h2>
+            <p class="mt-2 text-slate-700">{{ $paymentAttemptMessage }}</p>
+            <div class="mt-5 flex flex-wrap gap-3">
+                <a href="{{ route('orders.status', ['order' => $existingOrderCode]) }}" class="inline-flex rounded-lg bg-rocha-blue px-5 py-3 font-bold text-white">Ver pedido</a>
+                @if ($existingOrder?->payment_status === 'pending' || in_array($existingOrder?->payment_status, ['in_process', 'authorized'], true))
+                    <button type="button" wire:click="verifyPaymentAttempt" wire:loading.attr="disabled" class="rounded-lg border border-slate-300 px-5 py-3 font-bold text-slate-700">Verificar pagamento</button>
+                @endif
+                @if ($existingOrder?->status === 'payment_rejected')
+                    <a href="{{ route('home') }}" class="inline-flex rounded-lg border border-slate-300 px-5 py-3 font-bold text-slate-700">Escolher produtos para uma nova tentativa</a>
+                @endif
+            </div>
+        </section>
+    @elseif ($paymentAttemptUncertain && $existingOrder && $items->isEmpty())
+        <section class="mt-6 rounded-lg border border-amber-300 bg-amber-50 p-6 shadow-sm" aria-live="polite">
+            <h2 class="text-lg font-bold text-amber-950">Estamos confirmando o pagamento</h2>
+            <p class="mt-2 text-sm text-amber-900">{{ $paymentAttemptMessage }} A mesma tentativa será retomada; não iniciaremos outra cobrança.</p>
+            <p class="mt-3 text-sm font-semibold text-amber-950">Pedido {{ $existingOrder->code }} · {{ $existingOrder->formatted_total }}</p>
+
+            @if ($existingOrder->payment_provider === 'mercado_pago' && $existingOrder->payment_method === 'credit_card')
+                <div wire:ignore id="paymentBrick_region" class="mt-5" hidden>
+                    <p id="paymentBrick_loading" class="text-sm text-slate-600" role="status" aria-live="polite">Carregando formulário seguro para retomar a mesma tentativa...</p>
+                    <div id="paymentBrick_skeleton" class="mt-3 animate-pulse space-y-3" aria-hidden="true"><div class="h-11 rounded bg-slate-100"></div><div class="grid grid-cols-2 gap-3"><div class="h-11 rounded bg-slate-100"></div><div class="h-11 rounded bg-slate-100"></div></div></div>
+                    <div id="paymentBrick_error" class="mt-4 text-sm text-rose-700" hidden role="alert"><p>Não foi possível carregar o formulário de cartão. Tente novamente ou verifique o pagamento.</p><button id="paymentBrick_retry" type="button" class="mt-2 rounded border border-rose-300 px-3 py-2 font-semibold hover:bg-rose-50">Tentar novamente</button></div>
+                    <div id="paymentBrick_mount_host" class="mt-4"></div>
+                </div>
+                <button id="paymentBrick_checkout_status" class="mt-5 flex w-full max-w-md justify-center rounded-lg bg-slate-200 px-5 py-3 font-bold text-slate-700 disabled:cursor-not-allowed" type="button" disabled aria-live="polite">Carregando formulário do cartão...</button>
+                <div id="paymentBrick_uncertain" class="mt-4 max-w-md rounded-lg border border-amber-400 bg-white p-4 text-sm text-amber-950" role="status" hidden>
+                    Estamos confirmando o pagamento. Não envie outro pagamento.
+                    <button type="button" wire:click="verifyPaymentAttempt" class="mt-3 block rounded border border-amber-500 px-3 py-2 font-semibold">Verificar pagamento</button>
+                </div>
+            @elseif ($existingOrder->payment_provider === 'mercado_pago' && $existingOrder->payment_method === 'pix')
+                <button type="button" wire:click="verifyPaymentAttempt" wire:loading.attr="disabled" class="mt-5 rounded-lg border border-amber-500 bg-white px-5 py-3 font-bold text-amber-950">Verificar pagamento PIX</button>
+                <button type="button" wire:click="placeOrder" wire:loading.attr="disabled" class="mt-3 block rounded-lg bg-rocha-blue px-5 py-3 font-bold text-white">Retomar PIX com a mesma tentativa</button>
+            @else
+                <button type="button" wire:click="verifyPaymentAttempt" wire:loading.attr="disabled" class="mt-5 rounded-lg border border-amber-500 bg-white px-5 py-3 font-bold text-amber-950">Verificar pagamento</button>
+            @endif
+        </section>
+    @elseif ($items->isEmpty())
         <div class="mt-6 rounded-lg border border-slate-200 bg-white p-6 text-slate-600">
             <p class="font-semibold text-slate-950">Seu carrinho ainda está vazio.</p>
             <p class="mt-2">Adicione produtos antes de finalizar a compra.</p>
@@ -8,6 +47,16 @@
     @else
         <form wire:submit="placeOrder" class="mt-6 grid gap-6 lg:grid-cols-[1fr_22rem]">
             <div class="space-y-4">
+                @if ($paymentAttemptUncertain && $existingOrder)
+                    <div class="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950" role="status" aria-live="polite">
+                        <strong>Estamos confirmando o pagamento.</strong> {{ $paymentAttemptMessage }}
+                        <button type="button" wire:click="verifyPaymentAttempt" wire:loading.attr="disabled" class="mt-3 block rounded border border-amber-500 px-3 py-2 font-semibold">Verificar pagamento</button>
+                    </div>
+                @endif
+                <div id="paymentBrick_uncertain" class="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950" role="status" hidden>
+                    Estamos confirmando o pagamento. Não tente novamente com uma nova tentativa.
+                    <button type="button" wire:click="verifyPaymentAttempt" class="mt-3 block rounded border border-amber-500 px-3 py-2 font-semibold">Verificar pagamento</button>
+                </div>
                 @if ($checkoutError)
                     <div class="rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm font-semibold text-rose-800">
                         {{ $checkoutError }}
@@ -131,13 +180,13 @@
                     <div class="mt-5 grid gap-3">
                         @if ($paymentCapabilities->pix)
                             <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-200 p-4">
-                                <input wire:model.live="payment_method" class="mt-1" type="radio" value="pix">
+                                <input wire:model.live="payment_method" class="mt-1" type="radio" value="pix" @disabled($paymentAttemptUncertain)>
                                 <span><span class="block font-bold">PIX</span><span class="text-sm text-slate-600">QR Code e código copia e cola. O pedido só será pago após confirmação.</span></span>
                             </label>
                         @endif
                         @if ($paymentCapabilities->creditCard)
                             <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-200 p-4">
-                                <input wire:model.live="payment_method" class="mt-1" type="radio" value="credit_card">
+                                <input wire:model.live="payment_method" class="mt-1" type="radio" value="credit_card" @disabled($paymentAttemptUncertain)>
                                 <span><span class="block font-bold">Cartão de crédito</span><span class="text-sm text-slate-600">{{ $paymentProvider === 'asaas' ? 'Pagamento no ambiente seguro do Asaas.' : 'Pagamento seguro com cartão.' }}</span></span>
                             </label>
                         @endif
@@ -225,7 +274,7 @@
         </form>
     @endif
 
-    @if ($paymentProvider === 'mercado_pago')
+    @if ($paymentProvider === 'mercado_pago' && (! $existingOrderCode || $paymentAttemptUncertain))
         @if ($paymentPublicKey)
             @assets
                 <link rel="preconnect" href="https://sdk.mercadopago.com" crossorigin>
@@ -234,12 +283,9 @@
         @endif
         @script
             <script>
-                window.__mpCardDiagnosticLoaded = true;
-                console.log('[MP-CARD] script-start');
             const paymentPublicKey = @js($paymentPublicKey);
             const hasUsablePublicKey = typeof paymentPublicKey === 'string'
                 && /^(TEST|APP_USR)-[A-Za-z0-9_-]+$/.test(paymentPublicKey.trim());
-            const diagnostic = (event, details = {}) => console.info('[MP-CARD] ' + event, details);
             let brickController = null;
             let controllerMount = null;
             let pendingCreation = null;
@@ -254,24 +300,16 @@
 
             const isCardSelected = () => $wire.payment_method === 'credit_card';
             const getContainer = () => document.getElementById('paymentBrick_mount_host');
-            const logCardState = (event) => {
-                const container = getContainer();
-                const rect = container?.getBoundingClientRect();
-                diagnostic(event, {
-                    paymentMethod: ['pix', 'credit_card', 'debit_card'].includes($wire.payment_method) ? $wire.payment_method : 'unexpected',
-                    publicKeyPresent: hasUsablePublicKey,
-                    sdkPresent: typeof window.MercadoPago === 'function',
-                    containerPresent: Boolean(container),
-                    containerVisible: Boolean(container?.isConnected && rect?.width > 0 && rect?.height > 0),
-                    containerWidth: Math.round(rect?.width || 0),
-                    containerHeight: Math.round(rect?.height || 0),
-                });
-            };
             const setCheckoutStatus = (ready, failed = false) => {
                 const button = document.getElementById('paymentBrick_checkout_status');
                 if (!button) return;
                 button.hidden = ready;
                 button.textContent = failed ? 'Cartão indisponível — tente novamente ou selecione PIX' : 'Carregando formulário do cartão...';
+            };
+            const showPaymentUncertain = () => {
+                brickSubmitting = false;
+                const notice = document.getElementById('paymentBrick_uncertain');
+                if (notice) notice.hidden = false;
             };
             const getRegion = () => document.getElementById('paymentBrick_region');
             const setBrickState = (ready, failed = false) => {
@@ -379,7 +417,6 @@
             );
             const reconcileCardBrick = async (generation) => {
                 const container = getContainer();
-                logCardState('container-state');
 
                 if (!isCardSelected()) {
                     const region = getRegion();
@@ -435,46 +472,35 @@
                 setCheckoutStatus(false);
 
                 if (!hasUsablePublicKey) {
-                    diagnostic('public-key-present', false);
                     failBrick(new Error('Public key unavailable'), 'public-key', generation);
                     return;
                 }
 
-                diagnostic('public-key-present', true);
-                diagnostic('public-key-length', paymentPublicKey.trim().length);
                 const containerRect = container.getBoundingClientRect();
                 const containerStyle = window.getComputedStyle(container);
                 const containerVisible = container.isConnected
                     && containerStyle.display !== 'none'
                     && containerStyle.visibility !== 'hidden'
                     && containerRect.width > 0;
-                diagnostic('container-present', Boolean(container.isConnected));
-                diagnostic('container-connected', container.isConnected);
-                diagnostic('container-visible', containerVisible);
-                diagnostic('container-size', { width: Math.round(containerRect.width), height: Math.round(containerRect.height) });
                 if (!containerVisible) {
                     failBrick(new Error('Brick container is not visible'), 'container-hidden', generation);
                     return;
                 }
                 const amount = Number(@js($totalCents / 100));
-                diagnostic('amount', amount);
                 if (!Number.isFinite(amount) || amount <= 0) {
                     failBrick(new Error('Invalid checkout amount'), 'amount', generation);
                     return;
                 }
                 if (!await waitForMercadoPago()) {
-                    diagnostic('sdk-present', false);
                     failBrick(new Error('MercadoPago SDK unavailable'), 'sdk-load', generation);
 
                     return;
                 }
 
-                diagnostic('sdk-present', true);
                 if (generation !== brickGeneration || !isCardSelected() || getContainer() !== container) return;
 
                 try {
                     mercadoPagoInstance ??= new window.MercadoPago(paymentPublicKey, { locale: 'pt-BR' });
-                    diagnostic('mp-created');
                 } catch (error) {
                     failBrick(error, 'sdk-initialize', generation);
 
@@ -487,10 +513,6 @@
                 container.replaceChildren(mount);
                 const mountRect = mount.getBoundingClientRect();
                 const mountVisible = mount.isConnected && mountRect.width > 0;
-                diagnostic('container-present', document.querySelectorAll('#cardPaymentBrick_container').length === 1);
-                diagnostic('container-connected', mount.isConnected);
-                diagnostic('container-visible', mountVisible);
-                diagnostic('container-size', { width: Math.round(mountRect.width), height: Math.round(mountRect.height) });
                 if (!mountVisible) {
                     failBrick(new Error('Card Brick mount is not measurable'), 'container-hidden', generation, mount);
                     return;
@@ -504,14 +526,11 @@
                     operation.timedOut = true;
                     const timeoutError = new Error('Card Payment Brick did not become ready within 5 seconds');
                     rejectTimeout(timeoutError);
-                    diagnostic('timeout', { stage: operation.created ? 'brick-ready' : 'brick-create' });
                     if (operation.created) failBrick(timeoutError, 'brick-ready-timeout', generation, mount);
                 }, 5000);
                 operation.promise = (async () => {
                     try {
                         const bricksBuilder = mercadoPagoInstance.bricks();
-                        diagnostic('bricks-builder-created', { present: Boolean(bricksBuilder) });
-                        diagnostic('create-start', { brick: 'cardPayment', containerId: mount.id });
                         const creationPromise = bricksBuilder.create('cardPayment', mount.id, {
                             initialization: {
                                 amount,
@@ -520,7 +539,6 @@
                             customization: { paymentMethods: { maxInstallments: 12 } },
                             callbacks: {
                                 onReady: () => {
-                                    diagnostic('on-ready');
                                     operation.ready = true;
                                     if (operation.created && operation.timer) {
                                         clearTimeout(operation.timer);
@@ -538,6 +556,7 @@
 
                                     const token = formData?.token;
                                     const paymentMethodId = formData?.payment_method_id;
+                                    const installments = Number(formData?.installments);
 
                                     if (!token || !paymentMethodId) {
                                         $wire.checkoutError = 'Não foi possível validar o cartão. Confira os dados e tente novamente.';
@@ -546,39 +565,55 @@
                                     }
 
                                     brickSubmitting = true;
+                                    $wire.checkoutError = null;
                                     $wire.card_token = token;
                                     $wire.card_payment_method_id = paymentMethodId;
-                                    $wire.card_installments = Number(formData.installments || 1);
+                                    $wire.card_installments = installments;
                                     $wire.card_issuer_id = formData.issuer_id ? String(formData.issuer_id) : null;
                                     $wire.card_identification_type = formData.payer?.identification?.type || null;
                                     $wire.card_identification_number = formData.payer?.identification?.number || null;
 
-                                    try {
-                                        const result = await $wire.placeOrder();
+                                    const livewireRequest = Promise.resolve().then(() => $wire.placeOrder());
+                                    let timeoutHandle;
+                                    const outcome = await Promise.race([
+                                        livewireRequest.then(
+                                            (result) => ({ stage: 'resolved', result }),
+                                            (error) => ({ stage: 'rejected', error }),
+                                        ),
+                                        new Promise((resolve) => {
+                                            timeoutHandle = setTimeout(() => resolve({ stage: 'timeout' }), 35000);
+                                        }),
+                                    ]);
+                                    if (timeoutHandle) clearTimeout(timeoutHandle);
 
-                                        if ($wire.checkoutError) {
-                                            brickSubmitting = false;
+                                    if (outcome.stage === 'timeout') {
+                                        $wire.paymentAttemptUncertain = true;
+                                        $wire.paymentAttemptMessage = 'Estamos confirmando o pagamento. Não tente pagar novamente com uma nova tentativa.';
+                                        showPaymentUncertain();
+                                        return;
+                                    }
 
-                                            return Promise.reject();
-                                        }
+                                    if (outcome.stage === 'rejected') {
+                                        $wire.paymentAttemptUncertain = true;
+                                        $wire.paymentAttemptMessage = 'Estamos confirmando o pagamento. Não tente pagar novamente com uma nova tentativa.';
+                                        showPaymentUncertain();
+                                        return;
+                                    }
 
-                                        return result;
-                                    } catch (error) {
+                                    if ($wire.checkoutError) {
                                         brickSubmitting = false;
-                                        $wire.checkoutError = 'Não foi possível finalizar o pagamento. Tente novamente.';
-
                                         return Promise.reject();
                                     }
+
+                                    return outcome.result;
                                 },
                                 onError: (error) => {
-                                    diagnostic('on-error-callback');
                                     rejectTimeout(error instanceof Error ? error : new Error(error?.message || 'Brick reported an error'));
                                     failBrick(error, 'brick-callback', generation, mount);
                                 },
                             },
                         });
                         const observedCreationPromise = creationPromise.then((lateController) => {
-                            diagnostic('create-resolved');
                             if (operation.timedOut || generation !== brickGeneration || !isCurrentMount(generation, container, mount)) {
                                 void unmountController(lateController, 'late-unmount');
                             }
@@ -673,7 +708,6 @@
                 if (value !== 'credit_card') clearCardFields();
 
                 setCheckoutStatus(value !== 'credit_card');
-                diagnostic('payment-method', ['pix', 'credit_card', 'debit_card'].includes(value) ? value : 'unexpected');
                 void syncCardBrick(generation);
             });
             if (!window.rochaMercadoPagoBrickNavigationBound) {
@@ -693,8 +727,6 @@
                 void destroyCardBrick();
             };
 
-            diagnostic('payment-method', ['pix', 'credit_card', 'debit_card'].includes($wire.payment_method) ? $wire.payment_method : 'unexpected');
-            logCardState('initial-state');
             setCheckoutStatus(!isCardSelected());
             void syncCardBrick(brickGeneration);
             </script>

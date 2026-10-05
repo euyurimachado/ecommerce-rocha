@@ -2,6 +2,8 @@
 
 namespace App\Livewire\Checkout;
 
+use App\Enums\PaymentStatus;
+use App\Models\IntegrationSetting;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\StoreSetting;
@@ -11,11 +13,14 @@ use App\Support\Checkout\ShippingCalculator;
 use App\Support\Orders\UpdateOrderPaymentStatus;
 use App\Support\Payments\PaymentGatewayManager;
 use App\Support\Payments\PaymentRequest;
+use App\Support\Payments\PaymentResult;
 use App\Support\Shipping\ShippingItem;
 use App\Support\Shipping\ShippingProviderManager;
 use App\Support\Shipping\ShippingQuoteRequest;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use InvalidArgumentException;
@@ -24,6 +29,8 @@ use Throwable;
 
 class CheckoutPage extends Component
 {
+    private const PAYMENT_ATTEMPT_SESSION_KEY = 'checkout.payment_attempt_id';
+
     public string $customer_name = '';
 
     public string $customer_email = '';
@@ -60,7 +67,7 @@ class CheckoutPage extends Component
 
     public ?string $card_identification_number = null;
 
-    public int $card_installments = 1;
+    public ?int $card_installments = 1;
 
     public array $shipping_quotes = [];
 
@@ -76,9 +83,20 @@ class CheckoutPage extends Component
 
     public ?string $addressLookupError = null;
 
-    public function mount(): void
+    public ?string $existingOrderCode = null;
+
+    public bool $paymentAttemptUncertain = false;
+
+    public ?string $paymentAttemptMessage = null;
+
+    public function mount(CartManager $cart): void
     {
-        $this->payment_attempt_id = (string) Str::uuid();
+        $attemptId = session()->get(self::PAYMENT_ATTEMPT_SESSION_KEY);
+        if (! is_string($attemptId) || ! Str::isUuid($attemptId)) {
+            $attemptId = (string) Str::uuid();
+            session()->put(self::PAYMENT_ATTEMPT_SESSION_KEY, $attemptId);
+        }
+        $this->payment_attempt_id = $attemptId;
         $store = StoreSetting::current();
         $this->city = (string) $store->city;
         $this->state = (string) $store->state;
@@ -87,95 +105,125 @@ class CheckoutPage extends Component
         if ($gateway) {
             $this->payment_method = $gateway->capabilities()->pix ? 'pix' : 'credit_card';
         }
+
+        $this->restorePaymentAttempt($attemptId, $cart);
     }
 
     public function placeOrder(CartManager $cart, CreateOrderFromCart $createOrder, PaymentGatewayManager $gateways)
     {
-        $gateway = $gateways->active();
+        $attemptId = (string) session()->get(self::PAYMENT_ATTEMPT_SESSION_KEY, '');
+        if (! Str::isUuid($attemptId)) {
+            $attemptId = (string) Str::uuid();
+            session()->put(self::PAYMENT_ATTEMPT_SESSION_KEY, $attemptId);
+        }
+        $this->payment_attempt_id = $attemptId;
+
+        $order = Order::query()->where('payment_idempotency_key', $attemptId)->first();
+        $payment = $order
+            ? Payment::query()->where('idempotency_key', $attemptId)->where('order_id', $order->id)->first()
+            : null;
+
+        if ($order && $payment && $this->isTerminalPayment($payment) && $cart->items()->isNotEmpty()) {
+            $attemptId = (string) Str::uuid();
+            session()->put(self::PAYMENT_ATTEMPT_SESSION_KEY, $attemptId);
+            $this->payment_attempt_id = $attemptId;
+            $order = null;
+            $payment = null;
+            $this->existingOrderCode = null;
+            $this->paymentAttemptUncertain = false;
+        }
+
+        if ($order && $payment && filled($payment->provider_payment_id)) {
+            return redirect()->route('orders.status', ['order' => $order->code]);
+        }
+
+        if ($order && $payment && ! $this->isUnresolvedPayment($payment)) {
+            return redirect()->route('orders.status', ['order' => $order->code]);
+        }
+
+        $gateway = $order
+            ? $gateways->for($order->payment_provider)
+            : $gateways->active();
         if (! $gateway) {
             $this->checkoutError = 'Nenhum meio de pagamento online está configurado. Entre em contato com a loja.';
 
             return null;
         }
 
-        $this->normalizeFields();
+        if ($order && $payment) {
+            $this->payment_method = $payment->method;
+            $this->validateUncertainAttemptFields();
+            $validated = [];
+        } else {
+            $this->normalizeFields();
+            $validated = $this->validate();
+        }
 
-        $validated = $this->validate();
-
-        if ($cart->items()->isEmpty()) {
+        if (! $order && $cart->items()->isEmpty()) {
             $this->checkoutError = 'Seu carrinho está vazio.';
 
             return null;
         }
 
         try {
-            $provider = $gateways->provider();
-            $shippingQuote = $this->selectedShippingQuote();
-            $validated += [
-                'payment_provider' => $provider,
-                'payment_status' => 'pending',
-                'payment_idempotency_key' => $this->payment_attempt_id,
-                'shipping_quote' => $shippingQuote,
-            ];
+            $provider = $order?->payment_provider ?? $gateways->provider();
+            $isRetry = (bool) $order;
 
-            $order = Order::query()
-                ->where('payment_idempotency_key', $this->payment_attempt_id)
-                ->first() ?? $createOrder($cart, $validated, clearCart: false, recordSale: false);
+            if (! $order) {
+                $shippingQuote = $this->selectedShippingQuote();
+                $validated += [
+                    'payment_provider' => $provider,
+                    'payment_status' => 'pending',
+                    'payment_idempotency_key' => $attemptId,
+                    'shipping_quote' => $shippingQuote,
+                ];
 
+                [$order, $payment] = DB::transaction(function () use ($cart, $createOrder, $validated, $provider, $attemptId): array {
+                    $order = Order::query()->where('payment_idempotency_key', $attemptId)->first()
+                        ?? $createOrder($cart, $validated, clearCart: false, recordSale: false);
+                    $payment = Payment::query()->firstOrCreate(
+                        ['idempotency_key' => $attemptId],
+                        [
+                            'order_id' => $order->id,
+                            'provider' => $provider,
+                            'method' => $this->payment_method,
+                            'amount_cents' => $order->total_cents,
+                            'status' => PaymentStatus::Pending,
+                            'metadata' => ['attempt_state' => 'new'],
+                        ],
+                    );
+
+                    return [$order, $payment];
+                });
+            }
+
+            $payment ??= Payment::query()->where('idempotency_key', $attemptId)->where('order_id', $order->id)->firstOrFail();
+            $this->payment_method = $payment->method;
+            $payment->forceFill(['metadata' => array_merge($payment->metadata ?? [], ['attempt_state' => 'submitting'])])->save();
             $order->forceFill(['status' => 'payment_pending'])->save();
-
-            $payment = Payment::query()->firstOrCreate(
-                ['idempotency_key' => $this->payment_attempt_id],
-                [
-                    'order_id' => $order->id,
-                    'provider' => $provider,
-                    'method' => $this->payment_method,
-                    'amount_cents' => $order->total_cents,
-                    'status' => 'pending',
-                ],
-            );
             $result = $gateway->createPayment(new PaymentRequest(
                 order: $order,
                 payment: $payment,
                 method: $this->payment_method,
                 token: $this->card_token,
                 paymentMethodId: $this->card_payment_method_id,
-                installments: $this->card_installments,
+                installments: $this->card_installments ?? 1,
                 issuerId: $this->card_issuer_id,
                 identificationType: $this->card_identification_type,
                 identificationNumber: $this->card_identification_number,
+                reconcileFirst: $isRetry,
             ));
-            $payment->forceFill([
-                'provider_payment_id' => $result->providerPaymentId,
-                'status' => $result->status,
-                'external_status' => $result->externalStatus,
-                'metadata' => $result->metadata,
-                'paid_at' => $result->status->value === 'paid' ? now() : null,
-            ])->save();
-            $order->forceFill([
-                'payment_method' => $this->payment_method,
-                'payment_status' => $result->externalStatus ?? $result->status->value,
-                'mercado_pago_preference_id' => $provider === 'mercado_pago' ? data_get($result->metadata, 'preference_id') : null,
-                'mercado_pago_payment_id' => $provider === 'mercado_pago' ? $result->providerPaymentId : null,
-                'pix_qr_code' => $result->pixCode,
-                'pix_qr_code_base64' => $result->pixQrCodeBase64,
-                'pix_ticket_url' => $result->pixTicketUrl,
-                'pix_expires_at' => $result->expiresAt,
-                'mercado_pago_init_point' => $provider === 'mercado_pago' ? $result->redirectUrl : null,
-                'mercado_pago_sandbox_init_point' => $provider === 'mercado_pago' ? $result->redirectUrl : null,
-            ])->save();
+            $this->persistPaymentResult($order, $payment, $result);
 
-            $orderPaymentStatus = match ($result->status->value) {
-                'paid' => 'payment_approved',
-                'failed', 'cancelled' => 'payment_rejected',
-                'refunded' => 'payment_refunded',
-                default => null,
-            };
-            if ($orderPaymentStatus) {
-                app(UpdateOrderPaymentStatus::class)($order, $orderPaymentStatus);
+            if (in_array($result->status, [PaymentStatus::Paid, PaymentStatus::Failed, PaymentStatus::Cancelled, PaymentStatus::Refunded], true)) {
+                $this->paymentAttemptMessage = $result->status === PaymentStatus::Failed
+                    ? 'Pagamento recusado. Confira os dados do cartão ou tente outro cartão.'
+                    : null;
             }
 
-            $cart->coupon()?->increment('used_count');
+            if (! $isRetry) {
+                $cart->coupon()?->increment('used_count');
+            }
             $cart->clear();
             $this->dispatch('cart-updated');
 
@@ -183,18 +231,193 @@ class CheckoutPage extends Component
                 ? redirect()->away($result->redirectUrl)
                 : redirect()->route('orders.status', ['order' => $order->code]);
         } catch (InvalidArgumentException $exception) {
-            $this->checkoutError = $exception->getMessage();
+            if (isset($payment) && $payment->exists) {
+                $payment->forceFill(['metadata' => array_merge($payment->metadata ?? [], ['attempt_state' => 'uncertain'])])->save();
+                $this->paymentAttemptUncertain = true;
+                $this->existingOrderCode = $order?->code;
+                $this->paymentAttemptMessage = 'Estamos confirmando o pagamento. Não tente pagar novamente com uma nova tentativa.';
+            } else {
+                $this->checkoutError = $exception->getMessage();
+            }
 
             return null;
         } catch (Throwable $exception) {
             report($exception);
 
-            $this->checkoutError = 'Não foi possível finalizar o pedido. Revise os dados e tente novamente.';
+            if (isset($payment) && $payment->exists) {
+                $payment->forceFill(['metadata' => array_merge($payment->metadata ?? [], ['attempt_state' => 'uncertain'])])->save();
+                $this->paymentAttemptUncertain = true;
+                $this->existingOrderCode = $order?->code;
+                $this->paymentAttemptMessage = 'Estamos confirmando o pagamento. Não tente pagar novamente com uma nova tentativa.';
+            } else {
+                $this->checkoutError = 'Não foi possível iniciar o pagamento. Revise os dados e tente novamente.';
+            }
 
             return null;
         }
 
         return null;
+    }
+
+    public function verifyPaymentAttempt(PaymentGatewayManager $gateways)
+    {
+        $attemptId = (string) session()->get(self::PAYMENT_ATTEMPT_SESSION_KEY, '');
+        $order = Order::query()->where('payment_idempotency_key', $attemptId)->first();
+        $payment = $order
+            ? Payment::query()->where('order_id', $order->id)->where('idempotency_key', $attemptId)->first()
+            : null;
+
+        if (! $order || ! $payment) {
+            $this->paymentAttemptMessage = 'Não encontramos uma tentativa de pagamento para verificar.';
+
+            return null;
+        }
+
+        try {
+            $gateway = $gateways->for($order->payment_provider);
+            $result = $gateway instanceof MercadoPagoGateway
+                ? $gateway->reconcilePayment($order, $payment)
+                : null;
+
+            if (! $result) {
+                $this->paymentAttemptMessage = 'O pagamento ainda não foi localizado. Aguarde alguns instantes e verifique novamente antes de tentar outro pagamento.';
+
+                return null;
+            }
+
+            $this->persistPaymentResult($order, $payment, $result);
+            $this->paymentAttemptUncertain = false;
+            $this->existingOrderCode = $order->code;
+
+            return redirect()->route('orders.status', ['order' => $order->code]);
+        } catch (Throwable $exception) {
+            report($exception);
+            $this->paymentAttemptMessage = 'Ainda não foi possível confirmar o pagamento. Aguarde e tente verificar novamente.';
+
+            return null;
+        }
+    }
+
+    private function restorePaymentAttempt(string $attemptId, CartManager $cart): void
+    {
+        $order = Order::query()->where('payment_idempotency_key', $attemptId)->first();
+        if (! $order) {
+            return;
+        }
+
+        $payment = Payment::query()
+            ->where('order_id', $order->id)
+            ->where('idempotency_key', $attemptId)
+            ->first();
+
+        if ($payment && $this->isTerminalPayment($payment) && $cart->items()->isNotEmpty()) {
+            $attemptId = (string) Str::uuid();
+            session()->put(self::PAYMENT_ATTEMPT_SESSION_KEY, $attemptId);
+            $this->payment_attempt_id = $attemptId;
+
+            return;
+        }
+
+        $this->existingOrderCode = $order->code;
+        $this->payment_method = $payment?->method ?? $order->payment_method ?? 'pix';
+        $this->fulfillment_method = $order->fulfillment_method;
+        $this->customer_name = $order->customer_name;
+        $this->customer_email = $order->customer_email;
+        $this->customer_phone = $order->customer_phone;
+        $this->customer_tax_id = (string) $order->customer_tax_id;
+        $this->postal_code = (string) $order->postal_code;
+        $this->street = (string) $order->street;
+        $this->number = (string) $order->number;
+        $this->complement = (string) $order->complement;
+        $this->neighborhood = (string) $order->neighborhood;
+        $this->city = (string) $order->city;
+        $this->state = (string) $order->state;
+        $this->paymentAttemptUncertain = ! $payment || $this->isUnresolvedPayment($payment);
+
+        $this->paymentAttemptMessage = $this->paymentAttemptUncertain
+            ? 'O resultado do pagamento ainda não foi confirmado. Verifique antes de tentar novamente.'
+            : match ($payment->status) {
+                PaymentStatus::Paid => 'Este pedido já está pago.',
+                PaymentStatus::Failed => 'Pagamento recusado. Confira os dados do cartão ou tente outro cartão.',
+                PaymentStatus::Cancelled => 'Este pagamento foi cancelado.',
+                PaymentStatus::Refunded => 'Este pagamento foi estornado.',
+                default => 'Este pagamento está aguardando confirmação. Não envie outro pagamento.',
+            };
+    }
+
+    private function isUnresolvedPayment(Payment $payment): bool
+    {
+        if (filled($payment->provider_payment_id)) {
+            return false;
+        }
+
+        return ! in_array(data_get($payment->metadata, 'attempt_state'), ['resolved', 'terminal'], true)
+            && ! $this->isTerminalPayment($payment);
+    }
+
+    private function isTerminalPayment(Payment $payment): bool
+    {
+        return in_array($payment->status, [
+            PaymentStatus::Paid,
+            PaymentStatus::Failed,
+            PaymentStatus::Cancelled,
+            PaymentStatus::Refunded,
+        ], true);
+    }
+
+    private function validateUncertainAttemptFields(): void
+    {
+        $rules = [
+            'card_token' => [Rule::requiredIf($this->payment_method === 'credit_card'), 'nullable', 'string', 'max:512'],
+            'card_payment_method_id' => [Rule::requiredIf($this->payment_method === 'credit_card'), 'nullable', 'string', 'max:40'],
+            'card_issuer_id' => ['nullable', 'string', 'max:40'],
+            'card_identification_type' => ['nullable', 'in:CPF,CNPJ'],
+            'card_identification_number' => ['nullable', 'digits_between:11,14'],
+            'card_installments' => [Rule::requiredIf($this->payment_method === 'credit_card'), 'nullable', 'integer', 'min:1', 'max:24'],
+        ];
+
+        Validator::make([
+            'card_token' => $this->card_token,
+            'card_payment_method_id' => $this->card_payment_method_id,
+            'card_issuer_id' => $this->card_issuer_id,
+            'card_identification_type' => $this->card_identification_type,
+            'card_identification_number' => $this->card_identification_number,
+            'card_installments' => $this->card_installments,
+        ], $rules)->validate();
+    }
+
+    private function persistPaymentResult(Order $order, Payment $payment, PaymentResult $result): void
+    {
+        $payment->forceFill([
+            'provider_payment_id' => $result->providerPaymentId,
+            'status' => $result->status,
+            'external_status' => $result->externalStatus,
+            'metadata' => array_merge($result->metadata, ['attempt_state' => 'resolved']),
+            'paid_at' => $result->status === PaymentStatus::Paid ? now() : null,
+        ])->save();
+        $order->forceFill([
+            'payment_method' => $payment->method,
+            'payment_status' => $result->externalStatus ?? $result->status->value,
+            'mercado_pago_preference_id' => $payment->provider === 'mercado_pago' ? data_get($result->metadata, 'preference_id') : null,
+            'mercado_pago_payment_id' => $payment->provider === 'mercado_pago' ? $result->providerPaymentId : null,
+            'pix_qr_code' => $result->pixCode,
+            'pix_qr_code_base64' => $result->pixQrCodeBase64,
+            'pix_ticket_url' => $result->pixTicketUrl,
+            'pix_expires_at' => $result->expiresAt,
+            'mercado_pago_init_point' => $payment->provider === 'mercado_pago' ? $result->redirectUrl : null,
+            'mercado_pago_sandbox_init_point' => $payment->provider === 'mercado_pago' ? $result->redirectUrl : null,
+            'mercado_pago_status_detail' => $payment->provider === 'mercado_pago' ? data_get($result->metadata, 'status_detail') : null,
+        ])->save();
+
+        $orderPaymentStatus = match ($result->status) {
+            PaymentStatus::Paid => 'payment_approved',
+            PaymentStatus::Failed, PaymentStatus::Cancelled => 'payment_rejected',
+            PaymentStatus::Refunded => 'payment_refunded',
+            default => null,
+        };
+        if ($orderPaymentStatus) {
+            app(UpdateOrderPaymentStatus::class)($order, $orderPaymentStatus);
+        }
     }
 
     public function lookupPostalCode(): void
@@ -281,6 +504,10 @@ class CheckoutPage extends Component
 
     public function render(CartManager $cart, ShippingCalculator $shipping): View
     {
+        $items = $cart->items();
+        $existingOrder = $this->existingOrderCode
+            ? Order::query()->where('code', $this->existingOrderCode)->first()
+            : null;
         $selectedQuote = $this->selectedShippingQuote();
         $shippingCents = $this->fulfillment_method === 'pickup'
             ? 0
@@ -289,28 +516,49 @@ class CheckoutPage extends Component
         $gateway = $gateways->active();
 
         return view('livewire.checkout.checkout-page', [
-            'items' => $cart->items(),
-            'subtotal' => $cart->formattedSubtotal(),
+            'items' => $items,
+            'existingOrder' => $existingOrder,
+            'subtotal' => $this->paymentAttemptUncertain && $existingOrder
+                ? $cart->formatCurrency($existingOrder->subtotal_cents)
+                : $cart->formattedSubtotal(),
             'coupon' => $cart->coupon(),
             'discount' => $cart->formattedDiscount(),
-            'shipping' => $shipping->formatted($shippingCents),
-            'shippingCents' => $shippingCents,
+            'shipping' => $this->paymentAttemptUncertain && $existingOrder
+                ? $cart->formatCurrency($existingOrder->shipping_cents)
+                : $shipping->formatted($shippingCents),
+            'shippingCents' => $this->paymentAttemptUncertain && $existingOrder ? $existingOrder->shipping_cents : $shippingCents,
             'shippingEstimate' => $this->fulfillment_method === 'pickup'
                 ? config('commerce.shipping.pickup_estimate')
                 : config('commerce.shipping.delivery_estimate'),
-            'total' => $cart->formatCurrency($cart->totalCents() + $shippingCents),
-            'totalCents' => $cart->totalCents() + $shippingCents,
-            'paymentCapabilities' => $gateway?->capabilities(),
-            'paymentProvider' => $gateways->provider(),
-            'paymentPublicKey' => $gateways->publicKey(),
+            'total' => $this->paymentAttemptUncertain && $existingOrder
+                ? $existingOrder->formatted_total
+                : $cart->formatCurrency($cart->totalCents() + $shippingCents),
+            'totalCents' => $this->paymentAttemptUncertain && $existingOrder
+                ? $existingOrder->total_cents
+                : $cart->totalCents() + $shippingCents,
+            'paymentCapabilities' => $existingOrder && $this->paymentAttemptUncertain
+                ? $gateways->for($existingOrder->payment_provider)->capabilities()
+                : $gateway?->capabilities(),
+            'paymentProvider' => $existingOrder && $this->paymentAttemptUncertain
+                ? $existingOrder->payment_provider
+                : $gateways->provider(),
+            'paymentPublicKey' => $existingOrder && $this->paymentAttemptUncertain && $existingOrder->payment_provider === 'mercado_pago'
+                ? IntegrationSetting::query()->where('provider', 'mercado_pago')->where('type', 'payment')->first()?->credential('public_key')
+                : $gateways->publicKey(),
         ]);
     }
 
     protected function rules(): array
     {
         $gateways = app(PaymentGatewayManager::class);
-        $paymentGateway = $gateways->active();
-        $paymentProvider = $gateways->provider();
+        $attemptId = (string) session()->get(self::PAYMENT_ATTEMPT_SESSION_KEY, '');
+        $existingOrder = Str::isUuid($attemptId)
+            ? Order::query()->where('payment_idempotency_key', $attemptId)->first()
+            : null;
+        $paymentProvider = $existingOrder?->payment_provider ?? $gateways->provider();
+        $paymentGateway = $existingOrder
+            ? $gateways->for($existingOrder->payment_provider)
+            : $gateways->active();
 
         return [
             'customer_name' => ['required', 'string', 'min:3', 'max:120'],
@@ -340,7 +588,7 @@ class CheckoutPage extends Component
             'card_issuer_id' => ['nullable', 'string', 'max:40'],
             'card_identification_type' => ['nullable', 'in:CPF,CNPJ'],
             'card_identification_number' => ['nullable', 'digits_between:11,14'],
-            'card_installments' => ['integer', 'min:1', 'max:24'],
+            'card_installments' => [Rule::requiredIf($this->payment_method === 'credit_card' && $paymentProvider === 'mercado_pago'), 'nullable', 'integer', 'min:1', 'max:24'],
             'notes' => ['nullable', 'string', 'max:500'],
             'privacy_accepted' => ['accepted'],
         ];

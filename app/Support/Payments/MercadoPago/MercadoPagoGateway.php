@@ -5,6 +5,8 @@ namespace App\Support\Payments\MercadoPago;
 use App\Contracts\PaymentGateway;
 use App\Enums\PaymentStatus;
 use App\Models\IntegrationSetting;
+use App\Models\Order;
+use App\Models\Payment;
 use App\Support\Integrations\ConnectionResult;
 use App\Support\Payments\PaymentCapabilities;
 use App\Support\Payments\PaymentRequest;
@@ -32,14 +34,34 @@ class MercadoPagoGateway implements PaymentGateway
     {
         $key = hash('sha256', (string) $request->payment->idempotency_key);
 
-        return Cache::lock('mercado-pago-payment-'.$key, 30)
+        return Cache::lock('mercado-pago-payment-'.$key, 35)
             ->block(10, fn (): PaymentResult => $this->createPaymentOnce($request));
+    }
+
+    public function reconcilePayment(Order $order, Payment $payment): ?PaymentResult
+    {
+        $key = hash('sha256', (string) $payment->idempotency_key);
+
+        return Cache::lock('mercado-pago-payment-'.$key, 35)->block(10, function () use ($order, $payment): ?PaymentResult {
+            if (filled($payment->provider_payment_id)) {
+                return $this->findPayment((string) $payment->provider_payment_id);
+            }
+
+            return $this->searchPaymentByExternalReference($order, $payment);
+        });
     }
 
     private function createPaymentOnce(PaymentRequest $request): PaymentResult
     {
         if (filled($request->payment->provider_payment_id)) {
             return $this->findPayment((string) $request->payment->provider_payment_id);
+        }
+
+        if ($request->reconcileFirst) {
+            $existing = $this->searchPaymentByExternalReference($request->order, $request->payment);
+            if ($existing) {
+                return $existing;
+            }
         }
 
         if (! in_array($request->method, $this->capabilities()->methods(), true)) {
@@ -90,6 +112,7 @@ class MercadoPagoGateway implements PaymentGateway
             $payload['notification_url'] = $notificationUrl;
         }
 
+        $idempotencyFingerprint = substr(hash('sha256', (string) $request->payment->idempotency_key), 0, 16);
         $response = $this->request()
             ->withHeader('X-Idempotency-Key', $request->payment->idempotency_key)
             ->post('/v1/payments', $payload);
@@ -105,6 +128,7 @@ class MercadoPagoGateway implements PaymentGateway
                 'method' => $request->method,
                 'endpoint' => '/v1/payments',
                 'http_status' => $response->status(),
+                'idempotency_fingerprint' => $idempotencyFingerprint,
                 'provider_error_code' => is_string($errorCode) && preg_match('/^[A-Za-z0-9_.-]{1,80}$/', $errorCode) ? $errorCode : null,
                 'provider_causes' => collect(data_get($error, 'cause', []))->take(5)->map(fn (mixed $cause): array => array_filter([
                     'code' => is_int(data_get($cause, 'code')) || (is_string(data_get($cause, 'code')) && preg_match('/^[A-Za-z0-9_.-]{1,40}$/', data_get($cause, 'code'))) ? data_get($cause, 'code') : null,
@@ -118,6 +142,47 @@ class MercadoPagoGateway implements PaymentGateway
         }
 
         return $this->fromPayment($response->json());
+    }
+
+    private function searchPaymentByExternalReference(Order $order, Payment $payment): ?PaymentResult
+    {
+        $response = $this->request()->get('/v1/payments/search', [
+            'external_reference' => $order->code,
+            'sort' => 'date_created',
+            'criteria' => 'desc',
+            'limit' => 10,
+        ]);
+
+        if ($response->failed()) {
+            throw new RuntimeException('Não foi possível verificar o pagamento existente no Mercado Pago.');
+        }
+
+        $results = collect($response->json('results', []))
+            ->filter(fn (mixed $candidate): bool => is_array($candidate)
+                && (string) data_get($candidate, 'external_reference') === $order->code
+                && (int) round(((float) data_get($candidate, 'transaction_amount', 0)) * 100) === (int) $payment->amount_cents
+                && $this->matchesPaymentMethod($candidate, $payment->method))
+            ->values();
+
+        if ($results->count() > 1) {
+            throw new RuntimeException('Há mais de um pagamento associado a esta tentativa; é necessária reconciliação manual.');
+        }
+
+        return $results->isEmpty() ? null : $this->fromPayment($results->first());
+    }
+
+    private function matchesPaymentMethod(array $payment, string $method): bool
+    {
+        return $method === 'credit_card'
+            ? data_get($payment, 'payment_type_id') === 'credit_card'
+            : data_get($payment, 'payment_method_id') === 'pix';
+    }
+
+    private function safeProviderCode(mixed $value): string
+    {
+        return is_string($value) && preg_match('/^[a-zA-Z0-9_.-]{1,64}$/', $value)
+            ? $value
+            : 'unavailable';
     }
 
     public function findPayment(string $providerPaymentId): PaymentResult

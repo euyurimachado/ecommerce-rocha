@@ -2,11 +2,13 @@
 
 namespace Tests\Feature;
 
+use App\Enums\PaymentStatus;
 use App\Livewire\Checkout\CheckoutPage;
 use App\Models\Category;
 use App\Models\Coupon;
 use App\Models\IntegrationSetting;
 use App\Models\Order;
+use App\Models\Payment;
 use App\Models\Product;
 use App\Support\Cart\CartManager;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -34,6 +36,9 @@ class CheckoutTest extends TestCase
             'api.mercadopago.com/v1/payments' => function (Request $request) {
                 if (config('testing.fail_payment')) {
                     return Http::response(['message' => 'payment unavailable'], 400);
+                }
+                if (config('testing.fail_payment_connection')) {
+                    return (Http::failedConnection('provider response lost'))($request);
                 }
                 if ($response = config('testing.payment_response')) {
                     return Http::response($response, 201);
@@ -64,7 +69,8 @@ class CheckoutTest extends TestCase
         $this->assertCount(1, $scriptEffects);
         $scriptEffect = reset($scriptEffects);
         $this->assertStringContainsString('<script>', $scriptEffect);
-        $this->assertStringContainsString("console.log('[MP-CARD] script-start')", $scriptEffect);
+        $this->assertStringNotContainsString("console.log('[MP-CARD]", $scriptEffect);
+        $this->assertStringContainsString('35000', $scriptEffect);
 
         $checkout
             ->set('payment_method', 'credit_card')
@@ -74,10 +80,14 @@ class CheckoutTest extends TestCase
             ->assertDontSee('Dados tokenizados com MercadoPago.js.');
 
         $blade = file_get_contents(resource_path('views/livewire/checkout/checkout-page.blade.php'));
-        $this->assertStringContainsString("@script\n            <script>\n                window.__mpCardDiagnosticLoaded = true;\n                console.log('[MP-CARD] script-start');", $blade);
+        $this->assertStringContainsString("@script\n            <script>", $blade);
+        $this->assertStringNotContainsString('window.__mpCardDiagnosticLoaded', $blade);
+        $this->assertStringNotContainsString('[MP-CARD] script-start', $blade);
+        $this->assertStringNotContainsString('console.info', $blade);
         $this->assertStringContainsString('onReady:', $blade);
         $this->assertStringContainsString('onError:', $blade);
         $this->assertStringContainsString('onSubmit:', $blade);
+        $this->assertStringContainsString("const showPaymentUncertain = () => {\n                brickSubmitting = false;", $blade);
         $this->assertSame(1, substr_count($blade, 'https://sdk.mercadopago.com/js/v2'));
         $this->assertStringNotContainsString("\$wire.\$hook('morphed'", $blade);
         $this->assertStringNotContainsString("Livewire.hook('morphed'", $blade);
@@ -95,10 +105,6 @@ class CheckoutTest extends TestCase
         $this->assertStringContainsString("bricksBuilder.create('cardPayment', mount.id", $blade);
         $this->assertStringContainsString('const amount = Number(@js($totalCents / 100));', $blade);
         $this->assertStringContainsString('/^(TEST|APP_USR)-[A-Za-z0-9_-]+$/', $blade);
-        $this->assertStringContainsString("diagnostic('container-connected'", $blade);
-        $this->assertStringContainsString("diagnostic('timeout'", $blade);
-        $this->assertStringContainsString("diagnostic('create-start'", $blade);
-        $this->assertStringContainsString("diagnostic('on-ready'", $blade);
         $this->assertStringContainsString("console.error('[MP-CARD] on-error'", $blade);
         $this->assertStringContainsString('paymentBrick_checkout_status', $blade);
         $this->assertStringContainsString('type="button" disabled aria-live="polite"', $blade);
@@ -142,9 +148,9 @@ class CheckoutTest extends TestCase
         app(CartManager::class)->add($product->id);
 
         Livewire::test(CheckoutPage::class)
-            ->set('customer_name', 'Yuri Machado')
-            ->set('customer_email', 'yuri@example.com')
-            ->set('customer_phone', '22999990000')
+            ->set('customer_name', 'Cliente Teste')
+            ->set('customer_email', 'cliente@example.com')
+            ->set('customer_phone', str_repeat('0', 11))
             ->set('fulfillment_method', 'pickup')
             ->set('payment_method', 'credit_card')
             ->set('privacy_accepted', true)
@@ -182,9 +188,9 @@ class CheckoutTest extends TestCase
         app(CartManager::class)->add($product->id, 2);
 
         Livewire::test(CheckoutPage::class)
-            ->set('customer_name', 'Yuri Machado')
-            ->set('customer_email', 'yuri@example.com')
-            ->set('customer_phone', '22999990000')
+            ->set('customer_name', 'Cliente Teste')
+            ->set('customer_email', 'cliente@example.com')
+            ->set('customer_phone', str_repeat('0', 11))
             ->set('fulfillment_method', 'delivery')
             ->set('postal_code', '28000-000')
             ->set('street', 'Rua Teste')
@@ -192,7 +198,7 @@ class CheckoutTest extends TestCase
             ->set('neighborhood', 'Centro')
             ->set('city', 'Campos dos Goytacazes')
             ->set('state', 'RJ')
-            ->set('customer_tax_id', '12345678909')
+            ->set('customer_tax_id', str_repeat('0', 11))
             ->set('payment_method', 'pix')
             ->set('privacy_accepted', true)
             ->call('placeOrder')
@@ -233,9 +239,9 @@ class CheckoutTest extends TestCase
         ]]);
 
         Livewire::test(CheckoutPage::class)
-            ->set('customer_name', 'Yuri Machado')
-            ->set('customer_email', 'yuri@example.com')
-            ->set('customer_phone', '22999990000')
+            ->set('customer_name', 'Cliente Teste')
+            ->set('customer_email', 'cliente@example.com')
+            ->set('customer_phone', str_repeat('0', 11))
             ->set('fulfillment_method', 'pickup')
             ->set('payment_method', 'credit_card')
             ->set('card_token', 'secure-token')
@@ -243,7 +249,8 @@ class CheckoutTest extends TestCase
             ->set('card_installments', 1)
             ->set('privacy_accepted', true)
             ->call('placeOrder')
-            ->assertHasNoErrors();
+            ->assertHasNoErrors()
+            ->assertRedirect();
 
         $order = Order::query()->firstOrFail();
         $this->assertSame('preparing', $order->status);
@@ -251,6 +258,12 @@ class CheckoutTest extends TestCase
         $this->assertSame('pay-card-approved', $order->mercado_pago_payment_id);
         $this->assertSame(1, $product->refresh()->sales_count);
         $this->assertSame(9, $product->stock_quantity);
+
+        Livewire::test(CheckoutPage::class)
+            ->assertSee($order->code)
+            ->call('placeOrder')
+            ->assertRedirect(route('orders.status', ['order' => $order->code]));
+        $this->assertCount(1, Http::recorded(fn (Request $request): bool => $request->method() === 'POST'));
     }
 
     public function test_checkout_uses_variant_price_and_sku_without_inventory_control(): void
@@ -277,11 +290,11 @@ class CheckoutTest extends TestCase
         app(CartManager::class)->add($product->id, 2, ['Sabor' => 'Chocolate']);
 
         Livewire::test(CheckoutPage::class)
-            ->set('customer_name', 'Yuri Machado')
-            ->set('customer_email', 'yuri@example.com')
-            ->set('customer_phone', '22999990000')
+            ->set('customer_name', 'Cliente Teste')
+            ->set('customer_email', 'cliente@example.com')
+            ->set('customer_phone', str_repeat('0', 11))
             ->set('fulfillment_method', 'pickup')
-            ->set('customer_tax_id', '12345678909')
+            ->set('customer_tax_id', str_repeat('0', 11))
             ->set('payment_method', 'pix')
             ->set('privacy_accepted', true)
             ->call('placeOrder')
@@ -304,11 +317,11 @@ class CheckoutTest extends TestCase
         app(CartManager::class)->add($product->id);
 
         Livewire::test(CheckoutPage::class)
-            ->set('customer_name', 'Yuri Machado')
-            ->set('customer_email', 'yuri@example.com')
-            ->set('customer_phone', '22999990000')
+            ->set('customer_name', 'Cliente Teste')
+            ->set('customer_email', 'cliente@example.com')
+            ->set('customer_phone', str_repeat('0', 11))
             ->set('fulfillment_method', 'pickup')
-            ->set('customer_tax_id', '12345678909')
+            ->set('customer_tax_id', str_repeat('0', 11))
             ->set('payment_method', 'pix')
             ->set('privacy_accepted', true)
             ->call('placeOrder')
@@ -332,9 +345,9 @@ class CheckoutTest extends TestCase
         app(CartManager::class)->add($product->id);
 
         Livewire::test(CheckoutPage::class)
-            ->set('customer_name', 'Yuri Machado')
-            ->set('customer_email', 'yuri@example.com')
-            ->set('customer_phone', '22999990000')
+            ->set('customer_name', 'Cliente Teste')
+            ->set('customer_email', 'cliente@example.com')
+            ->set('customer_phone', str_repeat('0', 11))
             ->set('fulfillment_method', 'delivery')
             ->set('postal_code', '28000-000')
             ->set('street', 'Rua Teste')
@@ -350,6 +363,190 @@ class CheckoutTest extends TestCase
         $this->assertDatabaseCount('orders', 0);
     }
 
+    public function test_uncertain_card_payment_survives_reload_and_reconciles_before_retry(): void
+    {
+        $product = $this->createProduct();
+        app(CartManager::class)->add($product->id);
+        $providerReceivedPost = false;
+
+        Http::fake(function (Request $request) use (&$providerReceivedPost) {
+            if ($request->method() === 'POST' && str_ends_with($request->url(), '/v1/payments')) {
+                $providerReceivedPost = true;
+
+                return (Http::failedConnection('provider response lost'))($request);
+            }
+
+            if ($request->method() === 'GET' && parse_url($request->url(), PHP_URL_PATH) === '/v1/payments/search') {
+                $this->assertTrue($providerReceivedPost);
+                $order = Order::query()->firstOrFail();
+
+                return Http::response(['results' => [[
+                    'id' => 'payment-recovered-after-reload',
+                    'status' => 'approved',
+                    'status_detail' => 'accredited',
+                    'external_reference' => $order->code,
+                    'transaction_amount' => $order->total_cents / 100,
+                    'payment_type_id' => 'credit_card',
+                    'payment_method_id' => 'visa',
+                ]]], 200);
+            }
+
+            return Http::response([], 404);
+        });
+
+        Livewire::test(CheckoutPage::class)
+            ->set('customer_name', 'Cliente Teste')
+            ->set('customer_email', 'cliente@example.com')
+            ->set('customer_phone', str_repeat('0', 11))
+            ->set('fulfillment_method', 'pickup')
+            ->set('payment_method', 'credit_card')
+            ->set('card_token', 'temporary-test-token')
+            ->set('card_payment_method_id', 'visa')
+            ->set('card_installments', 1)
+            ->set('privacy_accepted', true)
+            ->call('placeOrder')
+            ->assertSet('paymentAttemptUncertain', true);
+
+        $order = Order::query()->firstOrFail();
+        $payment = Payment::query()->firstOrFail();
+        $key = $order->payment_idempotency_key;
+        $this->assertSame($key, $payment->idempotency_key);
+        $this->assertSame($key, session('checkout.payment_attempt_id'));
+        $this->assertSame('uncertain', $payment->metadata['attempt_state']);
+
+        $retry = Livewire::test(CheckoutPage::class)
+            ->assertSet('paymentAttemptUncertain', true)
+            ->assertSee('Estamos confirmando o pagamento')
+            ->set('card_token', 'fresh-test-token')
+            ->set('card_payment_method_id', 'visa')
+            ->set('card_installments', 1)
+            ->call('placeOrder')
+            ->assertRedirect(route('orders.status', ['order' => $order->code]));
+
+        $this->assertSame($key, $order->refresh()->payment_idempotency_key);
+        $this->assertSame($key, $payment->refresh()->idempotency_key);
+        $this->assertSame('payment-recovered-after-reload', $payment->provider_payment_id);
+        $this->assertSame(PaymentStatus::Paid, $payment->status);
+        $this->assertCount(1, Http::recorded(fn (Request $request): bool => $request->method() === 'POST'));
+        $this->assertCount(1, Http::recorded(fn (Request $request): bool => $request->method() === 'GET' && parse_url($request->url(), PHP_URL_PATH) === '/v1/payments/search'));
+        $this->assertArrayNotHasKey('card_token', $payment->metadata);
+    }
+
+    public function test_pending_payment_reload_shows_existing_order_without_another_charge(): void
+    {
+        $product = $this->createProduct();
+        app(CartManager::class)->add($product->id);
+
+        Livewire::test(CheckoutPage::class)
+            ->set('customer_name', 'Cliente Teste')
+            ->set('customer_email', 'cliente@example.com')
+            ->set('customer_phone', str_repeat('0', 11))
+            ->set('fulfillment_method', 'pickup')
+            ->set('customer_tax_id', str_repeat('0', 11))
+            ->set('payment_method', 'pix')
+            ->set('privacy_accepted', true)
+            ->call('placeOrder')
+            ->assertRedirect();
+
+        $order = Order::query()->firstOrFail();
+        Livewire::test(CheckoutPage::class)
+            ->assertSee($order->code)
+            ->assertSee('aguardando confirmação')
+            ->call('placeOrder')
+            ->assertRedirect(route('orders.status', ['order' => $order->code]));
+
+        $this->assertCount(1, Http::recorded(fn (Request $request): bool => $request->method() === 'POST'));
+    }
+
+    public function test_uncertain_card_retry_without_reload_reuses_same_attempt_key(): void
+    {
+        $product = $this->createProduct();
+        app(CartManager::class)->add($product->id);
+        config(['testing.fail_payment_connection' => true]);
+        Http::fake(function (Request $request) {
+            if ($request->method() === 'GET' && parse_url($request->url(), PHP_URL_PATH) === '/v1/payments/search') {
+                return Http::response(['results' => []], 200);
+            }
+
+            return Http::response([], 404);
+        });
+
+        $checkout = Livewire::test(CheckoutPage::class)
+            ->set('customer_name', 'Cliente Teste')
+            ->set('customer_email', 'cliente@example.com')
+            ->set('customer_phone', str_repeat('0', 11))
+            ->set('fulfillment_method', 'pickup')
+            ->set('payment_method', 'credit_card')
+            ->set('card_token', 'first-test-token')
+            ->set('card_payment_method_id', 'visa')
+            ->set('card_installments', 1)
+            ->set('privacy_accepted', true)
+            ->call('placeOrder')
+            ->assertSet('paymentAttemptUncertain', true);
+
+        $key = Order::query()->firstOrFail()->payment_idempotency_key;
+        config([
+            'testing.fail_payment_connection' => false,
+            'testing.payment_response' => ['id' => 'payment-retried-same-key', 'status' => 'pending'],
+        ]);
+        $checkout
+            ->set('card_token', 'fresh-test-token')
+            ->call('placeOrder')
+            ->assertRedirect();
+
+        $posts = Http::recorded(fn (Request $request): bool => $request->method() === 'POST' && str_ends_with($request->url(), '/v1/payments'))->values();
+        $this->assertCount(2, $posts);
+        $this->assertSame($posts[0][0]->header('X-Idempotency-Key')[0], $posts[1][0]->header('X-Idempotency-Key')[0]);
+        $this->assertSame($key, Payment::query()->firstOrFail()->idempotency_key);
+        $this->assertSame('payment-retried-same-key', Payment::query()->firstOrFail()->provider_payment_id);
+        $this->assertCount(1, Http::recorded(fn (Request $request): bool => $request->method() === 'GET' && parse_url($request->url(), PHP_URL_PATH) === '/v1/payments/search'));
+    }
+
+    public function test_rejected_payment_allows_new_order_with_new_key_and_fresh_card_token(): void
+    {
+        config(['testing.payment_response' => [
+            'id' => 'payment-rejected-test', 'status' => 'rejected', 'status_detail' => 'cc_rejected_other_reason',
+        ]]);
+        $product = $this->createProduct();
+        app(CartManager::class)->add($product->id);
+
+        Livewire::test(CheckoutPage::class)
+            ->set('customer_name', 'Cliente Teste')
+            ->set('customer_email', 'cliente@example.com')
+            ->set('customer_phone', str_repeat('0', 11))
+            ->set('fulfillment_method', 'pickup')
+            ->set('payment_method', 'credit_card')
+            ->set('card_token', 'first-fresh-test-token')
+            ->set('card_payment_method_id', 'visa')
+            ->set('card_installments', 1)
+            ->set('privacy_accepted', true)
+            ->call('placeOrder')
+            ->assertRedirect();
+
+        $firstKey = Order::query()->firstOrFail()->payment_idempotency_key;
+        app(CartManager::class)->add($product->id);
+        config(['testing.payment_response.id' => 'payment-rejected-test-second']);
+
+        Livewire::test(CheckoutPage::class)
+            ->set('customer_name', 'Cliente Teste')
+            ->set('customer_email', 'cliente@example.com')
+            ->set('customer_phone', str_repeat('0', 11))
+            ->set('fulfillment_method', 'pickup')
+            ->set('payment_method', 'credit_card')
+            ->set('card_token', 'second-fresh-test-token')
+            ->set('card_payment_method_id', 'visa')
+            ->set('card_installments', 1)
+            ->set('privacy_accepted', true)
+            ->call('placeOrder')
+            ->assertRedirect();
+
+        $posts = Http::recorded(fn (Request $request): bool => $request->method() === 'POST' && str_ends_with($request->url(), '/v1/payments'));
+        $this->assertCount(2, $posts);
+        $this->assertNotSame($firstKey, Order::query()->orderByDesc('id')->firstOrFail()->payment_idempotency_key);
+        $this->assertNotSame($posts[0][0]['token'], $posts[1][0]['token']);
+        $this->assertNotSame($posts[0][0]->header('X-Idempotency-Key')[0], $posts[1][0]->header('X-Idempotency-Key')[0]);
+    }
+
     public function test_checkout_keeps_cart_and_order_key_when_mercado_pago_payment_fails(): void
     {
         config(['services.mercado_pago.access_token' => 'TEST-ACCESS-TOKEN']);
@@ -360,20 +557,23 @@ class CheckoutTest extends TestCase
         app(CartManager::class)->add($product->id);
 
         Livewire::test(CheckoutPage::class)
-            ->set('customer_name', 'Yuri Machado')
-            ->set('customer_email', 'yuri@example.com')
-            ->set('customer_phone', '22999990000')
+            ->set('customer_name', 'Cliente Teste')
+            ->set('customer_email', 'cliente@example.com')
+            ->set('customer_phone', str_repeat('0', 11))
             ->set('fulfillment_method', 'pickup')
-            ->set('customer_tax_id', '12345678909')
+            ->set('customer_tax_id', str_repeat('0', 11))
             ->set('payment_method', 'pix')
             ->set('privacy_accepted', true)
             ->call('placeOrder')
-            ->assertSet('checkoutError', 'Não foi possível finalizar o pedido. Revise os dados e tente novamente.');
+            ->assertSet('paymentAttemptUncertain', true)
+            ->assertSet('paymentAttemptMessage', 'Estamos confirmando o pagamento. Não tente pagar novamente com uma nova tentativa.');
 
         $this->assertSame(1, app(CartManager::class)->count());
         $this->assertSame(0, $product->refresh()->sales_count);
         $this->assertDatabaseCount('orders', 1);
         $this->assertNotNull(Order::first()->payment_idempotency_key);
+        $this->assertSame('uncertain', Payment::first()->metadata['attempt_state']);
+        $this->assertArrayNotHasKey('token', Payment::first()->metadata);
     }
 
     public function test_checkout_requires_address_for_delivery(): void
@@ -382,11 +582,11 @@ class CheckoutTest extends TestCase
         app(CartManager::class)->add($product->id);
 
         Livewire::test(CheckoutPage::class)
-            ->set('customer_name', 'Yuri Machado')
-            ->set('customer_email', 'yuri@example.com')
-            ->set('customer_phone', '22999990000')
+            ->set('customer_name', 'Cliente Teste')
+            ->set('customer_email', 'cliente@example.com')
+            ->set('customer_phone', str_repeat('0', 11))
             ->set('fulfillment_method', 'delivery')
-            ->set('customer_tax_id', '12345678909')
+            ->set('customer_tax_id', str_repeat('0', 11))
             ->set('payment_method', 'pix')
             ->set('privacy_accepted', true)
             ->call('placeOrder')
@@ -422,11 +622,11 @@ class CheckoutTest extends TestCase
         app(CartManager::class)->add($product->id);
 
         Livewire::test(CheckoutPage::class)
-            ->set('customer_name', 'Yuri Machado')
+            ->set('customer_name', 'Cliente Teste')
             ->set('customer_email', 'email-invalido')
             ->set('customer_phone', '(22) 999')
             ->set('fulfillment_method', 'pickup')
-            ->set('customer_tax_id', '12345678909')
+            ->set('customer_tax_id', str_repeat('0', 11))
             ->set('payment_method', 'pix')
             ->set('privacy_accepted', true)
             ->call('placeOrder')
@@ -449,9 +649,9 @@ class CheckoutTest extends TestCase
         app(CartManager::class)->applyCoupon('ROCHA20');
 
         Livewire::test(CheckoutPage::class)
-            ->set('customer_name', 'Yuri Machado')
-            ->set('customer_email', 'yuri@example.com')
-            ->set('customer_phone', '22999990000')
+            ->set('customer_name', 'Cliente Teste')
+            ->set('customer_email', 'cliente@example.com')
+            ->set('customer_phone', str_repeat('0', 11))
             ->set('fulfillment_method', 'delivery')
             ->set('postal_code', '28000-000')
             ->set('street', 'Rua Teste')
@@ -459,7 +659,7 @@ class CheckoutTest extends TestCase
             ->set('neighborhood', 'Centro')
             ->set('city', 'Campos dos Goytacazes')
             ->set('state', 'RJ')
-            ->set('customer_tax_id', '12345678909')
+            ->set('customer_tax_id', str_repeat('0', 11))
             ->set('payment_method', 'pix')
             ->set('privacy_accepted', true)
             ->call('placeOrder')
@@ -481,11 +681,11 @@ class CheckoutTest extends TestCase
         app(CartManager::class)->add($product->id);
 
         Livewire::test(CheckoutPage::class)
-            ->set('customer_name', 'Yuri Machado')
-            ->set('customer_email', 'yuri@example.com')
-            ->set('customer_phone', '22999990000')
+            ->set('customer_name', 'Cliente Teste')
+            ->set('customer_email', 'cliente@example.com')
+            ->set('customer_phone', str_repeat('0', 11))
             ->set('fulfillment_method', 'pickup')
-            ->set('customer_tax_id', '12345678909')
+            ->set('customer_tax_id', str_repeat('0', 11))
             ->set('payment_method', 'pix')
             ->set('privacy_accepted', true)
             ->call('placeOrder')
@@ -506,9 +706,9 @@ class CheckoutTest extends TestCase
         app(CartManager::class)->add($product->id);
 
         Livewire::test(CheckoutPage::class)
-            ->set('customer_name', 'Yuri Machado')
-            ->set('customer_email', 'yuri@example.com')
-            ->set('customer_phone', '22999990000')
+            ->set('customer_name', 'Cliente Teste')
+            ->set('customer_email', 'cliente@example.com')
+            ->set('customer_phone', str_repeat('0', 11))
             ->set('fulfillment_method', 'delivery')
             ->set('postal_code', '28000-000')
             ->set('street', 'Rua Teste')
@@ -516,7 +716,7 @@ class CheckoutTest extends TestCase
             ->set('neighborhood', 'Centro')
             ->set('city', 'Campos dos Goytacazes')
             ->set('state', 'RJ')
-            ->set('customer_tax_id', '12345678909')
+            ->set('customer_tax_id', str_repeat('0', 11))
             ->set('payment_method', 'pix')
             ->set('privacy_accepted', true)
             ->call('placeOrder')

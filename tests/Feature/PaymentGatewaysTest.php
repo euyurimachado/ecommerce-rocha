@@ -98,6 +98,105 @@ class PaymentGatewaysTest extends TestCase
         $this->assertCount(1, Http::recorded(fn (Request $sent): bool => $sent->method() === 'GET'));
     }
 
+    public function test_uncertain_payment_reconciles_by_external_reference_before_retrying_post(): void
+    {
+        $integration = $this->integration('mercado_pago', ['access_token' => 'TEST-token']);
+        $order = $this->order();
+        $order->forceFill(['payment_method' => 'credit_card'])->save();
+        $payment = $this->payment($order, 'credit_card');
+        Http::fake(function (Request $request) use ($order) {
+            if ($request->method() === 'GET' && parse_url($request->url(), PHP_URL_PATH) === '/v1/payments/search') {
+                $this->assertSame($order->code, $request['external_reference']);
+
+                return Http::response(['results' => [[
+                    'id' => 'reconciled-payment',
+                    'status' => 'approved',
+                    'status_detail' => 'accredited',
+                    'external_reference' => $order->code,
+                    'transaction_amount' => 100.0,
+                    'payment_type_id' => 'credit_card',
+                    'payment_method_id' => 'visa',
+                ]]], 200);
+            }
+
+            return Http::response([], 500);
+        });
+
+        $result = app(PaymentGatewayManager::class)->for('mercado_pago', $integration)->createPayment(
+            new PaymentRequest($order, $payment, 'credit_card', 'fresh-token', 'visa', 1, reconcileFirst: true),
+        );
+
+        $this->assertSame('reconciled-payment', $result->providerPaymentId);
+        $this->assertSame(PaymentStatus::Paid, $result->status);
+        $this->assertCount(0, Http::recorded(fn (Request $request): bool => $request->method() === 'POST'));
+    }
+
+    public function test_uncertain_retry_without_search_match_posts_using_the_original_idempotency_key(): void
+    {
+        $integration = $this->integration('mercado_pago', ['access_token' => 'TEST-token']);
+        $order = $this->order();
+        $payment = $this->payment($order, 'credit_card');
+        $originalKey = $payment->idempotency_key;
+        Http::fake(function (Request $request) {
+            if ($request->method() === 'GET' && parse_url($request->url(), PHP_URL_PATH) === '/v1/payments/search') {
+                return Http::response(['results' => []], 200);
+            }
+
+            if ($request->method() === 'POST' && str_ends_with($request->url(), '/v1/payments')) {
+                return Http::response(['id' => 'retried-payment', 'status' => 'pending'], 201);
+            }
+
+            return Http::response([], 404);
+        });
+
+        $result = app(PaymentGatewayManager::class)->for('mercado_pago', $integration)->createPayment(
+            new PaymentRequest($order, $payment, 'credit_card', 'new-transient-token', 'visa', 2, reconcileFirst: true),
+        );
+
+        $this->assertSame('retried-payment', $result->providerPaymentId);
+        Http::assertSent(fn (Request $request): bool => $request->method() === 'POST'
+            && $request->header('X-Idempotency-Key')[0] === $originalKey);
+        $this->assertCount(1, Http::recorded(fn (Request $request): bool => $request->method() === 'POST'));
+    }
+
+    public function test_ambiguous_search_results_block_retry_instead_of_creating_another_payment(): void
+    {
+        $integration = $this->integration('mercado_pago', ['access_token' => 'TEST-token']);
+        $order = $this->order();
+        $payment = $this->payment($order, 'pix');
+        $candidate = [
+            'id' => 'ambiguous-payment', 'status' => 'pending', 'external_reference' => $order->code,
+            'transaction_amount' => 100.0, 'payment_method_id' => 'pix',
+        ];
+        Http::fake(function (Request $request) use ($candidate) {
+            return $request->method() === 'GET'
+                ? Http::response(['results' => [$candidate, $candidate + ['id' => 'another-payment']]], 200)
+                : Http::response([], 500);
+        });
+
+        $this->expectException(RuntimeException::class);
+        app(PaymentGatewayManager::class)->for('mercado_pago', $integration)->createPayment(
+            new PaymentRequest($order, $payment, 'pix', reconcileFirst: true),
+        );
+
+        $this->assertCount(0, Http::recorded(fn (Request $request): bool => $request->method() === 'POST'));
+    }
+
+    public function test_successful_payment_does_not_write_temporary_diagnostic_logs(): void
+    {
+        $integration = $this->integration('mercado_pago', ['access_token' => 'TEST-token']);
+        $order = $this->order();
+        $payment = $this->payment($order, 'credit_card');
+        Http::fake(['api.mercadopago.com/v1/payments' => Http::response([
+            'id' => 'safe-payment-id', 'status' => 'approved', 'status_detail' => 'accredited',
+        ], 201)]);
+        Log::shouldReceive('info')->never();
+
+        app(PaymentGatewayManager::class)->for('mercado_pago', $integration)->createPayment(
+            new PaymentRequest($order, $payment, 'credit_card', 'fake-card-token', 'visa', 1),
+        );
+    }
+
     public function test_mercado_pago_cancel_and_refund_use_payment_api(): void
     {
         $integration = $this->integration('mercado_pago', ['access_token' => 'TEST-token']);
