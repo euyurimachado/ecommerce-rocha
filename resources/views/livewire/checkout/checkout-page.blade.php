@@ -233,7 +233,9 @@
             @endassets
         @endif
         @script
-            console.info('[MP-CARD] script-start');
+            <script>
+                window.__mpCardDiagnosticLoaded = true;
+                console.log('[MP-CARD] script-start');
             const paymentPublicKey = @js($paymentPublicKey);
             const hasUsablePublicKey = typeof paymentPublicKey === 'string'
                 && /^(TEST|APP_USR)-[A-Za-z0-9_-]+$/.test(paymentPublicKey.trim());
@@ -695,6 +697,7 @@
             logCardState('initial-state');
             setCheckoutStatus(!isCardSelected());
             void syncCardBrick(brickGeneration);
+            </script>
         @endscript
     @endif
 </div>

@@ -59,7 +59,14 @@ class CheckoutTest extends TestCase
         $product = $this->createProduct();
         app(CartManager::class)->add($product->id);
 
-        Livewire::test(CheckoutPage::class)
+        $checkout = Livewire::test(CheckoutPage::class);
+        $scriptEffects = data_get($checkout->effects, 'scripts', []);
+        $this->assertCount(1, $scriptEffects);
+        $scriptEffect = reset($scriptEffects);
+        $this->assertStringContainsString('<script>', $scriptEffect);
+        $this->assertStringContainsString("console.log('[MP-CARD] script-start')", $scriptEffect);
+
+        $checkout
             ->set('payment_method', 'credit_card')
             ->assertSee('paymentBrick_mount_host', false)
             ->assertSee('Carregando pagamento seguro...')
@@ -67,6 +74,7 @@ class CheckoutTest extends TestCase
             ->assertDontSee('Dados tokenizados com MercadoPago.js.');
 
         $blade = file_get_contents(resource_path('views/livewire/checkout/checkout-page.blade.php'));
+        $this->assertStringContainsString("@script\n            <script>\n                window.__mpCardDiagnosticLoaded = true;\n                console.log('[MP-CARD] script-start');", $blade);
         $this->assertStringContainsString('onReady:', $blade);
         $this->assertStringContainsString('onError:', $blade);
         $this->assertStringContainsString('onSubmit:', $blade);
