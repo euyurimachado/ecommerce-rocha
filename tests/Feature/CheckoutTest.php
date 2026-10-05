@@ -70,6 +70,14 @@ class CheckoutTest extends TestCase
         $this->assertStringContainsString('onReady:', $blade);
         $this->assertStringContainsString('onError:', $blade);
         $this->assertStringContainsString('onSubmit:', $blade);
+        $this->assertSame(1, substr_count($blade, 'https://sdk.mercadopago.com/js/v2'));
+        $this->assertStringContainsString('$wire.$hook(\'morphed\'', $blade);
+        $this->assertStringContainsString('await previousCreation.promise;', $blade);
+        $this->assertStringContainsString('$wire.$watch(\'payment_method\'', $blade);
+        $this->assertStringContainsString('paymentBrick_retry', $blade);
+        $this->assertStringContainsString('safeDiagnostic', $blade);
+        $this->assertStringContainsString('$wire.card_token = null;', $blade);
+        $this->assertStringContainsString('$wire.card_installments = null;', $blade);
     }
 
     public function test_checkout_uses_persisted_gateway_without_legacy_hosted_checkout(): void

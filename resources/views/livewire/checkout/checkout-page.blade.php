@@ -152,7 +152,7 @@
                     @if ($payment_method === 'credit_card' && $paymentProvider === 'mercado_pago')
                         @if ($paymentPublicKey)
                             <p id="paymentBrick_loading" class="mt-4 text-sm text-slate-600" role="status" aria-live="polite">Carregando pagamento seguro...</p>
-                            <p id="paymentBrick_error" class="mt-4 hidden text-sm text-rose-700" role="alert">Não foi possível carregar o formulário de cartão. Tente novamente.</p>
+                            <div id="paymentBrick_error" class="mt-4 text-sm text-rose-700" hidden role="alert"><p>Não foi possível carregar o formulário de cartão. Tente novamente.</p><button id="paymentBrick_retry" type="button" class="mt-2 rounded border border-rose-300 px-3 py-2 font-semibold hover:bg-rose-50">Tentar novamente</button></div>
                             <div wire:ignore id="paymentBrick_container" class="mt-4"></div>
                         @else
                             <p class="mt-4 text-sm text-rose-700" role="alert">O pagamento com cartão está temporariamente indisponível.</p>
@@ -230,123 +230,344 @@
         @endassets
         @script
             let brickController = null;
+            let controllerMount = null;
+            let pendingCreation = null;
+            let mercadoPagoInstance = null;
             let brickGeneration = 0;
-            let brickTransition = Promise.resolve();
             let brickSubmitting = false;
+            let mountSequence = 0;
+            let cleanupQueue = Promise.resolve();
+            let reconcilePromise = null;
+            let reconcileGeneration = null;
+            const root = $wire.$el;
+
+            const isCardSelected = () => $wire.payment_method === 'credit_card';
+            const getContainer = () => document.getElementById('paymentBrick_container');
             const setBrickState = (ready, failed = false) => {
                 const loading = document.getElementById('paymentBrick_loading');
                 const error = document.getElementById('paymentBrick_error');
+
                 if (loading) loading.hidden = ready || failed;
                 if (error) error.hidden = !failed;
             };
-            const waitForMercadoPago = async () => {
-                for (let attempt = 0; attempt < 50; attempt++) {
-                    if (typeof MercadoPago !== 'undefined') return true;
-                    await new Promise((resolve) => setTimeout(resolve, 100));
-                }
-                return false;
+            const safeDiagnostic = (value) => String(value ?? '')
+                .replace(/\b(Bearer|token|access[_\s-]?token|card[_\s-]?number|card[_\s-]?token|security[_\s-]?code|cvv|pan)\s*[:=]\s*[^,\s;]+/gi, '$1=[redacted]')
+                .replace(/\b(?:APP_USR|TEST)-[A-Za-z0-9_-]+\b/gi, '[redacted]')
+                .replace(/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi, '[redacted-email]')
+                .replace(/\b(?:\d[ -]?){12,19}\b/g, '[redacted-number]')
+                .replace(/\b[A-Za-z0-9_-]{24,}\b/g, '[redacted]')
+                .slice(0, 200);
+            const reportBrickError = (error, stage) => {
+                console.error('[Rocha Sports] Card Payment Brick error', {
+                    stage,
+                    type: safeDiagnostic(error?.type || error?.name || 'unknown'),
+                    code: safeDiagnostic(error?.code || 'unknown'),
+                    message: safeDiagnostic(error?.message || 'SDK initialization failed'),
+                });
             };
-            const syncCardBrick = async () => {
-                const generation = ++brickGeneration;
-                const container = document.getElementById('paymentBrick_container');
-                if ($wire.payment_method !== 'credit_card') {
-                    if (container) container.hidden = true;
-                    if (brickController) {
-                        const current = brickController;
-                        brickController = null;
-                        await current.unmount();
+            const clearCardFields = () => {
+                $wire.card_token = null;
+                $wire.card_payment_method_id = null;
+                $wire.card_issuer_id = null;
+                $wire.card_installments = null;
+                $wire.card_identification_type = null;
+                $wire.card_identification_number = null;
+            };
+            const removeMount = (mount) => {
+                if (mount?.isConnected) mount.remove();
+            };
+            const invalidatePendingCreation = () => {
+                const operation = pendingCreation;
+
+                if (!operation) return null;
+
+                operation.invalidated = true;
+                removeMount(operation.mount);
+
+                return operation;
+            };
+            const destroyCardBrick = () => {
+                const current = brickController;
+                const mount = controllerMount;
+                brickController = null;
+                controllerMount = null;
+
+                cleanupQueue = cleanupQueue.catch(() => {}).then(async () => {
+                    if (current) {
+                        try {
+                            await current.unmount();
+                        } catch (error) {
+                            reportBrickError(error, 'unmount');
+                        }
                     }
-                    $wire.card_token = null;
-                    $wire.card_payment_method_id = null;
-                    $wire.card_issuer_id = null;
-                    $wire.card_identification_type = null;
-                    $wire.card_identification_number = null;
-                    return;
-                }
-                if (!container || generation !== brickGeneration) return;
-                container.hidden = false;
-                setBrickState(false);
-                if (brickController) {
+
+                    removeMount(mount);
+                });
+
+                return cleanupQueue;
+            };
+            const failBrick = (error, stage, generation, mount = null) => {
+                if (generation !== brickGeneration) return;
+
+                reportBrickError(error, stage);
+                brickGeneration += 1;
+                brickSubmitting = false;
+
+                if (pendingCreation?.mount === mount) invalidatePendingCreation();
+
+                if (controllerMount === mount && brickController) {
                     const current = brickController;
                     brickController = null;
-                    await current.unmount();
+                    controllerMount = null;
+                    void Promise.resolve().then(() => current.unmount()).catch((unmountError) => reportBrickError(unmountError, 'unmount'));
                 }
-                if (generation !== brickGeneration) return;
-                if (!await waitForMercadoPago()) {
-                    setBrickState(false, true);
+
+                removeMount(mount);
+                setBrickState(false, true);
+            };
+            const waitForMercadoPago = async () => {
+                for (let attempt = 0; attempt < 50; attempt++) {
+                    if (typeof window.MercadoPago === 'function') return true;
+                    await new Promise((resolve) => setTimeout(resolve, 100));
+                }
+
+                return false;
+            };
+            const isCurrentMount = (generation, container, mount) => (
+                generation === brickGeneration
+                && isCardSelected()
+                && mount?.isConnected
+                && getContainer() === container
+                && container.contains(mount)
+            );
+            const reconcileCardBrick = async (generation) => {
+                const container = getContainer();
+
+                if (!isCardSelected()) {
+                    if (container) container.hidden = true;
+                    const staleCreation = invalidatePendingCreation();
+                    clearCardFields();
+                    brickSubmitting = false;
+                    setBrickState(false);
+                    await destroyCardBrick();
+                    if (staleCreation?.promise) await staleCreation.promise;
+
                     return;
                 }
+
+                if (!container) {
+                    setBrickState(false);
+
+                    return;
+                }
+
+                container.hidden = false;
+
+                if (generation !== brickGeneration) return;
+
+                if (brickController && controllerMount?.isConnected && container.contains(controllerMount)) {
+                    setBrickState(true);
+
+                    return;
+                }
+
+                const previousCreation = pendingCreation;
+
+                if (previousCreation?.generation === generation && !previousCreation.invalidated) {
+                    return previousCreation.promise;
+                }
+
+                if (previousCreation) {
+                    invalidatePendingCreation();
+                    await previousCreation.promise;
+
+                    if (generation !== brickGeneration || !isCardSelected()) return;
+                }
+
+                await destroyCardBrick();
+
+                if (generation !== brickGeneration || !isCardSelected()) return;
+
+                setBrickState(false);
+
+                if (!await waitForMercadoPago()) {
+                    failBrick(new Error('MercadoPago SDK unavailable'), 'sdk-load', generation);
+
+                    return;
+                }
+
+                if (generation !== brickGeneration || !isCardSelected() || getContainer() !== container) return;
+
                 try {
-                    const mp = new MercadoPago(@js($paymentPublicKey), { locale: 'pt-BR' });
-                    brickController = await mp.bricks().create('cardPayment', 'paymentBrick_container', {
-                        initialization: {
-                            amount: @js($totalCents / 100),
-                            payer: { email: $wire.customer_email || '' },
-                        },
-                        customization: { paymentMethods: { maxInstallments: 12 } },
-                        callbacks: {
-                            onReady: () => {
-                                if (generation === brickGeneration) setBrickState(true);
+                    mercadoPagoInstance ??= new window.MercadoPago(@js($paymentPublicKey), { locale: 'pt-BR' });
+                } catch (error) {
+                    failBrick(error, 'sdk-initialize', generation);
+
+                    return;
+                }
+
+                const mount = document.createElement('div');
+                mount.id = 'paymentBrick_mount_' + generation + '_' + (++mountSequence);
+                container.replaceChildren(mount);
+
+                const operation = { generation, mount, promise: null };
+                pendingCreation = operation;
+                operation.promise = (async () => {
+                    try {
+                        const controller = await mercadoPagoInstance.bricks().create('cardPayment', mount.id, {
+                            initialization: {
+                                amount: @js($totalCents / 100),
+                                payer: { email: $wire.customer_email || '' },
                             },
-                            onSubmit: async (formData) => {
-                                if (brickSubmitting) return Promise.reject();
-                                const token = formData?.token;
-                                const paymentMethodId = formData?.payment_method_id;
-                                if (!token || !paymentMethodId) {
-                                    $wire.checkoutError = 'Não foi possível validar o cartão. Confira os dados e tente novamente.';
-                                    return Promise.reject();
-                                }
-                                brickSubmitting = true;
-                                $wire.card_token = token;
-                                $wire.card_payment_method_id = paymentMethodId;
-                                $wire.card_installments = Number(formData.installments || 1);
-                                $wire.card_issuer_id = formData.issuer_id ? String(formData.issuer_id) : null;
-                                $wire.card_identification_type = formData.payer?.identification?.type || null;
-                                $wire.card_identification_number = formData.payer?.identification?.number || null;
-                                try {
-                                    const result = await $wire.placeOrder();
-                                    if ($wire.checkoutError) {
-                                        brickSubmitting = false;
+                            customization: { paymentMethods: { maxInstallments: 12 } },
+                            callbacks: {
+                                onReady: () => {
+                                    if (isCurrentMount(generation, container, mount)) setBrickState(true);
+                                },
+                                onSubmit: async (formData) => {
+                                    if (brickSubmitting || !isCurrentMount(generation, container, mount)) {
                                         return Promise.reject();
                                     }
-                                    return result;
-                                } catch (error) {
-                                    brickSubmitting = false;
-                                    $wire.checkoutError = 'Não foi possível finalizar o pagamento. Tente novamente.';
-                                    return Promise.reject();
-                                }
+
+                                    const token = formData?.token;
+                                    const paymentMethodId = formData?.payment_method_id;
+
+                                    if (!token || !paymentMethodId) {
+                                        $wire.checkoutError = 'Não foi possível validar o cartão. Confira os dados e tente novamente.';
+
+                                        return Promise.reject();
+                                    }
+
+                                    brickSubmitting = true;
+                                    $wire.card_token = token;
+                                    $wire.card_payment_method_id = paymentMethodId;
+                                    $wire.card_installments = Number(formData.installments || 1);
+                                    $wire.card_issuer_id = formData.issuer_id ? String(formData.issuer_id) : null;
+                                    $wire.card_identification_type = formData.payer?.identification?.type || null;
+                                    $wire.card_identification_number = formData.payer?.identification?.number || null;
+
+                                    try {
+                                        const result = await $wire.placeOrder();
+
+                                        if ($wire.checkoutError) {
+                                            brickSubmitting = false;
+
+                                            return Promise.reject();
+                                        }
+
+                                        return result;
+                                    } catch (error) {
+                                        brickSubmitting = false;
+                                        $wire.checkoutError = 'Não foi possível finalizar o pagamento. Tente novamente.';
+
+                                        return Promise.reject();
+                                    }
+                                },
+                                onError: (error) => failBrick(error, 'brick-callback', generation, mount),
                             },
-                            onError: () => setBrickState(false, true),
-                        },
-                    });
-                    if (generation !== brickGeneration && brickController) {
-                        const current = brickController;
-                        brickController = null;
-                        await current.unmount();
+                        });
+
+                        if (!isCurrentMount(generation, container, mount)) {
+                            try {
+                                await controller.unmount();
+                            } catch (error) {
+                                reportBrickError(error, 'stale-unmount');
+                            }
+
+                            removeMount(mount);
+                            if (pendingCreation === operation) pendingCreation = null;
+
+                            return;
+                        }
+
+                        brickController = controller;
+                        controllerMount = mount;
+                        if (pendingCreation === operation) pendingCreation = null;
+                        setBrickState(true);
+                    } catch (error) {
+                        if (pendingCreation === operation) pendingCreation = null;
+
+                        if (generation === brickGeneration && isCardSelected()) {
+                            failBrick(error, 'brick-create', generation, mount);
+                        } else {
+                            removeMount(mount);
+                        }
                     }
-                } catch (error) {
-                    brickController = null;
-                    setBrickState(false, true);
-                }
+                })();
+
+                return operation.promise;
             };
-            const queueBrickSync = () => {
-                brickTransition = brickTransition.then(syncCardBrick).catch(() => setBrickState(false, true));
+            const syncCardBrick = (generation) => {
+                if (reconcilePromise && reconcileGeneration === generation) return reconcilePromise;
+
+                const promise = reconcileCardBrick(generation).catch((error) => {
+                    failBrick(error, 'reconcile', generation);
+                });
+                reconcilePromise = promise;
+                reconcileGeneration = generation;
+
+                return promise.finally(() => {
+                    if (reconcilePromise === promise) {
+                        reconcilePromise = null;
+                        reconcileGeneration = null;
+                    }
+                });
             };
-            $wire.$watch('payment_method', queueBrickSync);
-            queueBrickSync();
+            const retryCardBrick = async () => {
+                if (!isCardSelected()) return;
+
+                const generation = ++brickGeneration;
+                invalidatePendingCreation();
+                clearCardFields();
+                brickSubmitting = false;
+                setBrickState(false);
+                await destroyCardBrick();
+
+                if (generation === brickGeneration) await syncCardBrick(generation);
+            };
+
+            root.addEventListener('click', (event) => {
+                const target = event.target;
+                const retryButton = target && typeof target.closest === 'function'
+                    ? target.closest('#paymentBrick_retry')
+                    : null;
+
+                if (!retryButton) return;
+
+                event.preventDefault();
+                void retryCardBrick();
+            });
+
+            $wire.$watch('payment_method', (value) => {
+                const generation = ++brickGeneration;
+                brickSubmitting = false;
+
+                if (value !== 'credit_card') clearCardFields();
+
+                void syncCardBrick(generation);
+            });
+            $wire.$hook('morphed', () => {
+                void syncCardBrick(brickGeneration);
+            });
+
             if (!window.rochaMercadoPagoBrickNavigationBound) {
                 window.rochaMercadoPagoBrickNavigationBound = true;
                 document.addEventListener('livewire:navigating', () => {
-                    const current = window.rochaMercadoPagoBrickController;
-                    if (current) current.unmount();
-                    window.rochaMercadoPagoBrickController = null;
+                    if (typeof window.rochaMercadoPagoBrickCleanup === 'function') {
+                        window.rochaMercadoPagoBrickCleanup();
+                    }
                 });
             }
-            Object.defineProperty(window, 'rochaMercadoPagoBrickController', {
-                configurable: true,
-                get: () => brickController,
-                set: (value) => { brickController = value; },
-            });
+
+            window.rochaMercadoPagoBrickCleanup = () => {
+                brickGeneration += 1;
+                invalidatePendingCreation();
+                clearCardFields();
+                brickSubmitting = false;
+                void destroyCardBrick();
+            };
+
+            void syncCardBrick(brickGeneration);
         @endscript
     @endif
 </div>
