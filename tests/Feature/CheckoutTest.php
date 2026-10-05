@@ -61,7 +61,7 @@ class CheckoutTest extends TestCase
 
         Livewire::test(CheckoutPage::class)
             ->set('payment_method', 'credit_card')
-            ->assertSee('paymentBrick_container', false)
+            ->assertSee('paymentBrick_mount_host', false)
             ->assertSee('Carregando pagamento seguro...')
             ->assertSee('Pagamento seguro com cartão.')
             ->assertDontSee('Dados tokenizados com MercadoPago.js.');
@@ -79,7 +79,24 @@ class CheckoutTest extends TestCase
         $this->assertStringContainsString('await previousCreation.promise;', $blade);
         $this->assertStringContainsString('$wire.$watch(\'payment_method\'', $blade);
         $this->assertStringContainsString('paymentBrick_retry', $blade);
-        $this->assertStringContainsString('safeDiagnostic', $blade);
+        $this->assertStringContainsString('value="credit_card"', $blade);
+        $this->assertStringContainsString('$wire.payment_method === \'credit_card\'', $blade);
+        $component = file_get_contents(app_path('Livewire/Checkout/CheckoutPage.php'));
+        $this->assertStringContainsString('Rule::in($paymentGateway?->capabilities()->methods() ?? [])', $component);
+        $this->assertStringContainsString("mount.id = 'cardPaymentBrick_container'", $blade);
+        $this->assertStringContainsString("bricksBuilder.create('cardPayment', mount.id", $blade);
+        $this->assertStringContainsString('const amount = Number(@js($totalCents / 100));', $blade);
+        $this->assertStringContainsString('/^(TEST|APP_USR)-[A-Za-z0-9_-]+$/', $blade);
+        $this->assertStringContainsString("diagnostic('container-connected'", $blade);
+        $this->assertStringContainsString("diagnostic('timeout'", $blade);
+        $this->assertStringContainsString("diagnostic('create-start'", $blade);
+        $this->assertStringContainsString("diagnostic('on-ready'", $blade);
+        $this->assertStringContainsString("console.error('[MP-CARD] on-error'", $blade);
+        $this->assertStringContainsString('paymentBrick_checkout_status', $blade);
+        $this->assertStringContainsString('type="button" disabled aria-live="polite"', $blade);
+        $this->assertStringContainsString('Cartão indisponível — tente novamente ou selecione PIX', $blade);
+        $this->assertStringContainsString('paymentBrick_retry', $blade);
+        $this->assertStringNotContainsString('safeDiagnostic', $blade);
         $this->assertStringContainsString('$wire.card_token = null;', $blade);
         $this->assertStringContainsString('$wire.card_installments = null;', $blade);
     }
@@ -107,8 +124,8 @@ class CheckoutTest extends TestCase
 
         Livewire::test(CheckoutPage::class)
             ->set('payment_method', 'credit_card')
-            ->assertSee('O pagamento com cartão está temporariamente indisponível.')
-            ->assertDontSee('paymentBrick_container', false);
+            ->assertSee('Carregando formulário do cartão...')
+            ->assertSee('paymentBrick_mount_host', false);
     }
 
     public function test_checkout_rejects_credit_card_without_brick_token(): void
@@ -144,7 +161,7 @@ class CheckoutTest extends TestCase
 
         Livewire::test(CheckoutPage::class)
             ->assertSee('Nenhum meio de pagamento online está configurado. Entre em contato com a loja.')
-            ->assertDontSee('paymentBrick_container', false)
+            ->assertDontSee('cardPaymentBrick_container', false)
             ->call('placeOrder')
             ->assertSet('checkoutError', 'Nenhum meio de pagamento online está configurado. Entre em contato com a loja.');
 

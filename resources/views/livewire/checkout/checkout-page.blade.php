@@ -150,16 +150,12 @@
                         </label>
                     @endif
                     @if ($paymentProvider === 'mercado_pago')
-                        @if ($paymentPublicKey)
-                            <div wire:ignore id="paymentBrick_region" class="mt-4" hidden>
-                                <p id="paymentBrick_loading" class="text-sm text-slate-600" role="status" aria-live="polite">Carregando pagamento seguro...</p>
-                                <div id="paymentBrick_skeleton" class="mt-3 animate-pulse space-y-3" aria-hidden="true"><div class="h-11 rounded bg-slate-100"></div><div class="grid grid-cols-2 gap-3"><div class="h-11 rounded bg-slate-100"></div><div class="h-11 rounded bg-slate-100"></div></div></div>
-                                <div id="paymentBrick_error" class="mt-4 text-sm text-rose-700" hidden role="alert"><p>Não foi possível carregar o formulário de cartão. Tente novamente.</p><button id="paymentBrick_retry" type="button" class="mt-2 rounded border border-rose-300 px-3 py-2 font-semibold hover:bg-rose-50">Tentar novamente</button></div>
-                                <div id="paymentBrick_container" class="mt-4"></div>
-                            </div>
-                        @elseif ($paymentCapabilities->creditCard)
-                            <p class="mt-4 text-sm text-rose-700" role="alert">O pagamento com cartão está temporariamente indisponível.</p>
-                        @endif
+                        <div wire:ignore id="paymentBrick_region" class="mt-4" hidden>
+                            <p id="paymentBrick_loading" class="text-sm text-slate-600" role="status" aria-live="polite">Carregando pagamento seguro...</p>
+                            <div id="paymentBrick_skeleton" class="mt-3 animate-pulse space-y-3" aria-hidden="true"><div class="h-11 rounded bg-slate-100"></div><div class="grid grid-cols-2 gap-3"><div class="h-11 rounded bg-slate-100"></div><div class="h-11 rounded bg-slate-100"></div></div></div>
+                            <div id="paymentBrick_error" class="mt-4 text-sm text-rose-700" hidden role="alert"><p>Não foi possível carregar o formulário de cartão. Tente novamente ou selecione PIX.</p><button id="paymentBrick_retry" type="button" class="mt-2 rounded border border-rose-300 px-3 py-2 font-semibold hover:bg-rose-50">Tentar novamente</button></div>
+                            <div id="paymentBrick_mount_host" class="mt-4"></div>
+                        </div>
                         @if ($payment_method === 'credit_card')
                             @error('card_token') <span class="mt-2 block text-sm text-rose-700">Não foi possível validar o cartão. Confira os dados e tente novamente.</span> @enderror
                         @endif
@@ -217,24 +213,31 @@
                         <span class="font-bold">{{ $total }}</span>
                     </div>
                 </div>
-                @if (! ($payment_method === 'credit_card' && $paymentProvider === 'mercado_pago'))
+                @if ($payment_method === 'credit_card' && $paymentProvider === 'mercado_pago')
+                    <button id="paymentBrick_checkout_status" class="mt-6 flex w-full justify-center rounded-lg bg-slate-200 px-5 py-3 font-bold text-slate-700 disabled:cursor-not-allowed" type="button" disabled aria-live="polite">Carregando formulário do cartão...</button>
+                @else
                     <button wire:loading.attr="disabled" @disabled(! $paymentProvider) wire:target="placeOrder" class="mt-6 flex w-full justify-center rounded-lg bg-rocha-blue px-5 py-3 font-bold text-white disabled:cursor-not-allowed disabled:opacity-70" type="submit">
                         <span wire:loading.remove wire:target="placeOrder">Finalizar pedido</span>
                         <span wire:loading wire:target="placeOrder">Finalizando...</span>
                     </button>
-                @else
-                    <p class="mt-6 text-center text-sm text-slate-600">Finalize pelo botão seguro exibido no formulário do cartão.</p>
                 @endif
             </aside>
         </form>
     @endif
 
-    @if ($paymentProvider === 'mercado_pago' && $paymentPublicKey)
-        @assets
-            <link rel="preconnect" href="https://sdk.mercadopago.com" crossorigin>
-            <script src="https://sdk.mercadopago.com/js/v2"></script>
-        @endassets
+    @if ($paymentProvider === 'mercado_pago')
+        @if ($paymentPublicKey)
+            @assets
+                <link rel="preconnect" href="https://sdk.mercadopago.com" crossorigin>
+                <script src="https://sdk.mercadopago.com/js/v2"></script>
+            @endassets
+        @endif
         @script
+            console.info('[MP-CARD] script-start');
+            const paymentPublicKey = @js($paymentPublicKey);
+            const hasUsablePublicKey = typeof paymentPublicKey === 'string'
+                && /^(TEST|APP_USR)-[A-Za-z0-9_-]+$/.test(paymentPublicKey.trim());
+            const diagnostic = (event, details = {}) => console.info('[MP-CARD] ' + event, details);
             let brickController = null;
             let controllerMount = null;
             let pendingCreation = null;
@@ -248,7 +251,26 @@
             const root = $wire.$el;
 
             const isCardSelected = () => $wire.payment_method === 'credit_card';
-            const getContainer = () => document.getElementById('paymentBrick_container');
+            const getContainer = () => document.getElementById('paymentBrick_mount_host');
+            const logCardState = (event) => {
+                const container = getContainer();
+                const rect = container?.getBoundingClientRect();
+                diagnostic(event, {
+                    paymentMethod: ['pix', 'credit_card', 'debit_card'].includes($wire.payment_method) ? $wire.payment_method : 'unexpected',
+                    publicKeyPresent: hasUsablePublicKey,
+                    sdkPresent: typeof window.MercadoPago === 'function',
+                    containerPresent: Boolean(container),
+                    containerVisible: Boolean(container?.isConnected && rect?.width > 0 && rect?.height > 0),
+                    containerWidth: Math.round(rect?.width || 0),
+                    containerHeight: Math.round(rect?.height || 0),
+                });
+            };
+            const setCheckoutStatus = (ready, failed = false) => {
+                const button = document.getElementById('paymentBrick_checkout_status');
+                if (!button) return;
+                button.hidden = ready;
+                button.textContent = failed ? 'Cartão indisponível — tente novamente ou selecione PIX' : 'Carregando formulário do cartão...';
+            };
             const getRegion = () => document.getElementById('paymentBrick_region');
             const setBrickState = (ready, failed = false) => {
                 const loading = document.getElementById('paymentBrick_loading');
@@ -259,20 +281,11 @@
                 if (skeleton) skeleton.hidden = ready || failed;
                 if (error) error.hidden = !failed;
             };
-            const safeDiagnostic = (value) => String(value ?? '')
-                .replace(/\b(Bearer|token|access[_\s-]?token|card[_\s-]?number|card[_\s-]?token|security[_\s-]?code|cvv|pan)\s*[:=]\s*[^,\s;]+/gi, '$1=[redacted]')
-                .replace(/\b(?:APP_USR|TEST)-[A-Za-z0-9_-]+\b/gi, '[redacted]')
-                .replace(/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi, '[redacted-email]')
-                .replace(/\b(?:\d[ -]?){12,19}\b/g, '[redacted-number]')
-                .replace(/\b[A-Za-z0-9_-]{24,}\b/g, '[redacted]')
-                .slice(0, 200);
             const reportBrickError = (error, stage) => {
-                console.error('[Rocha Sports] Card Payment Brick error', {
-                    stage,
-                    type: safeDiagnostic(error?.type || error?.name || 'unknown'),
-                    code: safeDiagnostic(error?.code || 'unknown'),
-                    message: safeDiagnostic(error?.message || 'SDK initialization failed'),
-                });
+                const type = ['Error', 'TypeError', 'ReferenceError', 'SyntaxError'].includes(error?.name) ? error.name : 'unknown';
+                const rawCode = String(error?.code || '');
+                const code = /^[A-Za-z0-9_.-]{1,48}$/.test(rawCode) ? rawCode : 'unavailable';
+                console.error('[MP-CARD] on-error', { stage, type, code, message: 'Mercado Pago Brick operation failed' });
             };
             const unmountController = async (controller, stage) => {
                 if (!controller) return;
@@ -313,7 +326,9 @@
                 brickController = null;
                 controllerMount = null;
 
-                cleanupQueue = cleanupQueue.catch(() => {}).then(async () => {
+                cleanupQueue = cleanupQueue.catch((error) => {
+                    reportBrickError(error, 'cleanup-queue');
+                }).then(async () => {
                     if (current) await unmountController(current, 'unmount');
 
                     removeMount(mount);
@@ -343,6 +358,7 @@
 
                 removeMount(mount);
                 setBrickState(false, true);
+                setCheckoutStatus(false, true);
             };
             const waitForMercadoPago = async () => {
                 for (let attempt = 0; attempt < 30; attempt++) {
@@ -361,6 +377,7 @@
             );
             const reconcileCardBrick = async (generation) => {
                 const container = getContainer();
+                logCardState('container-state');
 
                 if (!isCardSelected()) {
                     const region = getRegion();
@@ -370,6 +387,7 @@
                     clearCardFields();
                     brickSubmitting = false;
                     setBrickState(false);
+                    setCheckoutStatus(false);
                     await destroyCardBrick();
                     if (staleCreation?.promise) await staleCreation.promise;
 
@@ -412,17 +430,49 @@
                 if (generation !== brickGeneration || !isCardSelected()) return;
 
                 setBrickState(false);
+                setCheckoutStatus(false);
 
+                if (!hasUsablePublicKey) {
+                    diagnostic('public-key-present', false);
+                    failBrick(new Error('Public key unavailable'), 'public-key', generation);
+                    return;
+                }
+
+                diagnostic('public-key-present', true);
+                diagnostic('public-key-length', paymentPublicKey.trim().length);
+                const containerRect = container.getBoundingClientRect();
+                const containerStyle = window.getComputedStyle(container);
+                const containerVisible = container.isConnected
+                    && containerStyle.display !== 'none'
+                    && containerStyle.visibility !== 'hidden'
+                    && containerRect.width > 0;
+                diagnostic('container-present', Boolean(container.isConnected));
+                diagnostic('container-connected', container.isConnected);
+                diagnostic('container-visible', containerVisible);
+                diagnostic('container-size', { width: Math.round(containerRect.width), height: Math.round(containerRect.height) });
+                if (!containerVisible) {
+                    failBrick(new Error('Brick container is not visible'), 'container-hidden', generation);
+                    return;
+                }
+                const amount = Number(@js($totalCents / 100));
+                diagnostic('amount', amount);
+                if (!Number.isFinite(amount) || amount <= 0) {
+                    failBrick(new Error('Invalid checkout amount'), 'amount', generation);
+                    return;
+                }
                 if (!await waitForMercadoPago()) {
+                    diagnostic('sdk-present', false);
                     failBrick(new Error('MercadoPago SDK unavailable'), 'sdk-load', generation);
 
                     return;
                 }
 
+                diagnostic('sdk-present', true);
                 if (generation !== brickGeneration || !isCardSelected() || getContainer() !== container) return;
 
                 try {
-                    mercadoPagoInstance ??= new window.MercadoPago(@js($paymentPublicKey), { locale: 'pt-BR' });
+                    mercadoPagoInstance ??= new window.MercadoPago(paymentPublicKey, { locale: 'pt-BR' });
+                    diagnostic('mp-created');
                 } catch (error) {
                     failBrick(error, 'sdk-initialize', generation);
 
@@ -430,8 +480,19 @@
                 }
 
                 const mount = document.createElement('div');
-                mount.id = 'paymentBrick_mount_' + generation + '_' + (++mountSequence);
+                mount.id = 'cardPaymentBrick_container';
+                mount.dataset.generation = String(generation) + '-' + (++mountSequence);
                 container.replaceChildren(mount);
+                const mountRect = mount.getBoundingClientRect();
+                const mountVisible = mount.isConnected && mountRect.width > 0;
+                diagnostic('container-present', document.querySelectorAll('#cardPaymentBrick_container').length === 1);
+                diagnostic('container-connected', mount.isConnected);
+                diagnostic('container-visible', mountVisible);
+                diagnostic('container-size', { width: Math.round(mountRect.width), height: Math.round(mountRect.height) });
+                if (!mountVisible) {
+                    failBrick(new Error('Card Brick mount is not measurable'), 'container-hidden', generation, mount);
+                    return;
+                }
 
                 const operation = { generation, mount, promise: null, timer: null, ready: false, created: false };
                 pendingCreation = operation;
@@ -441,24 +502,32 @@
                     operation.timedOut = true;
                     const timeoutError = new Error('Card Payment Brick did not become ready within 5 seconds');
                     rejectTimeout(timeoutError);
+                    diagnostic('timeout', { stage: operation.created ? 'brick-ready' : 'brick-create' });
                     if (operation.created) failBrick(timeoutError, 'brick-ready-timeout', generation, mount);
                 }, 5000);
                 operation.promise = (async () => {
                     try {
-                        const creationPromise = mercadoPagoInstance.bricks().create('cardPayment', mount.id, {
+                        const bricksBuilder = mercadoPagoInstance.bricks();
+                        diagnostic('bricks-builder-created', { present: Boolean(bricksBuilder) });
+                        diagnostic('create-start', { brick: 'cardPayment', containerId: mount.id });
+                        const creationPromise = bricksBuilder.create('cardPayment', mount.id, {
                             initialization: {
-                                amount: @js($totalCents / 100),
+                                amount,
                                 payer: { email: $wire.customer_email || '' },
                             },
                             customization: { paymentMethods: { maxInstallments: 12 } },
                             callbacks: {
                                 onReady: () => {
+                                    diagnostic('on-ready');
                                     operation.ready = true;
                                     if (operation.created && operation.timer) {
                                         clearTimeout(operation.timer);
                                         operation.timer = null;
                                     }
-                                    if (isCurrentMount(generation, container, mount)) setBrickState(true);
+                                    if (isCurrentMount(generation, container, mount)) {
+                                        setBrickState(true);
+                                        setCheckoutStatus(true);
+                                    }
                                 },
                                 onSubmit: async (formData) => {
                                     if (brickSubmitting || !isCurrentMount(generation, container, mount)) {
@@ -500,17 +569,19 @@
                                     }
                                 },
                                 onError: (error) => {
+                                    diagnostic('on-error-callback');
                                     rejectTimeout(error instanceof Error ? error : new Error(error?.message || 'Brick reported an error'));
                                     failBrick(error, 'brick-callback', generation, mount);
                                 },
                             },
                         });
-                        creationPromise.then((lateController) => {
+                        const observedCreationPromise = creationPromise.then((lateController) => {
+                            diagnostic('create-resolved');
                             if (operation.timedOut || generation !== brickGeneration || !isCurrentMount(generation, container, mount)) {
                                 void unmountController(lateController, 'late-unmount');
                             }
-                        }).catch(() => {});
-                        const controller = await Promise.race([creationPromise, timeoutPromise]);
+                        });
+                        const controller = await Promise.race([observedCreationPromise, timeoutPromise]);
                         operation.created = true;
                         if (operation.ready && operation.timer) {
                             clearTimeout(operation.timer);
@@ -599,6 +670,8 @@
 
                 if (value !== 'credit_card') clearCardFields();
 
+                setCheckoutStatus(value !== 'credit_card');
+                diagnostic('payment-method', ['pix', 'credit_card', 'debit_card'].includes(value) ? value : 'unexpected');
                 void syncCardBrick(generation);
             });
             if (!window.rochaMercadoPagoBrickNavigationBound) {
@@ -618,6 +691,9 @@
                 void destroyCardBrick();
             };
 
+            diagnostic('payment-method', ['pix', 'credit_card', 'debit_card'].includes($wire.payment_method) ? $wire.payment_method : 'unexpected');
+            logCardState('initial-state');
+            setCheckoutStatus(!isCardSelected());
             void syncCardBrick(brickGeneration);
         @endscript
     @endif
