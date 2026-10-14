@@ -30,6 +30,10 @@ return [
         'statement_descriptor' => env('MERCADO_PAGO_STATEMENT_DESCRIPTOR', 'ROCHA SPORTS'),
     ],
 
+    'meta' => [
+        'pixel_id' => env('META_PIXEL_ID', '2203469027275142'),
+    ],
+
     'ses' => [
         'key' => env('AWS_ACCESS_KEY_ID'),
         'secret' => env('AWS_SECRET_ACCESS_KEY'),

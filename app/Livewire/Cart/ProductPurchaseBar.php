@@ -56,8 +56,14 @@ class ProductPurchaseBar extends Component
         }
 
         $this->quantity = min($availableQuantity, max(1, $this->quantity));
+        $subtotalBeforeCents = $cart->subtotalCents();
         $cart->add($this->product->id, $this->quantity, $this->variantSelections);
         $this->added = true;
+        $this->dispatch('rocha-meta-add-to-cart',
+            contentId: (string) $this->product->id,
+            value: max(0, $cart->subtotalCents() - $subtotalBeforeCents) / 100,
+            quantity: $this->quantity,
+        );
         $this->dispatch('cart-updated');
     }
 

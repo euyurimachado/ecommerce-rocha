@@ -23,7 +23,8 @@ class CartTest extends TestCase
 
         Livewire::test(AddToCartButton::class, ['product' => $product])
             ->call('add')
-            ->assertDispatched('cart-updated');
+            ->assertDispatched('cart-updated')
+            ->assertDispatched('rocha-meta-add-to-cart');
 
         $this->assertSame(1, app(CartManager::class)->count());
         $this->assertSame(8990, app(CartManager::class)->subtotalCents());
@@ -83,7 +84,8 @@ class CartTest extends TestCase
             ->call('selectVariants', ['Sabor' => 'Chocolate'])
             ->call('add')
             ->assertSet('quantity', 2)
-            ->assertDispatched('cart-updated');
+            ->assertDispatched('cart-updated')
+            ->assertDispatched('rocha-meta-add-to-cart');
 
         $item = app(CartManager::class)->items()->first();
         $this->assertSame(2, $item['quantity']);
@@ -96,7 +98,8 @@ class CartTest extends TestCase
 
         Livewire::test(ProductPurchaseBar::class, ['product' => $product])
             ->call('add')
-            ->assertNotDispatched('cart-updated');
+            ->assertNotDispatched('cart-updated')
+            ->assertNotDispatched('rocha-meta-add-to-cart');
 
         $this->assertSame(0, app(CartManager::class)->count());
     }

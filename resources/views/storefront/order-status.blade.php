@@ -7,6 +7,9 @@
         <div class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
             <p class="text-sm font-bold text-rocha-blue">Pedido {{ $order->code }}</p>
             <h1 class="mt-2 text-2xl font-bold leading-snug text-slate-950 md:text-3xl">Pedido realizado</h1>
+            @if ($order->payment_approved_at && in_array($order->payment_status, ['approved', 'paid'], true))
+                <div hidden data-meta-purchase data-order-id="{{ $order->id }}" data-event-id="purchase-{{ $order->id }}" data-value="{{ number_format($order->total_cents / 100, 2, '.', '') }}" data-num-items="{{ $order->items->sum('quantity') }}" data-content-ids="{{ $order->items->whereNotNull('product_id')->pluck('product_id')->implode(',') }}" data-currency="BRL"></div>
+            @endif
             <p class="mt-3 text-slate-600">{{ $order->payment_message }}</p>
 
             @if ($order->status === 'payment_pending' && ($order->mercado_pago_init_point || $order->mercado_pago_sandbox_init_point))

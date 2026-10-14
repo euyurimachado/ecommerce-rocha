@@ -1,3 +1,5 @@
+import { bindMetaPixelEvents, createMetaPixelTracker } from './meta-pixel.js';
+
 const STORAGE_KEY = 'rocha_cookie_preferences';
 
 const ignoredSentenceCaseElements = new Set(['SCRIPT', 'STYLE', 'CODE', 'PRE', 'TEXTAREA']);
@@ -165,6 +167,14 @@ const persistPreferences = (preferences) => {
 
     return payload;
 };
+
+const metaPixelTracker = createMetaPixelTracker({
+    windowRef: window,
+    documentRef: document,
+    readPreferences,
+});
+
+bindMetaPixelEvents(metaPixelTracker, { windowRef: window, documentRef: document });
 
 const initializeCookieConsent = () => {
     const banner = document.querySelector('[data-cookie-consent]');

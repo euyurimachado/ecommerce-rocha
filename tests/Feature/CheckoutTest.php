@@ -187,6 +187,14 @@ class CheckoutTest extends TestCase
         $product = $this->createProduct();
         app(CartManager::class)->add($product->id, 2);
 
+        $this->get(route('checkout'))
+            ->assertOk()
+            ->assertSee('data-meta-initiate-checkout', false)
+            ->assertSee('data-value="179.80"', false)
+            ->assertSee('data-num-items="2"', false)
+            ->assertSee('data-content-ids="'.$product->id.'"', false)
+            ->assertSee('data-currency="BRL"', false);
+
         Livewire::test(CheckoutPage::class)
             ->set('customer_name', 'Cliente Teste')
             ->set('customer_email', 'cliente@example.com')
@@ -227,7 +235,8 @@ class CheckoutTest extends TestCase
             ->assertOk()
             ->assertSee('Pedido realizado')
             ->assertSee('PIX Copia e Cola')
-            ->assertSee('Abrir instruções do PIX');
+            ->assertSee('Abrir instruções do PIX')
+            ->assertDontSee('data-meta-purchase');
     }
 
     public function test_approved_card_payment_advances_order_and_records_sale(): void
@@ -258,6 +267,12 @@ class CheckoutTest extends TestCase
         $this->assertSame('pay-card-approved', $order->mercado_pago_payment_id);
         $this->assertSame(1, $product->refresh()->sales_count);
         $this->assertSame(9, $product->stock_quantity);
+
+        $this->get(route('orders.status', ['order' => $order->code]))
+            ->assertOk()
+            ->assertSee('data-meta-purchase', false)
+            ->assertSee('data-value="89.90"', false)
+            ->assertSee('data-currency="BRL"', false);
 
         Livewire::test(CheckoutPage::class)
             ->assertSee($order->code)

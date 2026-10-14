@@ -4,7 +4,8 @@
     "type": "module",
     "scripts": {
         "build": "vite build",
-        "dev": "vite"
+        "dev": "vite",
+        "test:js": "node --test tests/js/meta-pixel.test.js"
     },
     "devDependencies": {
         "@fontsource/ubuntu": "^5.2.8",

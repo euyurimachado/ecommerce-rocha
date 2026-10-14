@@ -13,6 +13,8 @@ class ProductPageTest extends TestCase
 
     public function test_product_variation_option_can_reference_gallery_image(): void
     {
+        config(['services.meta.pixel_id' => '2203469027275142']);
+
         $category = Category::create([
             'name' => 'Whey Protein',
             'slug' => 'whey-protein',
@@ -49,6 +51,11 @@ class ProductPageTest extends TestCase
             ->assertOk()
             ->assertSee('data-variation-value="Baunilha"', false)
             ->assertSee('data-variation-image="'.asset('storage/products/gallery/whey-baunilha.jpg').'"', false)
+            ->assertSee('data-meta-pixel-id="2203469027275142"', false)
+            ->assertSee('data-meta-view-content', false)
+            ->assertSee('data-content-id="'.$product->id.'"', false)
+            ->assertSee('data-value="129.90"', false)
+            ->assertSee('data-currency="BRL"', false)
             ->assertSee('<strong>Segundo parágrafo em negrito.</strong>', false)
             ->assertDontSee('PAGE-001')
             ->assertDontSee('Estoque');

@@ -29,7 +29,7 @@
     @yield('schema')
 </head>
 @php($storefrontVariant = trim($__env->yieldContent('storefront_variant', 'default')))
-<body class="{{ $storefrontVariant === 'product' ? 'bg-white' : '' }} text-slate-950 antialiased" style="{{ $storefrontVariant === 'product' ? '' : 'background-color:var(--store-background)' }}">
+<body class="{{ $storefrontVariant === 'product' ? 'bg-white' : '' }} text-slate-950 antialiased" style="{{ $storefrontVariant === 'product' ? '' : 'background-color:var(--store-background)' }}" data-meta-pixel-id="{{ config('services.meta.pixel_id') }}">
     <div class="min-h-screen {{ $storefrontVariant === 'home' ? 'pb-24' : ($storefrontVariant === 'product' ? 'pb-24 md:pb-0' : 'pb-24') }} md:pb-0">
         <header class="sticky top-0 z-40 hidden border-b border-slate-200 bg-white/95 shadow-sm backdrop-blur md:block">
             <div class="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3 lg:px-6">

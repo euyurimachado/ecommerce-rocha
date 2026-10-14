@@ -22,6 +22,7 @@ class AddToCartButton extends Component
     public function add(CartManager $cart, array $variantSelections = [])
     {
         $this->stockError = null;
+        $subtotalBeforeCents = $cart->subtotalCents();
 
         try {
             $cart->add($this->product->id, variantSelections: $variantSelections);
@@ -31,6 +32,11 @@ class AddToCartButton extends Component
             return null;
         }
 
+        $this->dispatch('rocha-meta-add-to-cart',
+            contentId: (string) $this->product->id,
+            value: max(0, $cart->subtotalCents() - $subtotalBeforeCents) / 100,
+            quantity: 1,
+        );
         $this->dispatch('cart-updated');
 
         if ($this->redirectToCheckout) {

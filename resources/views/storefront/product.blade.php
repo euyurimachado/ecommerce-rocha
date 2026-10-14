@@ -20,7 +20,7 @@
     $discountPercentage = $hasDiscount ? round((1 - ($displayPriceCents / $displayCompareAtPriceCents)) * 100) : null;
 @endphp
 
-<div class="bg-white" data-product-page>
+<div class="bg-white" data-product-page data-meta-view-content data-content-id="{{ $product->id }}" data-content-name="{{ $product->name }}" data-value="{{ number_format($displayPriceCents / 100, 2, '.', '') }}" data-currency="BRL">
     <div class="relative h-[400px] bg-[#f4f4f4] md:mx-auto md:mt-8 md:grid md:h-auto md:max-w-7xl md:grid-cols-[minmax(0,1fr)_24rem] md:gap-8 md:bg-transparent md:px-4 lg:px-6">
         <div class="relative grid h-full min-w-0 place-items-center overflow-hidden md:aspect-[1.05/1] md:h-auto md:rounded-xl md:bg-slate-100">
             <a href="{{ url()->previous() !== url()->current() ? url()->previous() : route('home') }}" class="absolute left-4 top-4 z-20 grid size-9 place-items-center rounded-full bg-white text-slate-900 md:hidden" aria-label="Voltar"><x-rocha-icon name="chevron-left" class="size-4" /></a>
